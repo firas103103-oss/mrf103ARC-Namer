@@ -51,6 +51,12 @@ X-ARC-SECRET: your-secret-key-here
 
 Configure the same secret in your n8n HTTP Request nodes.
 
+### Security Notes
+
+- **Production Requirement:** In production (`NODE_ENV=production`), the `ARC_BACKEND_SECRET` environment variable **must** be set. The API will return a 500 error if it's missing.
+- **Development Mode:** In development, if `ARC_BACKEND_SECRET` is not set, requests are allowed (for testing convenience). A warning is logged.
+- **Sensitive Data:** Request bodies are not fully logged to prevent accidental exposure of sensitive data. Only safe metadata (event_id, agent_id, type, etc.) is logged.
+
 ## API Endpoints
 
 ### Health Check (No Auth Required)

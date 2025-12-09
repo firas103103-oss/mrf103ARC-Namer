@@ -19,8 +19,18 @@ function authMiddleware(req: Request, res: Response, next: NextFunction) {
   const secret = req.headers["x-arc-secret"];
   const expectedSecret = process.env.ARC_BACKEND_SECRET;
 
+  // In production, ARC_BACKEND_SECRET must be configured
+  // In development (NODE_ENV !== 'production'), allow requests if secret is not set
   if (!expectedSecret) {
-    console.warn("[AUTH] ARC_BACKEND_SECRET not configured - allowing request in development mode");
+    if (process.env.NODE_ENV === "production") {
+      console.error("[AUTH] CRITICAL: ARC_BACKEND_SECRET not configured in production!");
+      const errorResponse: ApiErrorResponse = {
+        status: "error",
+        message: "Server configuration error: Authentication not configured",
+      };
+      return res.status(500).json(errorResponse);
+    }
+    console.warn("[AUTH] ARC_BACKEND_SECRET not configured - allowing request (development mode only)");
     return next();
   }
 
@@ -35,10 +45,22 @@ function authMiddleware(req: Request, res: Response, next: NextFunction) {
   next();
 }
 
-// Request logging middleware
+// Request logging middleware - logs endpoint and summary info only (not full body to avoid leaking secrets)
 function logRequest(endpoint: string, body: unknown) {
   console.log(`[ARC API] ${new Date().toISOString()} - ${endpoint}`);
-  console.log(`[ARC API] Body:`, JSON.stringify(body, null, 2));
+  // Log only non-sensitive summary info
+  if (body && typeof body === "object") {
+    const summary: Record<string, unknown> = {};
+    const safeKeys = ["event_id", "agent_id", "type", "date", "rule_id", "status", "title", "severity", "source_agent_id"];
+    for (const key of safeKeys) {
+      if (key in body) {
+        summary[key] = (body as Record<string, unknown>)[key];
+      }
+    }
+    if (Object.keys(summary).length > 0) {
+      console.log(`[ARC API] Request summary:`, JSON.stringify(summary));
+    }
+  }
 }
 
 // Error response helper
