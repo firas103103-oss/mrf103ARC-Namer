@@ -37,6 +37,43 @@ export function log(message: string, source = "express") {
   console.log(`${formattedTime} [${source}] ${message}`);
 }
 
+// ==================== SECURITY MONITOR ====================
+let unauthorizedAttempts = 0;
+let lastUnauthorizedPath = "";
+
+// Reset and report every 24 hours
+setInterval(() => {
+  if (unauthorizedAttempts > 0) {
+    log(
+      `🧱 Security report: ${unauthorizedAttempts} unauthorized attempt(s) today (latest: ${lastUnauthorizedPath})`,
+      "security",
+    );
+    unauthorizedAttempts = 0;
+    lastUnauthorizedPath = "";
+  }
+}, 24 * 60 * 60 * 1000); // 24 hours
+
+// ==================== SECURITY MIDDLEWARE ====================
+// Protect all /api routes using ARC_BACKEND_SECRET
+app.use("/api", (req: Request, res: Response, next: NextFunction) => {
+  const clientSecret = req.headers["x-arc-secret"];
+  const serverSecret = process.env.ARC_BACKEND_SECRET;
+
+  if (!serverSecret) {
+    log("⚠️ ARC_BACKEND_SECRET not configured in environment!", "security");
+    return res.status(500).json({ error: "Server misconfigured: missing ARC_BACKEND_SECRET" });
+  }
+
+  if (!clientSecret || clientSecret !== serverSecret) {
+    unauthorizedAttempts += 1;
+    lastUnauthorizedPath = req.path;
+    log(`⛔ Unauthorized attempt #${unauthorizedAttempts} → ${req.path}`, "security");
+    return res.status(401).json({ error: "Unauthorized: invalid ARC secret" });
+  }
+
+  next();
+});
+
 // ==================== REQUEST LOGGER ====================
 app.use((req, res, next) => {
   const start = Date.now();
@@ -144,8 +181,18 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
 
 // ==================== STATIC FILES / FRONTEND ====================
 if (process.env.NODE_ENV === "production") {
-  app.use(express.static("dist"));
-  app.get("*", (_req, res) => res.sendFile("dist/index.html"));
+  app.use(express.static("dist/public"));
+
+  app.get("*", (_req, res) => {
+    res.sendFile("index.html", { root: "dist/public" }, (err) => {
+      if (err) {
+        log(`❌ Error serving index.html: ${err.message}`, "static");
+        res.status(200).json({ status: "ok", message: "ARC Bridge active (no frontend found)" });
+      }
+    });
+  });
+
+  log("Production static serving enabled", "vite");
 } else {
   log("Development mode active, no static serving.", "vite");
 }
