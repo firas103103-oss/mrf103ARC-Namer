@@ -2,6 +2,7 @@ import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import OpenAI from "openai";
+import { createClient } from "@supabase/supabase-js";
 import {
   agentEventSchema,
   ceoReminderSchema,
@@ -365,6 +366,147 @@ export async function registerRoutes(
     }
   });
 
+  // ============================================
+  // MrF Brain & Agent Summary Routes (ChatGPT Integration)
+  // ============================================
+
+  // POST /api/arc/agents/mrf-brain
+  // Relay messages from ChatGPT (Mr.F Brain GPT) to n8n webhook
+  app.post("/api/arc/agents/mrf-brain", async (req: Request, res: Response) => {
+    try {
+      logRequest("POST /api/arc/agents/mrf-brain", req.body);
+
+      const { from, free_text } = req.body;
+
+      // Validate required field
+      if (!free_text || typeof free_text !== "string") {
+        return res.status(400).json({ error: "free_text is required" });
+      }
+
+      // Build payload for n8n webhook
+      const payload = {
+        agent_id: "MRF_BRAIN_GPT",
+        message_type: "external_chat",
+        content: free_text,
+        source: "chatgpt",
+        from: from || "chatgpt",
+      };
+
+      // Call n8n webhook
+      const n8nWebhookUrl = "https://feras102.app.n8n.cloud/webhook/agent-message";
+
+      const n8nResponse = await fetch(n8nWebhookUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!n8nResponse.ok) {
+        console.error(`[API] n8n webhook failed with status: ${n8nResponse.status}`);
+        return res.status(502).json({ error: "n8n_unreachable" });
+      }
+
+      // Success response to ChatGPT
+      res.status(200).json({
+        agent_id: "MRF_BRAIN_GPT",
+        raw_answer: "تم استلام طلبك وإرساله إلى نظام Mr.F Enterprise OS (n8n + Supabase) لمعالجته وتشغيل الأوتوميشنز.",
+      });
+    } catch (error) {
+      console.error("[API] Error in mrf-brain:", error);
+      res.status(502).json({ error: "n8n_unreachable" });
+    }
+  });
+
+  // POST /api/arc/agents/summary
+  // Query Supabase for agent activity summary
+  app.post("/api/arc/agents/summary", async (req: Request, res: Response) => {
+    try {
+      logRequest("POST /api/arc/agents/summary", req.body);
+
+      const { agent_id, days = 7 } = req.body;
+
+      // Validate required field
+      if (!agent_id || typeof agent_id !== "string") {
+        return res.status(400).json({ error: "agent_id is required" });
+      }
+
+      // Check Supabase configuration
+      const supabaseUrl = process.env.SUPABASE_URL;
+      const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
+
+      if (!supabaseUrl || !supabaseKey) {
+        console.error("[API] Supabase not configured - missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY");
+        return res.status(500).json({ error: "Supabase_not_configured" });
+      }
+
+      // Initialize Supabase client
+      const supabase = createClient(supabaseUrl, supabaseKey);
+
+      // Calculate date range
+      const daysInt = parseInt(String(days), 10) || 7;
+      const fromDate = new Date();
+      fromDate.setDate(fromDate.getDate() - daysInt);
+
+      // Query arc_message_archive table
+      const { data, error } = await supabase
+        .from("arc_message_archive")
+        .select("*")
+        .eq("agent_id", agent_id)
+        .gte("created_at", fromDate.toISOString())
+        .order("created_at", { ascending: false })
+        .limit(100);
+
+      if (error) {
+        console.error("[API] Supabase query failed:", error);
+        return res.status(500).json({ error: "Supabase_query_failed" });
+      }
+
+      const messages = data || [];
+
+      // Compute summary statistics
+      const totalMessages = messages.length;
+
+      // Get first and last message timestamps
+      const firstMessageAt = messages.length > 0 
+        ? messages[messages.length - 1].created_at 
+        : null;
+      const lastMessageAt = messages.length > 0 
+        ? messages[0].created_at 
+        : null;
+
+      // Count by message_type
+      const byType: Record<string, number> = {};
+      for (const msg of messages) {
+        const msgType = msg.message_type || "unknown";
+        byType[msgType] = (byType[msgType] || 0) + 1;
+      }
+
+      // Get recent examples (up to 3)
+      const recentExamples = messages.slice(0, 3).map((msg) => ({
+        created_at: msg.created_at,
+        content_preview: msg.content 
+          ? String(msg.content).substring(0, 120) 
+          : "",
+      }));
+
+      // Send response
+      res.status(200).json({
+        agent_id,
+        total_messages: totalMessages,
+        from_days: daysInt,
+        first_message_at: firstMessageAt,
+        last_message_at: lastMessageAt,
+        by_type: byType,
+        recent_examples: recentExamples,
+      });
+    } catch (error) {
+      console.error("[API] Error in summary:", error);
+      res.status(500).json({ error: "Supabase_query_failed" });
+    }
+  });
+
   // Health check endpoint
   app.get("/api/health", (_req: Request, res: Response) => {
     res.json({
@@ -376,3 +518,24 @@ export async function registerRoutes(
 
   return httpServer;
 }
+
+// ============================================
+// SELF-TEST COMMANDS (for reference)
+// ============================================
+//
+// 1) Test mrf-brain relay:
+//
+// curl -X POST \
+//   -H "Content-Type: application/json" \
+//   -H "X-ARC-SECRET: <SAME_SECRET_IN_ENV>" \
+//   -d '{"from":"test","free_text":"hello from test"}' \
+//   https://arc-namer--firas103103.replit.app/api/arc/agents/mrf-brain
+//
+// 2) Test summary:
+//
+// curl -X POST \
+//   -H "Content-Type: application/json" \
+//   -H "X-ARC-SECRET: <SAME_SECRET_IN_ENV>" \
+//   -d '{"agent_id":"ARC-L1-FIN-CEO-0001","days":7}' \
+//   https://arc-namer--firas103103.replit.app/api/arc/agents/summary
+//

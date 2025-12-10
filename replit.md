@@ -54,12 +54,15 @@ Preferred communication style: Simple, everyday language.
 ### Core Services
 - **PostgreSQL**: Database (via Drizzle ORM) - requires `DATABASE_URL` environment variable
 - **n8n Workflows**: Primary consumer of the API endpoints - sends agent events and receives responses
+  - Webhook URL: `https://feras102.app.n8n.cloud/webhook/agent-message`
+- **Supabase**: Used for `arc_message_archive` table queries
+  - Requires `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` (or `SUPABASE_ANON_KEY`)
+- **OpenAI**: Powers the Virtual Office AI agents
+  - Requires `OPENAI_API_KEY`
 
 ### Authentication
 - **Static Secret Header**: `ARC_BACKEND_SECRET` environment variable for API authentication
-
-### Optional Integrations (Referenced in README)
-- **Supabase**: Optional for MVP - requires `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` environment variables
+- All `/api/arc/*` endpoints require `X-ARC-SECRET` header matching the secret
 
 ### Key NPM Packages
 - `express`: Web framework
@@ -67,3 +70,48 @@ Preferred communication style: Simple, everyday language.
 - `zod`: Schema validation
 - `tsx`: TypeScript execution for development
 - `esbuild` + `vite`: Production build tooling
+
+## API Endpoints
+
+### ChatGPT Integration Endpoints (Mr.F Brain)
+
+**POST /api/arc/agents/mrf-brain**
+- Purpose: Relay messages from ChatGPT (Mr.F Brain GPT) to n8n webhook
+- Headers: `X-ARC-SECRET: <ARC_BACKEND_SECRET>`
+- Request body:
+  ```json
+  {
+    "from": "chatgpt",
+    "free_text": "user message..."
+  }
+  ```
+- Response: `{ "agent_id": "MRF_BRAIN_GPT", "raw_answer": "..." }`
+
+**POST /api/arc/agents/summary**
+- Purpose: Query Supabase for agent activity summary
+- Headers: `X-ARC-SECRET: <ARC_BACKEND_SECRET>`
+- Request body:
+  ```json
+  {
+    "agent_id": "ARC-L1-FIN-CEO-0001",
+    "days": 7
+  }
+  ```
+- Response: Agent summary with message counts, timestamps, and recent examples
+
+### Virtual Office Endpoints
+
+**GET /api/agents** - Get all virtual agents
+**GET /api/conversations** - Get all conversations
+**POST /api/conversations** - Create new conversation
+**GET /api/conversations/:id/messages** - Get messages for a conversation
+**POST /api/chat** - Send chat message to selected agents
+
+### ARC System Endpoints (n8n Integration)
+
+**POST /api/arc/agent-events** - Ingest agent events
+**POST /api/arc/ceo-reminders** - Handle CEO reminders
+**POST /api/arc/executive-summary** - Generate executive summary
+**POST /api/arc/governance/notify** - Governance notifications
+**POST /api/arc/rules/broadcast** - Rule broadcasts
+**POST /api/arc/notifications/high** - High priority notifications
