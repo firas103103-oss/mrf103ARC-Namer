@@ -1,6 +1,7 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import OpenAI from "openai";
 import {
   agentEventSchema,
   ceoReminderSchema,
@@ -8,19 +9,25 @@ import {
   governanceNotificationSchema,
   ruleBroadcastSchema,
   highPriorityNotificationSchema,
+  chatRequestSchema,
+  conversationSchema,
+  VIRTUAL_AGENTS,
   type ExecutiveSummaryResponse,
   type ApiSuccessResponse,
   type ApiErrorResponse,
+  type AgentType,
+  type ChatMessage,
 } from "@shared/schema";
 import { ZodError } from "zod";
 
-// Authentication middleware
+// the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+// Authentication middleware for ARC routes
 function authMiddleware(req: Request, res: Response, next: NextFunction) {
   const secret = req.headers["x-arc-secret"];
   const expectedSecret = process.env.ARC_BACKEND_SECRET;
 
-  // In production, ARC_BACKEND_SECRET must be configured
-  // In development (NODE_ENV !== 'production'), allow requests if secret is not set
   if (!expectedSecret) {
     if (process.env.NODE_ENV === "production") {
       console.error("[AUTH] CRITICAL: ARC_BACKEND_SECRET not configured in production!");
@@ -45,20 +52,19 @@ function authMiddleware(req: Request, res: Response, next: NextFunction) {
   next();
 }
 
-// Request logging middleware - logs endpoint and summary info only (not full body to avoid leaking secrets)
+// Request logging middleware
 function logRequest(endpoint: string, body: unknown) {
-  console.log(`[ARC API] ${new Date().toISOString()} - ${endpoint}`);
-  // Log only non-sensitive summary info
+  console.log(`[API] ${new Date().toISOString()} - ${endpoint}`);
   if (body && typeof body === "object") {
     const summary: Record<string, unknown> = {};
-    const safeKeys = ["event_id", "agent_id", "type", "date", "rule_id", "status", "title", "severity", "source_agent_id"];
+    const safeKeys = ["event_id", "agent_id", "type", "date", "rule_id", "status", "title", "severity", "source_agent_id", "conversationId", "activeAgents"];
     for (const key of safeKeys) {
       if (key in body) {
         summary[key] = (body as Record<string, unknown>)[key];
       }
     }
     if (Object.keys(summary).length > 0) {
-      console.log(`[ARC API] Request summary:`, JSON.stringify(summary));
+      console.log(`[API] Request summary:`, JSON.stringify(summary));
     }
   }
 }
@@ -91,19 +97,156 @@ export async function registerRoutes(
   app.use("/api/arc", authMiddleware);
 
   // ============================================
-  // 1. Agent Events Ingest
-  // POST /api/arc/agent-events
+  // Virtual Office Chat Routes
   // ============================================
+  
+  // Get all agents
+  app.get("/api/agents", (_req: Request, res: Response) => {
+    sendSuccess(res, VIRTUAL_AGENTS);
+  });
+
+  // Get all conversations
+  app.get("/api/conversations", async (_req: Request, res: Response) => {
+    try {
+      const conversations = await storage.getConversations();
+      sendSuccess(res, conversations);
+    } catch (error) {
+      console.error("[API] Error getting conversations:", error);
+      sendError(res, 500, "Failed to get conversations");
+    }
+  });
+
+  // Create a new conversation
+  app.post("/api/conversations", async (req: Request, res: Response) => {
+    try {
+      logRequest("POST /api/conversations", req.body);
+      const parsed = conversationSchema.parse(req.body);
+      const conversation = await storage.createConversation(parsed);
+      sendSuccess(res, conversation);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        sendError(res, 400, "Validation error", error.errors);
+      } else {
+        console.error("[API] Error creating conversation:", error);
+        sendError(res, 500, "Failed to create conversation");
+      }
+    }
+  });
+
+  // Get messages for a conversation
+  app.get("/api/conversations/:id/messages", async (req: Request, res: Response) => {
+    try {
+      const messages = await storage.getMessages(req.params.id);
+      sendSuccess(res, messages);
+    } catch (error) {
+      console.error("[API] Error getting messages:", error);
+      sendError(res, 500, "Failed to get messages");
+    }
+  });
+
+  // Send a chat message and get AI responses
+  app.post("/api/chat", async (req: Request, res: Response) => {
+    try {
+      logRequest("POST /api/chat", req.body);
+      const parsed = chatRequestSchema.parse(req.body);
+
+      let conversationId = parsed.conversationId;
+
+      // Create conversation if needed
+      if (!conversationId) {
+        const conversation = await storage.createConversation({
+          title: parsed.message.substring(0, 50) + (parsed.message.length > 50 ? "..." : ""),
+          activeAgents: parsed.activeAgents,
+        });
+        conversationId = conversation.id;
+      }
+
+      // Store user message
+      const userMessage: ChatMessage = {
+        role: "user",
+        content: parsed.message,
+        timestamp: new Date().toISOString(),
+      };
+      await storage.addMessage(conversationId, userMessage);
+
+      // Get conversation history for context
+      const history = await storage.getMessages(conversationId);
+      const historyMessages = history.slice(-10).map(msg => ({
+        role: msg.role as "user" | "assistant",
+        content: msg.agentId 
+          ? `[${VIRTUAL_AGENTS.find(a => a.id === msg.agentId)?.name || msg.agentId}]: ${msg.content}`
+          : msg.content,
+      }));
+
+      // Get responses from each active agent
+      const agentResponses: { agentId: AgentType; name: string; content: string }[] = [];
+
+      for (const agentId of parsed.activeAgents) {
+        const agent = VIRTUAL_AGENTS.find(a => a.id === agentId);
+        if (!agent) continue;
+
+        try {
+          const response = await openai.chat.completions.create({
+            model: "gpt-5",
+            messages: [
+              { role: "system", content: agent.systemPrompt + "\n\nYou are part of a virtual office team. Be concise but helpful. If other agents are in the conversation, acknowledge their expertise when relevant but focus on your specialty." },
+              ...historyMessages,
+              { role: "user", content: parsed.message },
+            ],
+            max_completion_tokens: 1024,
+          });
+
+          const content = response.choices[0].message.content || "I apologize, I could not generate a response.";
+          
+          // Store agent response
+          const assistantMessage: ChatMessage = {
+            role: "assistant",
+            content,
+            agentId,
+            timestamp: new Date().toISOString(),
+          };
+          await storage.addMessage(conversationId, assistantMessage);
+
+          agentResponses.push({
+            agentId,
+            name: agent.name,
+            content,
+          });
+        } catch (aiError) {
+          console.error(`[API] OpenAI error for agent ${agentId}:`, aiError);
+          agentResponses.push({
+            agentId,
+            name: agent.name,
+            content: "I'm having trouble connecting right now. Please try again.",
+          });
+        }
+      }
+
+      sendSuccess(res, {
+        conversationId,
+        responses: agentResponses,
+      });
+    } catch (error) {
+      if (error instanceof ZodError) {
+        sendError(res, 400, "Validation error", error.errors);
+      } else {
+        console.error("[API] Error in chat:", error);
+        sendError(res, 500, "Failed to process chat message");
+      }
+    }
+  });
+
+  // ============================================
+  // ARC API Routes (existing)
+  // ============================================
+
+  // 1. Agent Events Ingest
   app.post("/api/arc/agent-events", async (req: Request, res: Response) => {
     try {
       logRequest("POST /api/arc/agent-events", req.body);
-
       const parsed = agentEventSchema.parse(req.body);
       const stored = await storage.storeAgentEvent(parsed);
-
       console.log(`[ARC API] Agent event stored with ID: ${stored.id}`);
-      console.log(`[ARC API] Event type: ${parsed.type}, Agent: ${parsed.agent_id}`);
-
       sendSuccess(res);
     } catch (error) {
       if (error instanceof ZodError) {
@@ -115,21 +258,13 @@ export async function registerRoutes(
     }
   });
 
-  // ============================================
   // 2. CEO Reminders
-  // POST /api/arc/ceo-reminders
-  // ============================================
   app.post("/api/arc/ceo-reminders", async (req: Request, res: Response) => {
     try {
       logRequest("POST /api/arc/ceo-reminders", req.body);
-
       const parsed = ceoReminderSchema.parse(req.body);
       const stored = await storage.storeCeoReminder(parsed);
-
       console.log(`[ARC API] CEO reminder stored with ID: ${stored.id}`);
-      console.log(`[ARC API] Date: ${parsed.date}, Missing CEOs: ${parsed.missing_ceos.join(", ")}`);
-
-      // Future: Trigger email/WhatsApp/internal messaging here
       sendSuccess(res);
     } catch (error) {
       if (error instanceof ZodError) {
@@ -141,18 +276,12 @@ export async function registerRoutes(
     }
   });
 
-  // ============================================
   // 3. Executive Summary Generator
-  // POST /api/arc/executive-summary
-  // ============================================
   app.post("/api/arc/executive-summary", async (req: Request, res: Response) => {
     try {
       logRequest("POST /api/arc/executive-summary", req.body);
-
       const parsed = executiveSummaryRequestSchema.parse(req.body);
 
-      // MVP: Generate a dummy summary by concatenating reports
-      // TODO: Plug in LLM for smart summary generation
       const reportTexts = parsed.reports.map(r => `[${r.ceo_id}]: ${r.text}`).join("\n\n");
       
       const summaryResponse: ExecutiveSummaryResponse = {
@@ -169,12 +298,8 @@ export async function registerRoutes(
         ],
       };
 
-      // Store the generated summary
       await storage.storeExecutiveSummary(parsed.date, summaryResponse);
-
       console.log(`[ARC API] Executive summary generated for date: ${parsed.date}`);
-      console.log(`[ARC API] Processed ${parsed.reports.length} CEO reports`);
-
       sendSuccess(res, summaryResponse);
     } catch (error) {
       if (error instanceof ZodError) {
@@ -186,21 +311,13 @@ export async function registerRoutes(
     }
   });
 
-  // ============================================
-  // 4. Governance Notifications (Harvey Specter)
-  // POST /api/arc/governance/notify
-  // ============================================
+  // 4. Governance Notifications
   app.post("/api/arc/governance/notify", async (req: Request, res: Response) => {
     try {
       logRequest("POST /api/arc/governance/notify", req.body);
-
       const parsed = governanceNotificationSchema.parse(req.body);
       const stored = await storage.storeGovernanceNotification(parsed);
-
       console.log(`[ARC API] Governance notification stored with ID: ${stored.id}`);
-      console.log(`[ARC API] Rule: ${parsed.rule_id}, Status: ${parsed.status}, Title: ${parsed.title}`);
-      console.log(`[ARC API] Proposer: ${parsed.proposer_agent_id}`);
-
       sendSuccess(res);
     } catch (error) {
       if (error instanceof ZodError) {
@@ -212,21 +329,13 @@ export async function registerRoutes(
     }
   });
 
-  // ============================================
   // 5. Rule Broadcast
-  // POST /api/arc/rules/broadcast
-  // ============================================
   app.post("/api/arc/rules/broadcast", async (req: Request, res: Response) => {
     try {
       logRequest("POST /api/arc/rules/broadcast", req.body);
-
       const parsed = ruleBroadcastSchema.parse(req.body);
       const stored = await storage.storeRuleBroadcast(parsed);
-
       console.log(`[ARC API] Rule broadcast stored with ID: ${stored.id}`);
-      console.log(`[ARC API] Rule: ${parsed.rule_id}, Status: ${parsed.status}, Effective: ${parsed.effective_at}`);
-
-      // Future: Push config updates to actual agents here
       sendSuccess(res);
     } catch (error) {
       if (error instanceof ZodError) {
@@ -238,21 +347,13 @@ export async function registerRoutes(
     }
   });
 
-  // ============================================
   // 6. High Priority Notification
-  // POST /api/arc/notifications/high
-  // ============================================
   app.post("/api/arc/notifications/high", async (req: Request, res: Response) => {
     try {
       logRequest("POST /api/arc/notifications/high", req.body);
-
       const parsed = highPriorityNotificationSchema.parse(req.body);
       const stored = await storage.storeHighPriorityNotification(parsed);
-
       console.log(`[ARC API] High priority notification stored with ID: ${stored.id}`);
-      console.log(`[ARC API] Source: ${parsed.source_agent_id}, Severity: ${parsed.severity}`);
-      console.log(`[ARC API] Title: ${parsed.title}`);
-
       sendSuccess(res);
     } catch (error) {
       if (error instanceof ZodError) {
@@ -264,13 +365,11 @@ export async function registerRoutes(
     }
   });
 
-  // ============================================
-  // Health check endpoint (no auth required)
-  // ============================================
+  // Health check endpoint
   app.get("/api/health", (_req: Request, res: Response) => {
     res.json({
       status: "ok",
-      service: "ARC Backend API",
+      service: "Virtual Office API",
       timestamp: new Date().toISOString(),
     });
   });
