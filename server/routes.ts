@@ -390,32 +390,63 @@ export async function registerRoutes(
         content: free_text,
         source: "chatgpt",
         from: from || "chatgpt",
+        timestamp: new Date().toISOString(),
       };
 
-      // Call n8n webhook
-      const n8nWebhookUrl = "https://feras102.app.n8n.cloud/webhook/agent-message";
+      // Call n8n webhook (use env var or default)
+      const n8nWebhookUrl = process.env.N8N_WEBHOOK_URL || "https://feras102.app.n8n.cloud/webhook/agent-message";
 
-      const n8nResponse = await fetch(n8nWebhookUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
+      let n8nStatus = "pending";
+      let n8nError = null;
 
-      if (!n8nResponse.ok) {
-        console.error(`[API] n8n webhook failed with status: ${n8nResponse.status}`);
-        return res.status(502).json({ error: "n8n_unreachable" });
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 10000); // 10s timeout
+
+        const n8nResponse = await fetch(n8nWebhookUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+          signal: controller.signal,
+        });
+
+        clearTimeout(timeout);
+
+        if (n8nResponse.ok) {
+          n8nStatus = "delivered";
+          console.log("[API] Message successfully delivered to n8n");
+        } else {
+          n8nStatus = "failed";
+          n8nError = `n8n returned status ${n8nResponse.status}`;
+          console.warn(`[API] n8n webhook returned status: ${n8nResponse.status}`);
+        }
+      } catch (err: any) {
+        n8nStatus = "failed";
+        n8nError = err.message;
+        console.warn(`[API] n8n webhook error: ${err.message}`);
       }
 
-      // Success response to ChatGPT
+      // Always return success to ChatGPT with status info
       res.status(200).json({
         agent_id: "MRF_BRAIN_GPT",
-        raw_answer: "تم استلام طلبك وإرساله إلى نظام Mr.F Enterprise OS (n8n + Supabase) لمعالجته وتشغيل الأوتوميشنز.",
+        raw_answer: n8nStatus === "delivered" 
+          ? "Message received and delivered to Mr.F Enterprise OS successfully."
+          : "Message received. Note: n8n delivery is pending/delayed.",
+        status: n8nStatus,
+        n8n_error: n8nError,
+        received_at: new Date().toISOString(),
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("[API] Error in mrf-brain:", error);
-      res.status(502).json({ error: "n8n_unreachable" });
+      // Still return a response to ChatGPT
+      res.status(200).json({
+        agent_id: "MRF_BRAIN_GPT",
+        raw_answer: "Message received but processing encountered an error.",
+        status: "error",
+        error: error.message,
+      });
     }
   });
 
@@ -436,16 +467,27 @@ export async function registerRoutes(
       const supabaseUrl = process.env.SUPABASE_URL;
       const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
 
+      const daysInt = parseInt(String(days), 10) || 7;
+
+      // If Supabase not configured, return mock data
       if (!supabaseUrl || !supabaseKey) {
-        console.error("[API] Supabase not configured - missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY");
-        return res.status(500).json({ error: "Supabase_not_configured" });
+        console.warn("[API] Supabase not configured - returning mock summary");
+        return res.status(200).json({
+          agent_id,
+          total_messages: 0,
+          from_days: daysInt,
+          first_message_at: null,
+          last_message_at: null,
+          by_type: {},
+          recent_examples: [],
+          note: "Supabase not configured - no data available"
+        });
       }
 
       // Initialize Supabase client
       const supabase = createClient(supabaseUrl, supabaseKey);
 
       // Calculate date range
-      const daysInt = parseInt(String(days), 10) || 7;
       const fromDate = new Date();
       fromDate.setDate(fromDate.getDate() - daysInt);
 
@@ -459,6 +501,20 @@ export async function registerRoutes(
         .limit(100);
 
       if (error) {
+        // If table doesn't exist, return empty result instead of error
+        if (error.code === 'PGRST205') {
+          console.warn("[API] arc_message_archive table not found - returning empty summary");
+          return res.status(200).json({
+            agent_id,
+            total_messages: 0,
+            from_days: daysInt,
+            first_message_at: null,
+            last_message_at: null,
+            by_type: {},
+            recent_examples: [],
+            note: "arc_message_archive table not found in Supabase"
+          });
+        }
         console.error("[API] Supabase query failed:", error);
         return res.status(500).json({ error: "Supabase_query_failed" });
       }
