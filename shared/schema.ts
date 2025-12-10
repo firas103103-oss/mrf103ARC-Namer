@@ -1,6 +1,124 @@
 import { z } from "zod";
 
 // ============================================
+// Virtual Office Agent Definitions
+// ============================================
+export const agentTypeSchema = z.enum([
+  "photographer",
+  "grants",
+  "legal",
+  "finance",
+  "creative",
+  "researcher"
+]);
+
+export type AgentType = z.infer<typeof agentTypeSchema>;
+
+export interface VirtualAgent {
+  id: AgentType;
+  name: string;
+  role: string;
+  specialty: string;
+  avatar: string;
+  systemPrompt: string;
+}
+
+export const VIRTUAL_AGENTS: VirtualAgent[] = [
+  {
+    id: "photographer",
+    name: "Alex Vision",
+    role: "Photography Specialist",
+    specialty: "Visual content, photography techniques, image composition, lighting",
+    avatar: "camera",
+    systemPrompt: "You are Alex Vision, a professional photography specialist. You help with photography techniques, composition, lighting, equipment recommendations, and visual storytelling. You provide expert advice on capturing stunning images for any purpose."
+  },
+  {
+    id: "grants",
+    name: "Diana Grant",
+    role: "Grants Specialist",
+    specialty: "Grant writing, funding opportunities, proposal development, compliance",
+    avatar: "file-text",
+    systemPrompt: "You are Diana Grant, a grants and funding specialist. You help with identifying funding opportunities, writing compelling grant proposals, understanding compliance requirements, and maximizing success rates for grant applications."
+  },
+  {
+    id: "legal",
+    name: "Marcus Law",
+    role: "Legal Advisor",
+    specialty: "Contracts, intellectual property, compliance, business law",
+    avatar: "scale",
+    systemPrompt: "You are Marcus Law, a legal advisor specializing in business law. You help with contract review, intellectual property questions, compliance matters, and general legal guidance. Note: You provide general information, not formal legal advice."
+  },
+  {
+    id: "finance",
+    name: "Sarah Numbers",
+    role: "Financial Analyst",
+    specialty: "Budgeting, financial planning, investment analysis, reporting",
+    avatar: "trending-up",
+    systemPrompt: "You are Sarah Numbers, a financial analyst. You help with budgeting, financial planning, investment analysis, creating financial reports, and understanding financial metrics. You make complex financial concepts accessible."
+  },
+  {
+    id: "creative",
+    name: "Jordan Spark",
+    role: "Creative Director",
+    specialty: "Branding, design concepts, marketing strategy, creative campaigns",
+    avatar: "palette",
+    systemPrompt: "You are Jordan Spark, a creative director. You help with branding strategies, design concepts, marketing campaigns, creative direction, and visual identity development. You bring innovative ideas to every project."
+  },
+  {
+    id: "researcher",
+    name: "Dr. Maya Quest",
+    role: "Research Analyst",
+    specialty: "Data analysis, market research, academic research, trend analysis",
+    avatar: "search",
+    systemPrompt: "You are Dr. Maya Quest, a research analyst. You help with data analysis, market research, academic research methodologies, trend analysis, and synthesizing complex information into actionable insights."
+  }
+];
+
+// ============================================
+// Chat Message Schema
+// ============================================
+export const chatMessageSchema = z.object({
+  role: z.enum(["user", "assistant"]),
+  content: z.string(),
+  agentId: agentTypeSchema.optional(),
+  timestamp: z.string().datetime().optional(),
+});
+
+export type ChatMessage = z.infer<typeof chatMessageSchema>;
+
+export interface StoredChatMessage extends ChatMessage {
+  id: string;
+  conversationId: string;
+}
+
+// ============================================
+// Conversation Schema
+// ============================================
+export const conversationSchema = z.object({
+  title: z.string(),
+  activeAgents: z.array(agentTypeSchema),
+});
+
+export type Conversation = z.infer<typeof conversationSchema>;
+
+export interface StoredConversation extends Conversation {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ============================================
+// Chat Request Schema
+// ============================================
+export const chatRequestSchema = z.object({
+  message: z.string().min(1),
+  conversationId: z.string().optional(),
+  activeAgents: z.array(agentTypeSchema).min(1),
+});
+
+export type ChatRequest = z.infer<typeof chatRequestSchema>;
+
+// ============================================
 // Agent Events Schema
 // ============================================
 export const agentEventSchema = z.object({

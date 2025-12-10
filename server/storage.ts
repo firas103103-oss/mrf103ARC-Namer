@@ -12,6 +12,10 @@ import type {
   RuleBroadcast,
   StoredHighPriorityNotification,
   HighPriorityNotification,
+  StoredChatMessage,
+  ChatMessage,
+  StoredConversation,
+  Conversation,
 } from "@shared/schema";
 
 export interface IStorage {
@@ -38,6 +42,16 @@ export interface IStorage {
   // High Priority Notifications
   storeHighPriorityNotification(notification: HighPriorityNotification): Promise<StoredHighPriorityNotification>;
   getHighPriorityNotifications(): Promise<StoredHighPriorityNotification[]>;
+
+  // Chat Conversations
+  createConversation(conversation: Conversation): Promise<StoredConversation>;
+  getConversation(id: string): Promise<StoredConversation | undefined>;
+  getConversations(): Promise<StoredConversation[]>;
+  updateConversation(id: string, updates: Partial<Conversation>): Promise<StoredConversation | undefined>;
+
+  // Chat Messages
+  addMessage(conversationId: string, message: ChatMessage): Promise<StoredChatMessage>;
+  getMessages(conversationId: string): Promise<StoredChatMessage[]>;
 }
 
 export class MemStorage implements IStorage {
@@ -47,6 +61,8 @@ export class MemStorage implements IStorage {
   private governanceNotifications: Map<string, StoredGovernanceNotification>;
   private ruleBroadcasts: Map<string, StoredRuleBroadcast>;
   private highPriorityNotifications: Map<string, StoredHighPriorityNotification>;
+  private conversations: Map<string, StoredConversation>;
+  private chatMessages: Map<string, StoredChatMessage>;
 
   constructor() {
     this.agentEvents = new Map();
@@ -55,6 +71,8 @@ export class MemStorage implements IStorage {
     this.governanceNotifications = new Map();
     this.ruleBroadcasts = new Map();
     this.highPriorityNotifications = new Map();
+    this.conversations = new Map();
+    this.chatMessages = new Map();
   }
 
   // Agent Events
@@ -152,6 +170,66 @@ export class MemStorage implements IStorage {
 
   async getHighPriorityNotifications(): Promise<StoredHighPriorityNotification[]> {
     return Array.from(this.highPriorityNotifications.values());
+  }
+
+  // Chat Conversations
+  async createConversation(conversation: Conversation): Promise<StoredConversation> {
+    const id = randomUUID();
+    const now = new Date().toISOString();
+    const stored: StoredConversation = {
+      ...conversation,
+      id,
+      createdAt: now,
+      updatedAt: now,
+    };
+    this.conversations.set(id, stored);
+    return stored;
+  }
+
+  async getConversation(id: string): Promise<StoredConversation | undefined> {
+    return this.conversations.get(id);
+  }
+
+  async getConversations(): Promise<StoredConversation[]> {
+    return Array.from(this.conversations.values()).sort(
+      (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+    );
+  }
+
+  async updateConversation(id: string, updates: Partial<Conversation>): Promise<StoredConversation | undefined> {
+    const existing = this.conversations.get(id);
+    if (!existing) return undefined;
+    
+    const updated: StoredConversation = {
+      ...existing,
+      ...updates,
+      updatedAt: new Date().toISOString(),
+    };
+    this.conversations.set(id, updated);
+    return updated;
+  }
+
+  // Chat Messages
+  async addMessage(conversationId: string, message: ChatMessage): Promise<StoredChatMessage> {
+    const id = randomUUID();
+    const stored: StoredChatMessage = {
+      ...message,
+      id,
+      conversationId,
+      timestamp: message.timestamp || new Date().toISOString(),
+    };
+    this.chatMessages.set(id, stored);
+    
+    // Update conversation's updatedAt
+    await this.updateConversation(conversationId, {});
+    
+    return stored;
+  }
+
+  async getMessages(conversationId: string): Promise<StoredChatMessage[]> {
+    return Array.from(this.chatMessages.values())
+      .filter(msg => msg.conversationId === conversationId)
+      .sort((a, b) => new Date(a.timestamp || 0).getTime() - new Date(b.timestamp || 0).getTime());
   }
 }
 
