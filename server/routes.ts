@@ -403,11 +403,21 @@ export async function registerRoutes(
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 10000); // 10s timeout
 
+        // Build headers with optional API key authentication
+        const headers: Record<string, string> = {
+          "Content-Type": "application/json",
+        };
+        
+        // Add n8n API key if configured
+        const n8nApiKey = process.env.N8N_API_KEY;
+        if (n8nApiKey) {
+          headers["Authorization"] = `Bearer ${n8nApiKey}`;
+          headers["X-N8N-API-KEY"] = n8nApiKey;
+        }
+
         const n8nResponse = await fetch(n8nWebhookUrl, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers,
           body: JSON.stringify(payload),
           signal: controller.signal,
         });
