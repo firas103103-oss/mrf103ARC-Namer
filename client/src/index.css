@@ -9,11 +9,11 @@
   --opaque-button-border-intensity: -8;
   --elevate-1: rgba(0,0,0, .03);
   --elevate-2: rgba(0,0,0, .08);
-  --background: 0 0% 100%;
-  --foreground: 0 0% 9%;
-  --border: 0 0% 91%;
-  --card: 0 0% 98%;
-  --card-foreground: 0 0% 9%;
+  --background: 0deg 0% 16.08%;
+  --foreground: 57.19deg 100% 87.45%;
+  --border: 0deg 18.26% 54.9%;
+  --card: 0deg 0% 27.06%;
+  --card-foreground: 60deg 18.42% 44.71%;
   --card-border: 0 0% 95%;
   --sidebar: 0 0% 96%;
   --sidebar-foreground: 0 0% 9%;
@@ -23,29 +23,29 @@
   --sidebar-accent: 217 15% 90%;
   --sidebar-accent-foreground: 217 15% 20%;
   --sidebar-ring: 217 91% 35%;
-  --popover: 0 0% 94%;
-  --popover-foreground: 0 0% 9%;
+  --popover: 0deg 100% 92.55%;
+  --popover-foreground: 0deg 91.84% 51.96%;
   --popover-border: 0 0% 90%;
-  --primary: 217 91% 35%;
-  --primary-foreground: 217 91% 98%;
-  --secondary: 217 8% 88%;
-  --secondary-foreground: 217 8% 12%;
-  --muted: 217 10% 92%;
-  --muted-foreground: 217 10% 35%;
-  --accent: 217 12% 93%;
-  --accent-foreground: 217 12% 15%;
-  --destructive: 0 84% 38%;
-  --destructive-foreground: 0 84% 98%;
-  --input: 0 0% 75%;
-  --ring: 217 91% 35%;
-  --chart-1: 217 91% 35%;
+  --primary: 120deg 100% 85.1%;
+  --primary-foreground: 0deg 0% 0%;
+  --secondary: 57.14deg 21.87% 37.65%;
+  --secondary-foreground: 0deg 0% 100%;
+  --muted: 43deg 26.32% 55.29%;
+  --muted-foreground: 50deg 32.73% 56.86%;
+  --accent: 0deg 0% 0%;
+  --accent-foreground: 0deg 100% 82.55%;
+  --destructive: 48deg 37.74% 79.22%;
+  --destructive-foreground: 0deg 3% 45.69%;
+  --input: 55.07deg 100% 59.41%;
+  --ring: 0deg 100% 84.51%;
+  --chart-1: 0deg 83.24% 64.9%;
   --chart-2: 142 76% 30%;
   --chart-3: 271 91% 35%;
-  --chart-4: 38 92% 38%;
+  --chart-4: 37.07deg 100% 37.45%;
   --chart-5: 340 82% 38%;
-  --font-sans: Open Sans, sans-serif;
-  --font-serif: Georgia, serif;
-  --font-mono: Menlo, monospace;
+  --font-sans: 'Oxanium', sans-serif;
+  --font-serif: 'IBM Plex Sans', sans-serif;
+  --font-mono: 'Architects Daughter', sans-serif;
   --radius: .5rem;
   --shadow-2xs: 0px 2px 0px 0px hsl(217 91% 35% / 0.00);
   --shadow-xs: 0px 2px 0px 0px hsl(217 91% 35% / 0.00);
@@ -59,31 +59,31 @@
   --spacing: 0.25rem;
 
 /* Fallback for older browsers */
-  --sidebar-primary-border: hsl(var(--sidebar-primary));
+  --sidebar-primary-border: hsl(from hsl(var(--sidebar-primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
   --sidebar-primary-border: hsl(from hsl(var(--sidebar-primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
 
   /* Fallback for older browsers */
-  --sidebar-accent-border: hsl(var(--sidebar-accent));
+  --sidebar-accent-border: hsl(from hsl(var(--sidebar-accent)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
   --sidebar-accent-border: hsl(from hsl(var(--sidebar-accent)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
 
   /* Fallback for older browsers */
-  --primary-border: hsl(var(--primary));
+  --primary-border: hsl(from hsl(var(--primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
   --primary-border: hsl(from hsl(var(--primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
 
   /* Fallback for older browsers */
-  --secondary-border: hsl(var(--secondary));
+  --secondary-border: hsl(from hsl(var(--secondary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
   --secondary-border: hsl(from hsl(var(--secondary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
 
   /* Fallback for older browsers */
-  --muted-border: hsl(var(--muted));
+  --muted-border: hsl(from hsl(var(--muted)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
   --muted-border: hsl(from hsl(var(--muted)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
 
   /* Fallback for older browsers */
-  --accent-border: hsl(var(--accent));
+  --accent-border: hsl(from hsl(var(--accent)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
   --accent-border: hsl(from hsl(var(--accent)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
 
   /* Fallback for older browsers */
-  --destructive-border: hsl(var(--destructive));
+  --destructive-border: hsl(from hsl(var(--destructive)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
   --destructive-border: hsl(from hsl(var(--destructive)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
 }
 
@@ -137,31 +137,31 @@
   --shadow-2xl: 0px 2px 0px 0px hsl(217 91% 35% / 0.00);
 
 /* Fallback for older browsers */
-  --sidebar-primary-border: hsl(var(--sidebar-primary));
+  --sidebar-primary-border: hsl(from hsl(var(--sidebar-primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
   --sidebar-primary-border: hsl(from hsl(var(--sidebar-primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
 
   /* Fallback for older browsers */
-  --sidebar-accent-border: hsl(var(--sidebar-accent));
+  --sidebar-accent-border: hsl(from hsl(var(--sidebar-accent)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
   --sidebar-accent-border: hsl(from hsl(var(--sidebar-accent)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
 
   /* Fallback for older browsers */
-  --primary-border: hsl(var(--primary));
+  --primary-border: hsl(from hsl(var(--primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
   --primary-border: hsl(from hsl(var(--primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
 
   /* Fallback for older browsers */
-  --secondary-border: hsl(var(--secondary));
+  --secondary-border: hsl(from hsl(var(--secondary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
   --secondary-border: hsl(from hsl(var(--secondary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
 
   /* Fallback for older browsers */
-  --muted-border: hsl(var(--muted));
+  --muted-border: hsl(from hsl(var(--muted)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
   --muted-border: hsl(from hsl(var(--muted)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
 
   /* Fallback for older browsers */
-  --accent-border: hsl(var(--accent));
+  --accent-border: hsl(from hsl(var(--accent)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
   --accent-border: hsl(from hsl(var(--accent)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
 
   /* Fallback for older browsers */
-  --destructive-border: hsl(var(--destructive));
+  --destructive-border: hsl(from hsl(var(--destructive)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
   --destructive-border: hsl(from hsl(var(--destructive)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
 }
 
