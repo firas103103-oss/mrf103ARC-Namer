@@ -2,6 +2,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { createServer } from "http";
 import cors from "cors";
+import { registerRoutes } from "./routes";
 
 // ==================== SERVER BASE ====================
 const app = express();
@@ -170,6 +171,9 @@ app.post("/api/call_mrf_brain", async (req: Request, res: Response) => {
     res.status(500).json({ status: "error", message: err.message });
   }
 });
+
+// ==================== REGISTER ROUTES FROM routes.ts ====================
+registerRoutes(httpServer, app);
 
 // ==================== ERROR HANDLER ====================
 app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
