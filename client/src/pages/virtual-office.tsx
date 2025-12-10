@@ -20,10 +20,18 @@ import {
   MessageSquare,
   Loader2,
   Building2,
+  Crown,
+  Settings,
+  Radio,
+  Brain,
 } from "lucide-react";
 import type { VirtualAgent, AgentType, StoredChatMessage } from "@shared/schema";
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+  crown: Crown,
+  settings: Settings,
+  radio: Radio,
+  brain: Brain,
   camera: Camera,
   "file-text": FileText,
   scale: Scale,
