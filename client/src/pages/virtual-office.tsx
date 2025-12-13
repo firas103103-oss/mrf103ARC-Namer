@@ -731,22 +731,23 @@ function VirtualOfficeContent() {
                   ))}
                 </div>
               ) : localMessages.length === 0 ? (
-                <div className="h-full flex flex-col items-center justify-center text-center p-8">
-                  <Building2 className="h-16 w-16 text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-semibold mb-2" data-testid="text-welcome">Welcome to Virtual Office</h3>
-                  <p className="text-muted-foreground max-w-md mb-4">
+                <div className="h-full flex flex-col items-center justify-center text-center p-8 bg-grid-pattern">
+                  <Building2 className="h-20 w-20 text-primary mb-6" />
+                  <h3 className="text-2xl enterprise-title mb-3" data-testid="text-welcome">Virtual Office Command Center</h3>
+                  <p className="text-muted-foreground max-w-md mb-6 font-body">
                     Select one or more AI agents from the panel, then start chatting. 
                     Each agent has their own specialty and will respond to your questions.
                   </p>
                   {speechSupported && (
-                    <p className="text-sm text-muted-foreground mb-2">
-                      Voice input is available - click the microphone button to speak
-                    </p>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3 font-body">
+                      <Mic className="h-4 w-4 text-primary" />
+                      <span>Voice input available - click the microphone to speak</span>
+                    </div>
                   )}
                   {selectedAgents.length === 0 && (
-                    <p className="text-sm text-muted-foreground">
+                    <Badge variant="outline" className="text-sm">
                       Select agents to begin
-                    </p>
+                    </Badge>
                   )}
                 </div>
               ) : (
