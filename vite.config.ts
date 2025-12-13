@@ -11,9 +11,6 @@ export default defineConfig(async () => ({
           (await import("@replit/vite-plugin-cartographer")).cartographer(),
           (await import("@replit/vite-plugin-dev-banner")).devBanner(),
         ]
-          (await import("@replit/vite-plugin-runtime-error-modal")).default(),
-          (await import("@replit/vite-plugin-cartographer")).cartographer(),
-          (await import("@replit/vite-plugin-dev-banner")).devBanner(),
       : []),
   ],
   resolve: {
