@@ -2,12 +2,14 @@ import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest, classifyError, getErrorMessage } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -62,8 +64,21 @@ import {
   History,
   RotateCcw,
   AlertCircle,
+  BarChart3,
+  Activity,
 } from "lucide-react";
-import type { VirtualAgent, AgentType, StoredChatMessage, StoredConversation } from "@shared/schema";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+} from "recharts";
+import type { VirtualAgent, AgentType, StoredChatMessage, StoredConversation, AnalyticsData } from "@shared/schema";
 import { format } from "date-fns";
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -232,6 +247,229 @@ interface FailedMessage {
   conversationId?: string;
 }
 
+function AnalyticsPanel({ analytics, isLoading }: { analytics: AnalyticsData | undefined; isLoading: boolean }) {
+  if (isLoading) {
+    return (
+      <div className="p-6 space-y-6" data-testid="analytics-loading">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {[1, 2, 3].map(i => (
+            <Skeleton key={i} className="h-32" />
+          ))}
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Skeleton className="h-80" />
+          <Skeleton className="h-80" />
+        </div>
+        <Skeleton className="h-64" />
+      </div>
+    );
+  }
+
+  if (!analytics) {
+    return (
+      <div className="flex items-center justify-center h-full p-6" data-testid="analytics-empty">
+        <div className="text-center">
+          <BarChart3 className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+          <p className="text-lg font-medium">No analytics data available</p>
+          <p className="text-sm text-muted-foreground">Start chatting with agents to see your usage statistics</p>
+        </div>
+      </div>
+    );
+  }
+
+  const activeAgentsCount = analytics.agentUsage.length;
+
+  return (
+    <ScrollArea className="h-full">
+      <div className="p-6 space-y-6" data-testid="analytics-panel">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card data-testid="card-total-conversations">
+            <CardHeader className="flex flex-row items-center justify-between gap-2 pb-2">
+              <CardTitle className="text-sm font-medium">Total Conversations</CardTitle>
+              <MessageSquare className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold" data-testid="text-total-conversations">
+                {analytics.totalConversations}
+              </div>
+              <p className="text-xs text-muted-foreground">All time conversations</p>
+            </CardContent>
+          </Card>
+          
+          <Card data-testid="card-total-messages">
+            <CardHeader className="flex flex-row items-center justify-between gap-2 pb-2">
+              <CardTitle className="text-sm font-medium">Total Messages</CardTitle>
+              <Activity className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold" data-testid="text-total-messages">
+                {analytics.totalMessages}
+              </div>
+              <p className="text-xs text-muted-foreground">Messages exchanged</p>
+            </CardContent>
+          </Card>
+          
+          <Card data-testid="card-active-agents">
+            <CardHeader className="flex flex-row items-center justify-between gap-2 pb-2">
+              <CardTitle className="text-sm font-medium">Active Agents</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold" data-testid="text-active-agents">
+                {activeAgentsCount}
+              </div>
+              <p className="text-xs text-muted-foreground">Agents used</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card data-testid="card-agent-usage-chart">
+            <CardHeader>
+              <CardTitle className="text-base">Agent Usage</CardTitle>
+              <CardDescription>Messages per agent</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {analytics.agentUsage.length > 0 ? (
+                <ResponsiveContainer width="100%" height={250}>
+                  <BarChart data={analytics.agentUsage} layout="vertical" margin={{ left: 20, right: 20 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                    <XAxis type="number" stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                    <YAxis 
+                      type="category" 
+                      dataKey="agentName" 
+                      width={100} 
+                      stroke="hsl(var(--muted-foreground))" 
+                      fontSize={12}
+                      tickLine={false}
+                    />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: 'hsl(var(--card))', 
+                        border: '1px solid hsl(var(--border))',
+                        borderRadius: '8px'
+                      }}
+                    />
+                    <Bar 
+                      dataKey="messageCount" 
+                      fill="hsl(var(--primary))" 
+                      radius={[0, 4, 4, 0]}
+                      name="Messages"
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-[250px] flex items-center justify-center text-muted-foreground">
+                  No agent usage data yet
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card data-testid="card-daily-activity-chart">
+            <CardHeader>
+              <CardTitle className="text-base">Daily Activity</CardTitle>
+              <CardDescription>Message trends (last 30 days)</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {analytics.dailyActivity.length > 0 ? (
+                <ResponsiveContainer width="100%" height={250}>
+                  <AreaChart data={analytics.dailyActivity} margin={{ left: 0, right: 10 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                    <XAxis 
+                      dataKey="date" 
+                      stroke="hsl(var(--muted-foreground))" 
+                      fontSize={12}
+                      tickFormatter={(value) => {
+                        const date = new Date(value);
+                        return format(date, "MMM d");
+                      }}
+                    />
+                    <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: 'hsl(var(--card))', 
+                        border: '1px solid hsl(var(--border))',
+                        borderRadius: '8px'
+                      }}
+                      labelFormatter={(value) => format(new Date(value), "MMM d, yyyy")}
+                    />
+                    <Area 
+                      type="monotone" 
+                      dataKey="messageCount" 
+                      stroke="hsl(var(--primary))" 
+                      fill="hsl(var(--primary) / 0.2)"
+                      name="Messages"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-[250px] flex items-center justify-center text-muted-foreground">
+                  No activity data yet
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        <Card data-testid="card-recent-conversations">
+          <CardHeader>
+            <CardTitle className="text-base">Recent Conversations</CardTitle>
+            <CardDescription>Your 10 most recent conversations</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {analytics.recentConversations.length > 0 ? (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Title</TableHead>
+                    <TableHead>Messages</TableHead>
+                    <TableHead>Agents</TableHead>
+                    <TableHead className="text-right">Last Activity</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {analytics.recentConversations.map((conv) => (
+                    <TableRow key={conv.id} data-testid={`row-conversation-${conv.id}`}>
+                      <TableCell className="font-medium max-w-[200px] truncate">
+                        {conv.title}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="secondary">{conv.messageCount}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-wrap gap-1">
+                          {conv.agents.slice(0, 3).map((agentId, idx) => (
+                            <Badge key={idx} variant="outline" className="text-xs">
+                              {agentId}
+                            </Badge>
+                          ))}
+                          {conv.agents.length > 3 && (
+                            <Badge variant="outline" className="text-xs">
+                              +{conv.agents.length - 3}
+                            </Badge>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right text-muted-foreground text-sm">
+                        {format(new Date(conv.lastActivity), "MMM d, yyyy")}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            ) : (
+              <div className="py-8 text-center text-muted-foreground">
+                No conversations yet
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </ScrollArea>
+  );
+}
+
 function VirtualOfficeContent() {
   const [selectedAgents, setSelectedAgents] = useState<AgentType[]>([]);
   const [message, setMessage] = useState("");
@@ -241,6 +479,7 @@ function VirtualOfficeContent() {
   const [playingAudioId, setPlayingAudioId] = useState<string | null>(null);
   const [failedMessage, setFailedMessage] = useState<FailedMessage | null>(null);
   const [language, setLanguage] = useState<"ar" | "en">("ar");
+  const [activeTab, setActiveTab] = useState<"chat" | "analytics">("chat");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const { toast } = useToast();
@@ -266,6 +505,11 @@ function VirtualOfficeContent() {
   const { data: messages = [], isLoading: messagesLoading } = useQuery<StoredChatMessage[]>({
     queryKey: ["/api/conversations", conversationId, "messages"],
     enabled: !!conversationId,
+  });
+
+  const { data: analytics, isLoading: analyticsLoading } = useQuery<AnalyticsData>({
+    queryKey: ["/api/analytics"],
+    enabled: activeTab === "analytics",
   });
 
   useEffect(() => {

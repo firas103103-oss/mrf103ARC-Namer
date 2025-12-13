@@ -272,6 +272,17 @@ export interface StoredHighPriorityNotification extends HighPriorityNotification
 }
 
 // ============================================
+// Analytics Data Types
+// ============================================
+export interface AnalyticsData {
+  totalConversations: number;
+  totalMessages: number;
+  agentUsage: Array<{ agentId: string; agentName: string; messageCount: number }>;
+  dailyActivity: Array<{ date: string; messageCount: number }>;
+  recentConversations: Array<{ id: string; title: string; messageCount: number; lastActivity: string; agents: string[] }>;
+}
+
+// ============================================
 // API Response Types
 // ============================================
 export interface ApiSuccessResponse {

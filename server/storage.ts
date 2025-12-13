@@ -18,6 +18,7 @@ import type {
   User,
   UpsertUser,
   AgentType,
+  AnalyticsData,
 } from "@shared/schema";
 import {
   users,
@@ -31,7 +32,8 @@ import {
   highPriorityNotifications,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, asc } from "drizzle-orm";
+import { eq, desc, asc, sql, count, gte } from "drizzle-orm";
+import { VIRTUAL_AGENTS } from "@shared/schema";
 
 export interface IStorage {
   // Agent Events
@@ -73,6 +75,9 @@ export interface IStorage {
   // User operations (required for Replit Auth)
   getUser(id: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
+
+  // Analytics
+  getAnalytics(userId: string): Promise<AnalyticsData>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -438,6 +443,113 @@ export class DatabaseStorage implements IStorage {
       })
       .returning();
     return user;
+  }
+
+  // Analytics
+  async getAnalytics(userId: string): Promise<AnalyticsData> {
+    // Get total conversations count
+    const conversationCountResult = await db
+      .select({ count: count() })
+      .from(conversations)
+      .where(eq(conversations.userId, userId));
+    const totalConversations = conversationCountResult[0]?.count || 0;
+
+    // Get user's conversations for message counting
+    const userConversations = await db
+      .select({ id: conversations.id })
+      .from(conversations)
+      .where(eq(conversations.userId, userId));
+    const conversationIds = userConversations.map(c => c.id);
+
+    // Get total messages count across user's conversations
+    let totalMessages = 0;
+    if (conversationIds.length > 0) {
+      const messageCountResult = await db
+        .select({ count: count() })
+        .from(chatMessages)
+        .where(sql`${chatMessages.conversationId} IN (${sql.join(conversationIds.map(id => sql`${id}`), sql`, `)})`);
+      totalMessages = messageCountResult[0]?.count || 0;
+    }
+
+    // Get agent usage (group messages by agentId)
+    let agentUsage: Array<{ agentId: string; agentName: string; messageCount: number }> = [];
+    if (conversationIds.length > 0) {
+      const agentUsageResult = await db
+        .select({
+          agentId: chatMessages.agentId,
+          messageCount: count(),
+        })
+        .from(chatMessages)
+        .where(sql`${chatMessages.conversationId} IN (${sql.join(conversationIds.map(id => sql`${id}`), sql`, `)}) AND ${chatMessages.agentId} IS NOT NULL`)
+        .groupBy(chatMessages.agentId);
+
+      agentUsage = agentUsageResult
+        .filter(row => row.agentId)
+        .map(row => {
+          const agent = VIRTUAL_AGENTS.find(a => a.id === row.agentId);
+          return {
+            agentId: row.agentId!,
+            agentName: agent?.name || row.agentId!,
+            messageCount: row.messageCount,
+          };
+        })
+        .sort((a, b) => b.messageCount - a.messageCount);
+    }
+
+    // Get daily activity (last 30 days)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    let dailyActivity: Array<{ date: string; messageCount: number }> = [];
+    if (conversationIds.length > 0) {
+      const dailyActivityResult = await db
+        .select({
+          date: sql<string>`DATE(${chatMessages.timestamp})`,
+          messageCount: count(),
+        })
+        .from(chatMessages)
+        .where(sql`${chatMessages.conversationId} IN (${sql.join(conversationIds.map(id => sql`${id}`), sql`, `)}) AND ${chatMessages.timestamp} >= ${thirtyDaysAgo}`)
+        .groupBy(sql`DATE(${chatMessages.timestamp})`)
+        .orderBy(sql`DATE(${chatMessages.timestamp})`);
+
+      dailyActivity = dailyActivityResult.map(row => ({
+        date: row.date,
+        messageCount: row.messageCount,
+      }));
+    }
+
+    // Get 10 most recent conversations with message counts
+    const recentConversationsData = await db
+      .select()
+      .from(conversations)
+      .where(eq(conversations.userId, userId))
+      .orderBy(desc(conversations.updatedAt))
+      .limit(10);
+
+    const recentConversations = await Promise.all(
+      recentConversationsData.map(async (conv) => {
+        const messageCountResult = await db
+          .select({ count: count() })
+          .from(chatMessages)
+          .where(eq(chatMessages.conversationId, conv.id));
+        
+        return {
+          id: conv.id,
+          title: conv.title,
+          messageCount: messageCountResult[0]?.count || 0,
+          lastActivity: conv.updatedAt?.toISOString() || new Date().toISOString(),
+          agents: (conv.activeAgents || []) as string[],
+        };
+      })
+    );
+
+    return {
+      totalConversations,
+      totalMessages,
+      agentUsage,
+      dailyActivity,
+      recentConversations,
+    };
   }
 }
 

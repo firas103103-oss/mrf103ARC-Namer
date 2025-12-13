@@ -19,6 +19,7 @@ import {
   type ApiErrorResponse,
   type AgentType,
   type ChatMessage,
+  type AnalyticsData,
 } from "@shared/schema";
 import { ZodError } from "zod";
 
@@ -196,6 +197,21 @@ export async function registerRoutes(
     } catch (error) {
       console.error("[API] Error getting messages:", error);
       sendError(res, 500, "Failed to get messages");
+    }
+  });
+
+  // Get analytics for the current user (requires auth)
+  app.get("/api/analytics", isAuthenticated, async (req: any, res: Response) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      if (!userId) {
+        return sendError(res, 401, "User not authenticated");
+      }
+      const analytics = await storage.getAnalytics(userId);
+      sendSuccess(res, analytics);
+    } catch (error) {
+      console.error("[API] Error getting analytics:", error);
+      sendError(res, 500, "Failed to get analytics");
     }
   });
 
