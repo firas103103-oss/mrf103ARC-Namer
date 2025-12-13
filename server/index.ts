@@ -55,8 +55,16 @@ setInterval(() => {
 }, 24 * 60 * 60 * 1000); // 24 hours
 
 // ==================== SECURITY MIDDLEWARE ====================
-// Protect all /api routes using ARC_BACKEND_SECRET
+// Auth routes that bypass X-ARC-SECRET check (Replit Auth routes)
+const authBypassPaths = ["/api/login", "/api/logout", "/api/callback", "/api/auth/user"];
+
+// Protect all /api routes using ARC_BACKEND_SECRET (except auth routes)
 app.use("/api", (req: Request, res: Response, next: NextFunction) => {
+  // Skip X-ARC-SECRET check for auth routes
+  if (authBypassPaths.some(path => req.path === path || req.originalUrl === path)) {
+    return next();
+  }
+
   const clientSecret = req.headers["x-arc-secret"];
   const serverSecret = process.env.ARC_BACKEND_SECRET;
 

@@ -6,8 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import {
   Camera,
   FileText,
@@ -24,6 +25,7 @@ import {
   Settings,
   Radio,
   Brain,
+  LogOut,
 } from "lucide-react";
 import type { VirtualAgent, AgentType, StoredChatMessage } from "@shared/schema";
 
@@ -52,6 +54,7 @@ export default function VirtualOffice() {
   const [localMessages, setLocalMessages] = useState<StoredChatMessage[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const { data: agents = [] } = useQuery<VirtualAgent[]>({
     queryKey: ["/api/agents"],
@@ -164,14 +167,44 @@ export default function VirtualOffice() {
               <p className="text-sm text-muted-foreground" data-testid="text-subtitle">Chat with specialized AI agents</p>
             </div>
           </div>
-          <Button 
-            variant="outline" 
-            onClick={startNewConversation}
-            data-testid="button-new-conversation"
-          >
-            <MessageSquare className="h-4 w-4 mr-2" />
-            New Conversation
-          </Button>
+          <div className="flex items-center gap-3 flex-wrap">
+            <Button 
+              variant="outline" 
+              onClick={startNewConversation}
+              data-testid="button-new-conversation"
+            >
+              <MessageSquare className="h-4 w-4 mr-2" />
+              New Conversation
+            </Button>
+            {user && (
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <Avatar className="h-8 w-8">
+                    {user.profileImageUrl ? (
+                      <AvatarImage src={user.profileImageUrl} alt={user.username || "User"} />
+                    ) : null}
+                    <AvatarFallback className="bg-muted text-sm">
+                      {user.username?.charAt(0)?.toUpperCase() || user.firstName?.charAt(0)?.toUpperCase() || "U"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="text-sm font-medium hidden sm:inline" data-testid="text-username">
+                    {user.firstName || user.username || "User"}
+                  </span>
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  asChild
+                  data-testid="button-logout"
+                >
+                  <a href="/api/logout">
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Logout
+                  </a>
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
       </header>
 

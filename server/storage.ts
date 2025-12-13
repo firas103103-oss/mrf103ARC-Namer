@@ -16,7 +16,12 @@ import type {
   ChatMessage,
   StoredConversation,
   Conversation,
+  User,
+  UpsertUser,
 } from "@shared/schema";
+import { users } from "@shared/schema";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 
 export interface IStorage {
   // Agent Events
@@ -52,9 +57,13 @@ export interface IStorage {
   // Chat Messages
   addMessage(conversationId: string, message: ChatMessage): Promise<StoredChatMessage>;
   getMessages(conversationId: string): Promise<StoredChatMessage[]>;
+
+  // User operations (required for Replit Auth)
+  getUser(id: string): Promise<User | undefined>;
+  upsertUser(user: UpsertUser): Promise<User>;
 }
 
-export class MemStorage implements IStorage {
+export class DatabaseStorage implements IStorage {
   private agentEvents: Map<string, StoredAgentEvent>;
   private ceoReminders: Map<string, StoredCeoReminder>;
   private executiveSummaries: Map<string, StoredExecutiveSummary>;
@@ -231,6 +240,27 @@ export class MemStorage implements IStorage {
       .filter(msg => msg.conversationId === conversationId)
       .sort((a, b) => new Date(a.timestamp || 0).getTime() - new Date(b.timestamp || 0).getTime());
   }
+
+  // User operations (required for Replit Auth)
+  async getUser(id: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
+  }
+
+  async upsertUser(userData: UpsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(userData)
+      .onConflictDoUpdate({
+        target: users.id,
+        set: {
+          ...userData,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return user;
+  }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
