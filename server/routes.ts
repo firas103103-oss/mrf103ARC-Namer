@@ -123,7 +123,7 @@ export async function registerRoutes(
   // Virtual Office Chat Routes
   // These routes require session authentication (logged-in users)
   // ============================================
-  
+
   // Get all agents (public - just returns static agent list)
   app.get("/api/agents", (_req: Request, res: Response) => {
     sendSuccess(res, VIRTUAL_AGENTS);
@@ -232,7 +232,7 @@ export async function registerRoutes(
       const history = await storage.getMessages(conversationId);
       const historyMessages = history.slice(-10).map(msg => ({
         role: msg.role as "user" | "assistant",
-        content: msg.agentId 
+        content: msg.agentId
           ? `[${VIRTUAL_AGENTS.find(a => a.id === msg.agentId)?.name || msg.agentId}]: ${msg.content}`
           : msg.content,
       }));
@@ -256,7 +256,7 @@ export async function registerRoutes(
           });
 
           const content = response.choices[0].message.content || "I apologize, I could not generate a response.";
-          
+
           // Store agent response
           const assistantMessage: ChatMessage = {
             role: "assistant",
@@ -295,12 +295,12 @@ export async function registerRoutes(
     }
   });
 
-  // Text-to-Speech endpoint using OpenAI TTS API
+  // Text-to-Speech endpoint using OpenAI TTS API with Arabic support
   app.post("/api/tts", isAuthenticated, async (req: Request, res: Response) => {
     try {
       logRequest("POST /api/tts", req.body);
-      
-      const { text, voice = "alloy" } = req.body;
+
+      const { text, voice = "nova" } = req.body; // Default voice to 'nova' as requested
 
       if (!text || typeof text !== "string") {
         return sendError(res, 400, "Text is required and must be a string");
@@ -310,15 +310,32 @@ export async function registerRoutes(
         return sendError(res, 400, "Text exceeds maximum length of 4096 characters");
       }
 
-      const validVoices = ["alloy", "echo", "fable", "onyx", "nova", "shimmer"];
-      if (!validVoices.includes(voice)) {
-        return sendError(res, 400, `Invalid voice. Must be one of: ${validVoices.join(", ")}`);
+      // Detect language (simple check for Arabic characters)
+      const isArabic = /[\u0600-\u06FF]/.test(text);
+      const language = isArabic ? "ar" : "en";
+
+      // Validate voice based on language
+      let selectedVoice = voice;
+      if (isArabic) {
+        // OpenAI TTS voices are generally English-centric. 'nova' and 'alloy' are often cited as decent for other languages.
+        // If specific Arabic voices are needed, they'd require a different API or model.
+        // For now, we'll stick with 'nova' or 'alloy' if detected as Arabic, or default to 'nova'.
+        const arabicFriendlyVoices = ["nova", "alloy"];
+        if (!arabicFriendlyVoices.includes(voice)) {
+          selectedVoice = "nova"; // Default to a generally compatible voice
+        }
+      } else {
+        const validEnglishVoices = ["alloy", "echo", "fable", "onyx", "nova", "shimmer"];
+        if (!validEnglishVoices.includes(voice)) {
+          selectedVoice = "nova"; // Default to 'nova' for English if invalid voice provided
+        }
       }
 
       const mp3Response = await openai.audio.speech.create({
         model: "tts-1",
-        voice: voice as "alloy" | "echo" | "fable" | "onyx" | "nova" | "shimmer",
+        voice: selectedVoice as any, // Using 'as any' because typescript types might not perfectly align with string literals from req.body
         input: text,
+        language: language, // Explicitly set language
       });
 
       const buffer = Buffer.from(await mp3Response.arrayBuffer());
@@ -327,6 +344,8 @@ export async function registerRoutes(
       sendSuccess(res, {
         audio: base64Audio,
         contentType: "audio/mpeg",
+        language: language,
+        voice: selectedVoice,
       });
     } catch (error) {
       console.error("[API] Error in TTS:", error);
@@ -385,7 +404,7 @@ export async function registerRoutes(
       const parsed = executiveSummaryRequestSchema.parse(req.body);
 
       const reportTexts = parsed.reports.map(r => `[${r.ceo_id}]: ${r.text}`).join("\n\n");
-      
+
       const summaryResponse: ExecutiveSummaryResponse = {
         summary_text: `Daily Executive Summary for Mr.F - ${parsed.date}\n\n` +
           `Total Reports Received: ${parsed.reports.length}\n\n` +
@@ -508,7 +527,7 @@ export async function registerRoutes(
         const headers: Record<string, string> = {
           "Content-Type": "application/json",
         };
-        
+
         // Add n8n API key if configured
         const n8nApiKey = process.env.N8N_API_KEY;
         if (n8nApiKey) {
@@ -542,7 +561,7 @@ export async function registerRoutes(
       // Always return success to ChatGPT with status info
       res.status(200).json({
         agent_id: "MRF_BRAIN_GPT",
-        raw_answer: n8nStatus === "delivered" 
+        raw_answer: n8nStatus === "delivered"
           ? "Message received and delivered to Mr.F Enterprise OS successfully."
           : "Message received. Note: n8n delivery is pending/delayed.",
         status: n8nStatus,
@@ -636,11 +655,11 @@ export async function registerRoutes(
       const totalMessages = messages.length;
 
       // Get first and last message timestamps
-      const firstMessageAt = messages.length > 0 
-        ? messages[messages.length - 1].created_at 
+      const firstMessageAt = messages.length > 0
+        ? messages[messages.length - 1].created_at
         : null;
-      const lastMessageAt = messages.length > 0 
-        ? messages[0].created_at 
+      const lastMessageAt = messages.length > 0
+        ? messages[0].created_at
         : null;
 
       // Count by message_type
@@ -653,8 +672,8 @@ export async function registerRoutes(
       // Get recent examples (up to 3)
       const recentExamples = messages.slice(0, 3).map((msg) => ({
         created_at: msg.created_at,
-        content_preview: msg.content 
-          ? String(msg.content).substring(0, 120) 
+        content_preview: msg.content
+          ? String(msg.content).substring(0, 120)
           : "",
       }));
 

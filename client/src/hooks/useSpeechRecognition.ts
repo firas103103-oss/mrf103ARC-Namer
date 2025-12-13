@@ -39,7 +39,7 @@ interface SpeechRecognition extends EventTarget {
   onstart: (() => void) | null;
 }
 
-export function useSpeechRecognition(): SpeechRecognitionHook {
+export function useSpeechRecognition(language: "ar" | "en" = "ar"): SpeechRecognitionHook {
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -57,7 +57,7 @@ export function useSpeechRecognition(): SpeechRecognitionHook {
     
     recognition.continuous = true;
     recognition.interimResults = true;
-    recognition.lang = "en-US";
+    recognition.lang = language === "ar" ? "ar-SA" : "en-US";
 
     recognition.onresult = (event: SpeechRecognitionEvent) => {
       let interimTranscript = "";

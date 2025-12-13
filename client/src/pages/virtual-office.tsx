@@ -240,6 +240,7 @@ function VirtualOfficeContent() {
   const [voiceModeEnabled, setVoiceModeEnabled] = useState(false);
   const [playingAudioId, setPlayingAudioId] = useState<string | null>(null);
   const [failedMessage, setFailedMessage] = useState<FailedMessage | null>(null);
+  const [language, setLanguage] = useState<"ar" | "en">("ar");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const { toast } = useToast();
@@ -252,7 +253,7 @@ function VirtualOfficeContent() {
     stopListening,
     isSupported: speechSupported,
     error: speechError,
-  } = useSpeechRecognition();
+  } = useSpeechRecognition(language);
 
   const { data: agents = [] } = useQuery<VirtualAgent[]>({
     queryKey: ["/api/agents"],
@@ -552,7 +553,7 @@ function VirtualOfficeContent() {
   };
 
   return (
-    <div className="flex h-screen w-full">
+    <div className="flex h-screen w-full" dir={language === "ar" ? "rtl" : "ltr"}>
       <ConversationSidebar
         conversations={conversations}
         isLoading={conversationsLoading}
@@ -575,11 +576,20 @@ function VirtualOfficeContent() {
             </div>
             <div className="flex items-center gap-3 flex-wrap">
               <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setLanguage(language === "ar" ? "en" : "ar")}
+                data-testid="button-language-toggle"
+                className="gap-2"
+              >
+                🌐 {language === "ar" ? "عربي" : "English"}
+              </Button>
+              <Button
                 variant={voiceModeEnabled ? "default" : "outline"}
                 size="icon"
                 onClick={handleVoiceModeToggle}
                 data-testid="button-voice-mode"
-                className={`toggle-elevate ${voiceModeEnabled ? "toggle-elevated" : ""}`}
+                className={`toggle-elevate ${voiceModeEnabled ? "toggle-elevated glow-green" : ""}`}
               >
                 {voiceModeEnabled ? (
                   <Volume2 className="h-4 w-4" />
