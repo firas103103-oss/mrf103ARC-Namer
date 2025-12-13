@@ -143,6 +143,7 @@ export interface StoredConversation extends Conversation {
   id: string;
   createdAt: string;
   updatedAt: string;
+  userId?: string;
 }
 
 // ============================================

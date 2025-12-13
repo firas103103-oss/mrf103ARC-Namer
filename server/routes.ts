@@ -129,10 +129,14 @@ export async function registerRoutes(
     sendSuccess(res, VIRTUAL_AGENTS);
   });
 
-  // Get all conversations (requires auth)
-  app.get("/api/conversations", isAuthenticated, async (_req: Request, res: Response) => {
+  // Get all conversations for the current user (requires auth)
+  app.get("/api/conversations", isAuthenticated, async (req: any, res: Response) => {
     try {
-      const conversations = await storage.getConversations();
+      const userId = req.user?.claims?.sub;
+      if (!userId) {
+        return sendError(res, 401, "User not authenticated");
+      }
+      const conversations = await storage.getConversationsByUser(userId);
       sendSuccess(res, conversations);
     } catch (error) {
       console.error("[API] Error getting conversations:", error);
@@ -140,12 +144,39 @@ export async function registerRoutes(
     }
   });
 
+  // Delete a conversation (requires auth)
+  app.delete("/api/conversations/:id", isAuthenticated, async (req: any, res: Response) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      if (!userId) {
+        return sendError(res, 401, "User not authenticated");
+      }
+      const conversationId = req.params.id;
+      const conversation = await storage.getConversation(conversationId);
+      if (!conversation) {
+        return sendError(res, 404, "Conversation not found");
+      }
+      if (conversation.userId !== userId) {
+        return sendError(res, 403, "Not authorized to delete this conversation");
+      }
+      await storage.deleteConversation(conversationId);
+      sendSuccess(res);
+    } catch (error) {
+      console.error("[API] Error deleting conversation:", error);
+      sendError(res, 500, "Failed to delete conversation");
+    }
+  });
+
   // Create a new conversation (requires auth)
-  app.post("/api/conversations", isAuthenticated, async (req: Request, res: Response) => {
+  app.post("/api/conversations", isAuthenticated, async (req: any, res: Response) => {
     try {
       logRequest("POST /api/conversations", req.body);
+      const userId = req.user?.claims?.sub;
+      if (!userId) {
+        return sendError(res, 401, "User not authenticated");
+      }
       const parsed = conversationSchema.parse(req.body);
-      const conversation = await storage.createConversation(parsed);
+      const conversation = await storage.createConversation(parsed, userId);
       sendSuccess(res, conversation);
     } catch (error) {
       if (error instanceof ZodError) {
@@ -169,9 +200,13 @@ export async function registerRoutes(
   });
 
   // Send a chat message and get AI responses (requires auth)
-  app.post("/api/chat", isAuthenticated, async (req: Request, res: Response) => {
+  app.post("/api/chat", isAuthenticated, async (req: any, res: Response) => {
     try {
       logRequest("POST /api/chat", req.body);
+      const userId = req.user?.claims?.sub;
+      if (!userId) {
+        return sendError(res, 401, "User not authenticated");
+      }
       const parsed = chatRequestSchema.parse(req.body);
 
       let conversationId = parsed.conversationId;
@@ -181,7 +216,7 @@ export async function registerRoutes(
         const conversation = await storage.createConversation({
           title: parsed.message.substring(0, 50) + (parsed.message.length > 50 ? "..." : ""),
           activeAgents: parsed.activeAgents,
-        });
+        }, userId);
         conversationId = conversation.id;
       }
 

@@ -59,9 +59,10 @@ export interface IStorage {
   getHighPriorityNotifications(): Promise<StoredHighPriorityNotification[]>;
 
   // Chat Conversations
-  createConversation(conversation: Conversation): Promise<StoredConversation>;
+  createConversation(conversation: Conversation, userId?: string): Promise<StoredConversation>;
   getConversation(id: string): Promise<StoredConversation | undefined>;
   getConversations(): Promise<StoredConversation[]>;
+  getConversationsByUser(userId: string): Promise<StoredConversation[]>;
   updateConversation(id: string, updates: Partial<Conversation>): Promise<StoredConversation | undefined>;
   deleteConversation(id: string): Promise<void>;
 
@@ -286,12 +287,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Chat Conversations
-  async createConversation(conversation: Conversation): Promise<StoredConversation> {
+  async createConversation(conversation: Conversation, userId?: string): Promise<StoredConversation> {
     const [stored] = await db
       .insert(conversations)
       .values({
         title: conversation.title,
         activeAgents: conversation.activeAgents,
+        userId: userId || null,
       })
       .returning();
     
@@ -301,6 +303,7 @@ export class DatabaseStorage implements IStorage {
       activeAgents: (stored.activeAgents || []) as AgentType[],
       createdAt: stored.createdAt!.toISOString(),
       updatedAt: stored.updatedAt!.toISOString(),
+      userId: stored.userId || undefined,
     };
   }
 
@@ -314,6 +317,7 @@ export class DatabaseStorage implements IStorage {
       activeAgents: (row.activeAgents || []) as AgentType[],
       createdAt: row.createdAt!.toISOString(),
       updatedAt: row.updatedAt!.toISOString(),
+      userId: row.userId || undefined,
     };
   }
 
@@ -325,6 +329,23 @@ export class DatabaseStorage implements IStorage {
       activeAgents: (row.activeAgents || []) as AgentType[],
       createdAt: row.createdAt!.toISOString(),
       updatedAt: row.updatedAt!.toISOString(),
+      userId: row.userId || undefined,
+    }));
+  }
+
+  async getConversationsByUser(userId: string): Promise<StoredConversation[]> {
+    const rows = await db
+      .select()
+      .from(conversations)
+      .where(eq(conversations.userId, userId))
+      .orderBy(desc(conversations.updatedAt));
+    return rows.map(row => ({
+      id: row.id,
+      title: row.title,
+      activeAgents: (row.activeAgents || []) as AgentType[],
+      createdAt: row.createdAt!.toISOString(),
+      updatedAt: row.updatedAt!.toISOString(),
+      userId: row.userId || undefined,
     }));
   }
 
@@ -347,6 +368,7 @@ export class DatabaseStorage implements IStorage {
       activeAgents: (updated.activeAgents || []) as AgentType[],
       createdAt: updated.createdAt!.toISOString(),
       updatedAt: updated.updatedAt!.toISOString(),
+      userId: updated.userId || undefined,
     };
   }
 
