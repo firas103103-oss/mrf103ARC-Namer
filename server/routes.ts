@@ -260,6 +260,49 @@ export async function registerRoutes(
     }
   });
 
+  // Text-to-Speech endpoint using OpenAI TTS API
+  app.post("/api/tts", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      logRequest("POST /api/tts", req.body);
+      
+      const { text, voice = "alloy" } = req.body;
+
+      if (!text || typeof text !== "string") {
+        return sendError(res, 400, "Text is required and must be a string");
+      }
+
+      if (text.length > 4096) {
+        return sendError(res, 400, "Text exceeds maximum length of 4096 characters");
+      }
+
+      const validVoices = ["alloy", "echo", "fable", "onyx", "nova", "shimmer"];
+      if (!validVoices.includes(voice)) {
+        return sendError(res, 400, `Invalid voice. Must be one of: ${validVoices.join(", ")}`);
+      }
+
+      const mp3Response = await openai.audio.speech.create({
+        model: "tts-1",
+        voice: voice as "alloy" | "echo" | "fable" | "onyx" | "nova" | "shimmer",
+        input: text,
+      });
+
+      const buffer = Buffer.from(await mp3Response.arrayBuffer());
+      const base64Audio = buffer.toString("base64");
+
+      sendSuccess(res, {
+        audio: base64Audio,
+        contentType: "audio/mpeg",
+      });
+    } catch (error) {
+      console.error("[API] Error in TTS:", error);
+      if (error instanceof Error) {
+        sendError(res, 500, `Failed to generate speech: ${error.message}`);
+      } else {
+        sendError(res, 500, "Failed to generate speech");
+      }
+    }
+  });
+
   // ============================================
   // ARC API Routes (existing)
   // ============================================

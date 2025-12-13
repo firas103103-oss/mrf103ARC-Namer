@@ -9,6 +9,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
 import {
   Camera,
   FileText,
@@ -26,6 +27,10 @@ import {
   Radio,
   Brain,
   LogOut,
+  Mic,
+  MicOff,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
 import type { VirtualAgent, AgentType, StoredChatMessage } from "@shared/schema";
 
@@ -52,9 +57,21 @@ export default function VirtualOffice() {
   const [message, setMessage] = useState("");
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [localMessages, setLocalMessages] = useState<StoredChatMessage[]>([]);
+  const [voiceModeEnabled, setVoiceModeEnabled] = useState(false);
+  const [playingAudioId, setPlayingAudioId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
+
+  const {
+    isListening,
+    transcript,
+    startListening,
+    stopListening,
+    isSupported: speechSupported,
+    error: speechError,
+  } = useSpeechRecognition();
 
   const { data: agents = [] } = useQuery<VirtualAgent[]>({
     queryKey: ["/api/agents"],
@@ -75,6 +92,95 @@ export default function VirtualOffice() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [localMessages]);
 
+  useEffect(() => {
+    if (transcript && isListening) {
+      setMessage(transcript);
+    }
+  }, [transcript, isListening]);
+
+  useEffect(() => {
+    if (speechError) {
+      toast({
+        title: "Speech Recognition Error",
+        description: speechError,
+        variant: "destructive",
+      });
+    }
+  }, [speechError, toast]);
+
+  const ttsMutation = useMutation({
+    mutationFn: async (data: { text: string; messageId: string }) => {
+      const response = await apiRequest("POST", "/api/tts", { text: data.text });
+      const result = await response.json();
+      return { ...result, messageId: data.messageId };
+    },
+    onSuccess: (data) => {
+      if (data.audio) {
+        playAudio(data.audio, data.messageId);
+      }
+    },
+    onError: (error) => {
+      toast({
+        title: "Text-to-Speech Error",
+        description: error instanceof Error ? error.message : "Failed to generate speech",
+        variant: "destructive",
+      });
+      setPlayingAudioId(null);
+    },
+  });
+
+  const playAudio = (base64Audio: string, messageId: string) => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+
+    const audio = new Audio(`data:audio/mpeg;base64,${base64Audio}`);
+    audioRef.current = audio;
+    setPlayingAudioId(messageId);
+
+    audio.onended = () => {
+      setPlayingAudioId(null);
+      audioRef.current = null;
+    };
+
+    audio.onerror = () => {
+      toast({
+        title: "Audio Playback Error",
+        description: "Failed to play audio",
+        variant: "destructive",
+      });
+      setPlayingAudioId(null);
+      audioRef.current = null;
+    };
+
+    audio.play().catch((err) => {
+      toast({
+        title: "Audio Playback Error",
+        description: "Failed to play audio: " + err.message,
+        variant: "destructive",
+      });
+      setPlayingAudioId(null);
+    });
+  };
+
+  const stopAudio = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+    setPlayingAudioId(null);
+  };
+
+  const handlePlayAudio = (messageId: string, content: string) => {
+    if (playingAudioId === messageId) {
+      stopAudio();
+    } else {
+      setPlayingAudioId(messageId);
+      ttsMutation.mutate({ text: content, messageId });
+    }
+  };
+
   const chatMutation = useMutation({
     mutationFn: async (data: { message: string; activeAgents: AgentType[]; conversationId?: string }) => {
       const response = await apiRequest("POST", "/api/chat", data);
@@ -82,8 +188,9 @@ export default function VirtualOffice() {
     },
     onSuccess: (data) => {
       setConversationId(data.conversationId);
+      const timestamp = Date.now();
       const newMessages: StoredChatMessage[] = data.responses.map((r, idx) => ({
-        id: `temp-${Date.now()}-${idx}`,
+        id: `temp-${timestamp}-${idx}`,
         conversationId: data.conversationId,
         role: "assistant" as const,
         content: r.content,
@@ -92,6 +199,11 @@ export default function VirtualOffice() {
       }));
       setLocalMessages(prev => [...prev, ...newMessages]);
       queryClient.invalidateQueries({ queryKey: ["/api/conversations", data.conversationId, "messages"] });
+
+      if (voiceModeEnabled && newMessages.length > 0) {
+        const firstMessage = newMessages[0];
+        ttsMutation.mutate({ text: firstMessage.content, messageId: firstMessage.id });
+      }
     },
     onError: (error) => {
       toast({
@@ -110,6 +222,24 @@ export default function VirtualOffice() {
     );
   };
 
+  const handleMicToggle = () => {
+    if (isListening) {
+      stopListening();
+    } else {
+      startListening();
+    }
+  };
+
+  const handleVoiceModeToggle = () => {
+    setVoiceModeEnabled(prev => !prev);
+    toast({
+      title: voiceModeEnabled ? "Voice Mode Disabled" : "Voice Mode Enabled",
+      description: voiceModeEnabled 
+        ? "Responses will no longer be read aloud automatically" 
+        : "Responses will be read aloud automatically",
+    });
+  };
+
   const handleSend = () => {
     if (!message.trim() || selectedAgents.length === 0) {
       toast({
@@ -120,6 +250,10 @@ export default function VirtualOffice() {
         variant: "destructive",
       });
       return;
+    }
+
+    if (isListening) {
+      stopListening();
     }
 
     const userMessage: StoredChatMessage = {
@@ -147,6 +281,7 @@ export default function VirtualOffice() {
   };
 
   const startNewConversation = () => {
+    stopAudio();
     setConversationId(null);
     setLocalMessages([]);
     setSelectedAgents([]);
@@ -168,6 +303,19 @@ export default function VirtualOffice() {
             </div>
           </div>
           <div className="flex items-center gap-3 flex-wrap">
+            <Button
+              variant={voiceModeEnabled ? "default" : "outline"}
+              size="icon"
+              onClick={handleVoiceModeToggle}
+              data-testid="button-voice-mode"
+              className={`toggle-elevate ${voiceModeEnabled ? "toggle-elevated" : ""}`}
+            >
+              {voiceModeEnabled ? (
+                <Volume2 className="h-4 w-4" />
+              ) : (
+                <VolumeX className="h-4 w-4" />
+              )}
+            </Button>
             <Button 
               variant="outline" 
               onClick={startNewConversation}
@@ -308,6 +456,11 @@ export default function VirtualOffice() {
                   Select one or more AI agents from the panel, then start chatting. 
                   Each agent has their own specialty and will respond to your questions.
                 </p>
+                {speechSupported && (
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Voice input is available - click the microphone button to speak
+                  </p>
+                )}
                 {selectedAgents.length === 0 && (
                   <p className="text-sm text-primary">
                     Select agents to begin
@@ -319,6 +472,7 @@ export default function VirtualOffice() {
                 {localMessages.map((msg) => {
                   const agent = msg.agentId ? getAgentInfo(msg.agentId) : null;
                   const IconComponent = agent ? iconMap[agent.avatar] || Users : null;
+                  const isPlaying = playingAudioId === msg.id;
                   
                   return (
                     <div
@@ -341,9 +495,27 @@ export default function VirtualOffice() {
                         }`}
                       >
                         {msg.role === "assistant" && agent && (
-                          <p className="text-xs font-medium mb-1 opacity-80">
-                            {agent.name}
-                          </p>
+                          <div className="flex items-center justify-between gap-2 mb-1">
+                            <p className="text-xs font-medium opacity-80">
+                              {agent.name}
+                            </p>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6"
+                              onClick={() => handlePlayAudio(msg.id, msg.content)}
+                              disabled={ttsMutation.isPending && playingAudioId === msg.id}
+                              data-testid={`button-play-audio-${msg.id}`}
+                            >
+                              {ttsMutation.isPending && playingAudioId === msg.id ? (
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                              ) : isPlaying ? (
+                                <VolumeX className="h-3 w-3" />
+                              ) : (
+                                <Volume2 className="h-3 w-3" />
+                              )}
+                            </Button>
+                          </div>
                         )}
                         <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
                       </div>
@@ -376,12 +548,30 @@ export default function VirtualOffice() {
                 placeholder={
                   selectedAgents.length === 0
                     ? "Select agents to start chatting..."
-                    : "Type your message... (Press Enter to send)"
+                    : isListening 
+                      ? "Listening... Speak now"
+                      : "Type your message... (Press Enter to send)"
                 }
-                className="resize-none min-h-[60px]"
+                className={`resize-none min-h-[60px] ${isListening ? "border-primary ring-1 ring-primary" : ""}`}
                 disabled={chatMutation.isPending}
                 data-testid="input-message"
               />
+              {speechSupported && (
+                <Button
+                  onClick={handleMicToggle}
+                  disabled={chatMutation.isPending}
+                  size="icon"
+                  variant={isListening ? "default" : "ghost"}
+                  className={`h-[60px] w-[60px] ${isListening ? "animate-pulse" : ""}`}
+                  data-testid="button-mic"
+                >
+                  {isListening ? (
+                    <MicOff className="h-5 w-5" />
+                  ) : (
+                    <Mic className="h-5 w-5" />
+                  )}
+                </Button>
+              )}
               <Button
                 onClick={handleSend}
                 disabled={chatMutation.isPending || selectedAgents.length === 0 || !message.trim()}
@@ -399,6 +589,7 @@ export default function VirtualOffice() {
             {selectedAgents.length > 0 && (
               <p className="text-xs text-muted-foreground text-center mt-2">
                 Chatting with: {selectedAgents.map(id => getAgentInfo(id)?.name).join(", ")}
+                {voiceModeEnabled && " (Voice mode enabled)"}
               </p>
             )}
           </div>
