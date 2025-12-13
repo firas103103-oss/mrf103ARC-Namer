@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { queryClient, apiRequest } from "@/lib/queryClient";
+import { queryClient, apiRequest, classifyError, getErrorMessage } from "@/lib/queryClient";
+import type { AgentType } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -60,8 +61,10 @@ import {
   Plus,
   Trash2,
   History,
+  RotateCcw,
+  AlertCircle,
 } from "lucide-react";
-import type { VirtualAgent, AgentType, StoredChatMessage, StoredConversation } from "@shared/schema";
+import type { VirtualAgent, StoredChatMessage, StoredConversation } from "@shared/schema";
 import { format } from "date-fns";
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -223,6 +226,13 @@ function ConversationSidebar({
   );
 }
 
+interface FailedMessage {
+  id: string;
+  content: string;
+  activeAgents: AgentType[];
+  conversationId?: string;
+}
+
 function VirtualOfficeContent() {
   const [selectedAgents, setSelectedAgents] = useState<AgentType[]>([]);
   const [message, setMessage] = useState("");
@@ -230,6 +240,7 @@ function VirtualOfficeContent() {
   const [localMessages, setLocalMessages] = useState<StoredChatMessage[]>([]);
   const [voiceModeEnabled, setVoiceModeEnabled] = useState(false);
   const [playingAudioId, setPlayingAudioId] = useState<string | null>(null);
+  const [failedMessage, setFailedMessage] = useState<FailedMessage | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const { toast } = useToast();
@@ -387,6 +398,7 @@ function VirtualOfficeContent() {
       return response.json() as Promise<ChatResponse>;
     },
     onSuccess: (data) => {
+      setFailedMessage(null);
       setConversationId(data.conversationId);
       const timestamp = Date.now();
       const newMessages: StoredChatMessage[] = data.responses.map((r, idx) => ({
@@ -406,14 +418,48 @@ function VirtualOfficeContent() {
         ttsMutation.mutate({ text: firstMessage.content, messageId: firstMessage.id });
       }
     },
-    onError: (error) => {
+    onError: (error, variables) => {
+      const errorType = classifyError(error);
+      const errorMessage = getErrorMessage(error);
+      
+      setFailedMessage({
+        id: `failed-${Date.now()}`,
+        content: variables.message,
+        activeAgents: variables.activeAgents,
+        conversationId: variables.conversationId,
+      });
+      
+      let title = "Error";
+      if (errorType === "network") {
+        title = "Connection Error";
+      } else if (errorType === "server") {
+        title = "Server Error";
+      } else if (errorType === "auth") {
+        title = "Authentication Error";
+      }
+      
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to send message",
+        title,
+        description: errorMessage,
         variant: "destructive",
       });
     },
   });
+
+  const handleRetryFailedMessage = () => {
+    if (!failedMessage) return;
+    
+    chatMutation.mutate({
+      message: failedMessage.content,
+      activeAgents: failedMessage.activeAgents,
+      conversationId: failedMessage.conversationId,
+    });
+  };
+
+  const dismissFailedMessage = () => {
+    setFailedMessage(null);
+    setLocalMessages(prev => prev.filter(m => !m.id.startsWith("user-failed-")));
+  };
 
   const toggleAgent = (agentId: AgentType) => {
     setSelectedAgents(prev =>
