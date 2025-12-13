@@ -219,4 +219,115 @@
   .glow-blue {
     box-shadow: 0 0 10px hsl(195deg 100% 50% / 0.5);
   }
+
+  /* Enterprise command center animations */
+  @keyframes fadeSlideUp {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes pulseGlow {
+    0%, 100% {
+      box-shadow: 0 0 5px hsl(195deg 100% 50% / 0.3);
+    }
+    50% {
+      box-shadow: 0 0 15px hsl(195deg 100% 50% / 0.6);
+    }
+  }
+
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  .animate-fade-slide-up {
+    animation: fadeSlideUp 0.15s ease-out forwards;
+  }
+
+  .animate-pulse-glow {
+    animation: pulseGlow 2s ease-in-out infinite;
+  }
+
+  .animate-shimmer {
+    background: linear-gradient(
+      90deg,
+      hsl(var(--muted)) 0%,
+      hsl(var(--muted-foreground) / 0.1) 50%,
+      hsl(var(--muted)) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+
+  /* Subtle grid background pattern */
+  .bg-grid-pattern {
+    background-image: 
+      linear-gradient(to right, hsl(140deg 100% 45% / 0.02) 1px, transparent 1px),
+      linear-gradient(to bottom, hsl(140deg 100% 45% / 0.02) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+
+  /* Agent card selected glow - no hover transform to avoid layout shifts */
+  .agent-card-glow {
+    transition: box-shadow 0.2s ease;
+  }
+
+  .agent-card-glow.selected {
+    box-shadow: 0 0 20px hsl(140deg 100% 45% / 0.2);
+  }
+
+  /* Message bubble styles */
+  .message-user {
+    background: hsl(var(--primary));
+  }
+
+  .message-assistant {
+    background: hsl(var(--muted));
+    border-left: 2px solid hsl(140deg 100% 45% / 0.5);
+  }
+
+  /* Status indicator pulse */
+  .status-active::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: 50%;
+    background: hsl(140deg 100% 45% / 0.3);
+    animation: pulseGlow 2s ease-in-out infinite;
+    z-index: -1;
+  }
+
+  /* Typography classes for enterprise look */
+  .font-display {
+    font-family: 'Oxanium', sans-serif;
+    letter-spacing: 0.02em;
+  }
+
+  .font-body {
+    font-family: 'IBM Plex Sans', sans-serif;
+  }
+
+  .font-code {
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* Header title styling */
+  .enterprise-title {
+    font-family: 'Oxanium', sans-serif;
+    font-weight: 600;
+    background: linear-gradient(135deg, hsl(140deg 100% 60%) 0%, hsl(195deg 100% 60%) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
 }
