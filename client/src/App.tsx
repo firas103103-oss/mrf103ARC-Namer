@@ -12,6 +12,7 @@ import NotFound from "@/pages/not-found";
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
 
+  // Wait for auth to fully initialize
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen" data-testid="status-loading">
@@ -22,11 +23,9 @@ function Router() {
 
   return (
     <Switch>
-      {!isAuthenticated ? (
-        <Route path="/" component={Landing} />
-      ) : (
-        <Route path="/" component={VirtualOffice} />
-      )}
+      <Route path="/">
+        {isAuthenticated ? <VirtualOffice /> : <Landing />}
+      </Route>
       <Route component={NotFound} />
     </Switch>
   );

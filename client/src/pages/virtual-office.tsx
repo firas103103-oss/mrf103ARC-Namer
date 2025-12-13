@@ -564,14 +564,14 @@ function VirtualOfficeContent() {
         agents={agents}
       />
       <div className="flex flex-col flex-1 min-w-0">
-        <header className="border-b p-4 bg-grid-pattern backdrop-blur-sm">
+        <header className="border-b p-4">
           <div className="flex items-center justify-between gap-4 flex-wrap">
             <div className="flex items-center gap-3">
               <SidebarTrigger data-testid="button-sidebar-toggle" />
-              <Building2 className="h-6 w-6 text-primary" />
+              <Building2 className="h-6 w-6 text-muted-foreground" />
               <div>
-                <h1 className="text-xl enterprise-title" data-testid="text-title">Virtual Office</h1>
-                <p className="text-xs text-muted-foreground font-body" data-testid="text-subtitle">Command Center for AI Agents</p>
+                <h1 className="text-xl font-bold" data-testid="text-title">Virtual Office</h1>
+                <p className="text-xs text-muted-foreground" data-testid="text-subtitle">Chat with specialized AI agents</p>
               </div>
             </div>
             <div className="flex items-center gap-3 flex-wrap">
@@ -630,13 +630,13 @@ function VirtualOfficeContent() {
         </header>
 
         <div className="flex flex-1 overflow-hidden">
-          <aside className="w-72 border-r p-4 overflow-auto hidden md:block bg-grid-pattern">
+          <aside className="w-72 border-r p-4 overflow-auto hidden md:block">
             <div className="mb-4">
               <div className="flex items-center gap-2 mb-3">
-                <Users className="h-5 w-5 text-primary" />
-                <h2 className="font-semibold font-display text-lg">Select Agents</h2>
+                <Users className="h-5 w-5 text-muted-foreground" />
+                <h2 className="font-semibold">Select Agents</h2>
               </div>
-              <p className="text-xs text-muted-foreground mb-4 font-body">
+              <p className="text-xs text-muted-foreground mb-4">
                 Choose one or more agents to join your conversation
               </p>
             </div>
@@ -648,33 +648,28 @@ function VirtualOfficeContent() {
                 return (
                   <Card
                     key={agent.id}
-                    className={`cursor-pointer agent-card-glow ${
-                      isSelected ? "border-primary bg-accent selected" : ""
+                    className={`cursor-pointer transition-colors ${
+                      isSelected ? "border-primary bg-accent" : ""
                     }`}
                     onClick={() => toggleAgent(agent.id)}
                     data-testid={`card-agent-${agent.id}`}
                   >
                     <CardContent className="p-3">
                       <div className="flex items-start gap-3">
-                        <div className="relative">
-                          <Avatar className="h-10 w-10">
-                            <AvatarFallback className={isSelected ? "bg-primary text-primary-foreground" : "bg-muted"}>
-                              <IconComponent className="h-5 w-5" />
-                            </AvatarFallback>
-                          </Avatar>
-                          {isSelected && (
-                            <span className="absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full bg-primary relative status-active" />
-                          )}
-                        </div>
+                        <Avatar className="h-10 w-10">
+                          <AvatarFallback className={isSelected ? "bg-primary text-primary-foreground" : "bg-muted"}>
+                            <IconComponent className="h-5 w-5" />
+                          </AvatarFallback>
+                        </Avatar>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="font-medium text-sm font-display">{agent.name}</span>
+                            <span className="font-medium text-sm">{agent.name}</span>
                             {isSelected && (
-                              <Badge variant="default" className="text-xs glow-green">Active</Badge>
+                              <Badge variant="default" className="text-xs">Active</Badge>
                             )}
                           </div>
-                          <p className="text-xs text-muted-foreground font-body">{agent.role}</p>
-                          <p className="text-xs text-muted-foreground mt-1 line-clamp-2 font-body">
+                          <p className="text-xs text-muted-foreground">{agent.role}</p>
+                          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
                             {agent.specialty}
                           </p>
                         </div>
@@ -736,26 +731,22 @@ function VirtualOfficeContent() {
                   ))}
                 </div>
               ) : localMessages.length === 0 ? (
-                <div className="h-full flex flex-col items-center justify-center text-center p-8 bg-grid-pattern">
-                  <div className="relative mb-6">
-                    <Building2 className="h-20 w-20 text-primary" />
-                    <div className="absolute inset-0 animate-pulse-glow rounded-full opacity-40" />
-                  </div>
-                  <h3 className="text-2xl enterprise-title mb-3" data-testid="text-welcome">Virtual Office Command Center</h3>
-                  <p className="text-muted-foreground max-w-md mb-6 font-body">
+                <div className="h-full flex flex-col items-center justify-center text-center p-8">
+                  <Building2 className="h-16 w-16 text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-semibold mb-2" data-testid="text-welcome">Welcome to Virtual Office</h3>
+                  <p className="text-muted-foreground max-w-md mb-4">
                     Select one or more AI agents from the panel, then start chatting. 
                     Each agent has their own specialty and will respond to your questions.
                   </p>
                   {speechSupported && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3 font-body">
-                      <Mic className="h-4 w-4 text-primary" />
-                      <span>Voice input available - click the microphone to speak</span>
-                    </div>
+                    <p className="text-sm text-muted-foreground mb-2">
+                      Voice input is available - click the microphone button to speak
+                    </p>
                   )}
                   {selectedAgents.length === 0 && (
-                    <Badge variant="outline" className="text-sm animate-pulse-glow">
+                    <p className="text-sm text-muted-foreground">
                       Select agents to begin
-                    </Badge>
+                    </p>
                   )}
                 </div>
               ) : (
@@ -768,11 +759,11 @@ function VirtualOfficeContent() {
                     return (
                       <div
                         key={msg.id}
-                        className={`flex gap-3 animate-fade-slide-up ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+                        className={`flex gap-3 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
                         data-testid={`message-${msg.id}`}
                       >
                         {msg.role === "assistant" && agent && IconComponent && (
-                          <Avatar className="h-8 w-8 shrink-0 glow-green">
+                          <Avatar className="h-8 w-8 shrink-0">
                             <AvatarFallback className="bg-primary text-primary-foreground">
                               <IconComponent className="h-4 w-4" />
                             </AvatarFallback>
@@ -781,13 +772,13 @@ function VirtualOfficeContent() {
                         <div
                           className={`max-w-[80%] rounded-lg p-3 ${
                             msg.role === "user"
-                              ? "message-user text-primary-foreground"
-                              : "message-assistant"
+                              ? "bg-primary text-primary-foreground"
+                              : "bg-muted"
                           }`}
                         >
                           {msg.role === "assistant" && agent && (
                             <div className="flex items-center justify-between gap-2 mb-1">
-                              <p className="text-xs font-medium opacity-80 font-display">
+                              <p className="text-xs font-medium opacity-80">
                                 {agent.name}
                               </p>
                               <Button
@@ -808,20 +799,20 @@ function VirtualOfficeContent() {
                               </Button>
                             </div>
                           )}
-                          <p className="text-sm whitespace-pre-wrap font-body">{msg.content}</p>
+                          <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
                         </div>
                       </div>
                     );
                   })}
                   {chatMutation.isPending && (
-                    <div className="flex gap-3 justify-start animate-fade-slide-up" data-testid="status-thinking">
-                      <Avatar className="h-8 w-8 shrink-0 animate-pulse-glow">
+                    <div className="flex gap-3 justify-start" data-testid="status-thinking">
+                      <Avatar className="h-8 w-8 shrink-0">
                         <AvatarFallback className="bg-muted">
-                          <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                          <Loader2 className="h-4 w-4 animate-spin" />
                         </AvatarFallback>
                       </Avatar>
-                      <div className="message-assistant rounded-lg p-3">
-                        <p className="text-sm text-muted-foreground font-display">Processing...</p>
+                      <div className="bg-muted rounded-lg p-3">
+                        <p className="text-sm text-muted-foreground">Thinking...</p>
                       </div>
                     </div>
                   )}
@@ -860,7 +851,7 @@ function VirtualOfficeContent() {
               )}
             </ScrollArea>
 
-            <div className="border-t p-4 bg-grid-pattern backdrop-blur-sm">
+            <div className="border-t p-4">
               <div className="max-w-3xl mx-auto flex gap-2">
                 <Textarea
                   value={message}
@@ -870,10 +861,10 @@ function VirtualOfficeContent() {
                     selectedAgents.length === 0
                       ? "Select agents to start chatting..."
                       : isListening 
-                        ? "Listening... Speak now"
+                        ? "🎤 Listening... Speak now"
                         : "Type your message... (Press Enter to send)"
                   }
-                  className={`resize-none min-h-[60px] font-body ${isListening ? "border-primary ring-2 ring-primary glow-blue" : ""}`}
+                  className={`resize-none min-h-[60px] ${isListening ? "border-primary ring-2 ring-primary animate-pulse" : ""}`}
                   disabled={chatMutation.isPending}
                   data-testid="input-message"
                 />
@@ -883,7 +874,7 @@ function VirtualOfficeContent() {
                     disabled={chatMutation.isPending}
                     size="icon"
                     variant={isListening ? "default" : "ghost"}
-                    className={`h-[60px] w-[60px] ${isListening ? "glow-blue animate-pulse-glow" : ""}`}
+                    className={`h-[60px] w-[60px] ${isListening ? "animate-pulse" : ""}`}
                     data-testid="button-mic"
                   >
                     {isListening ? (
@@ -897,7 +888,7 @@ function VirtualOfficeContent() {
                   onClick={handleSend}
                   disabled={chatMutation.isPending || selectedAgents.length === 0 || !message.trim()}
                   size="icon"
-                  className="h-[60px] w-[60px] glow-green"
+                  className="h-[60px] w-[60px]"
                   data-testid="button-send"
                 >
                   {chatMutation.isPending ? (
@@ -908,7 +899,7 @@ function VirtualOfficeContent() {
                 </Button>
               </div>
               {selectedAgents.length > 0 && (
-                <p className="text-xs text-muted-foreground text-center mt-2 font-body">
+                <p className="text-xs text-muted-foreground text-center mt-2">
                   Chatting with: {selectedAgents.map(id => getAgentInfo(id)?.name).join(", ")}
                   {voiceModeEnabled && " (Voice mode enabled)"}
                 </p>
@@ -922,10 +913,24 @@ function VirtualOfficeContent() {
 }
 
 export default function VirtualOffice() {
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const sidebarStyle = {
     "--sidebar-width": "18rem",
     "--sidebar-width-icon": "3.5rem",
   };
+
+  if (!mounted) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <SidebarProvider style={sidebarStyle as React.CSSProperties}>
