@@ -101,8 +101,14 @@ export async function registerRoutes(
   // Auth user route
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
+      if (!req.user?.claims?.sub) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
       res.json(user);
     } catch (error) {
       console.error("Error fetching user:", error);

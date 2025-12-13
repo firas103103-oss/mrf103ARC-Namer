@@ -3,6 +3,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { createServer } from "http";
 import cors from "cors";
 import { registerRoutes } from "./routes";
+import { setupVite } from "./vite";
 
 // ==================== SERVER BASE ====================
 const app = express();
@@ -56,12 +57,14 @@ setInterval(() => {
 
 // ==================== SECURITY MIDDLEWARE ====================
 // Auth routes that bypass X-ARC-SECRET check (Replit Auth routes)
-const authBypassPaths = ["/api/login", "/api/logout", "/api/callback", "/api/auth/user"];
+// These are paths RELATIVE to the /api mount point
+const authBypassPaths = ["/login", "/logout", "/callback", "/auth/user"];
 
 // Protect all /api routes using ARC_BACKEND_SECRET (except auth routes)
 app.use("/api", (req: Request, res: Response, next: NextFunction) => {
   // Skip X-ARC-SECRET check for auth routes
-  if (authBypassPaths.some(path => req.path === path || req.originalUrl === path)) {
+  // req.path is relative to the mount point (/api), so check against paths without /api prefix
+  if (authBypassPaths.some(bypassPath => req.path === bypassPath || req.path.startsWith(bypassPath + "?"))) {
     return next();
   }
 
@@ -180,9 +183,6 @@ app.post("/api/call_mrf_brain", async (req: Request, res: Response) => {
   }
 });
 
-// ==================== REGISTER ROUTES FROM routes.ts ====================
-registerRoutes(httpServer, app);
-
 // ==================== ERROR HANDLER ====================
 app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
   const status = err.status || err.statusCode || 500;
@@ -191,33 +191,42 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
   log(`Error: ${message}`, "error");
 });
 
-// ==================== STATIC FILES / FRONTEND ====================
-if (process.env.NODE_ENV === "production") {
-  app.use(express.static("dist/public"));
+// ==================== START SERVER ====================
+async function startServer() {
+  // Register routes first
+  await registerRoutes(httpServer, app);
 
-  app.get("*", (_req, res) => {
-    res.sendFile("index.html", { root: "dist/public" }, (err) => {
-      if (err) {
-        log(`❌ Error serving index.html: ${err.message}`, "static");
-        res.status(200).json({ status: "ok", message: "ARC Bridge active (no frontend found)" });
-      }
+  // Setup Vite for development or static files for production
+  if (process.env.NODE_ENV === "production") {
+    app.use(express.static("dist/public"));
+    app.get("*", (_req, res) => {
+      res.sendFile("index.html", { root: "dist/public" }, (err) => {
+        if (err) {
+          log(`❌ Error serving index.html: ${err.message}`, "static");
+          res.status(200).json({ status: "ok", message: "ARC Bridge active (no frontend found)" });
+        }
+      });
     });
-  });
+    log("Production static serving enabled", "vite");
+  } else {
+    await setupVite(httpServer, app);
+    log("Development Vite server enabled", "vite");
+  }
 
-  log("Production static serving enabled", "vite");
-} else {
-  log("Development mode active, no static serving.", "vite");
+  const port = parseInt(process.env.PORT || "5000", 10);
+  httpServer.listen(
+    {
+      port,
+      host: "0.0.0.0",
+      reusePort: true,
+    },
+    () => {
+      log(`✅ ARC Bridge Server running on port ${port}`);
+    },
+  );
 }
 
-// ==================== START SERVER ====================
-const port = parseInt(process.env.PORT || "5000", 10);
-httpServer.listen(
-  {
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  },
-  () => {
-    log(`✅ ARC Bridge Server running on port ${port}`);
-  },
-);
+startServer().catch((err) => {
+  log(`❌ Failed to start server: ${err.message}`, "error");
+  process.exit(1);
+});

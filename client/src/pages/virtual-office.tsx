@@ -181,14 +181,14 @@ export default function VirtualOffice() {
                 <div className="flex items-center gap-2">
                   <Avatar className="h-8 w-8">
                     {user.profileImageUrl ? (
-                      <AvatarImage src={user.profileImageUrl} alt={user.username || "User"} />
+                      <AvatarImage src={user.profileImageUrl} alt={user.firstName ?? "User"} />
                     ) : null}
                     <AvatarFallback className="bg-muted text-sm">
-                      {user.username?.charAt(0)?.toUpperCase() || user.firstName?.charAt(0)?.toUpperCase() || "U"}
+                      {user.firstName?.charAt(0)?.toUpperCase() ?? "U"}
                     </AvatarFallback>
                   </Avatar>
                   <span className="text-sm font-medium hidden sm:inline" data-testid="text-username">
-                    {user.firstName || user.username || "User"}
+                    {user.firstName ?? "User"}
                   </span>
                 </div>
                 <Button 

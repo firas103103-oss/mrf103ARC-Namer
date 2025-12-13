@@ -30,8 +30,8 @@ Preferred communication style: Simple, everyday language.
 
 ### Storage Pattern
 - `IStorage` interface abstracts storage operations
-- `MemStorage` class provides in-memory implementation using Maps
-- Designed for easy swap to database-backed storage (Drizzle ORM configured for PostgreSQL)
+- `DatabaseStorage` class provides PostgreSQL-backed implementation using Drizzle ORM
+- Includes user operations (`getUser`, `upsertUser`) for Replit Auth
 
 ### Database Configuration
 - Drizzle ORM configured in `drizzle.config.ts`
@@ -44,10 +44,12 @@ Preferred communication style: Simple, everyday language.
 - Production: esbuild bundles server, Vite builds client
 - Custom build script in `script/build.ts` bundles common dependencies to reduce cold start
 
-### Frontend (Minimal)
+### Frontend
 - React with Vite, TypeScript, and Tailwind CSS
 - ShadCN UI components pre-installed
-- Currently just serves as placeholder - main functionality is backend API
+- **Landing Page** (`/`) - Shows login button for unauthenticated users
+- **Virtual Office** (`/`) - Full chat interface for authenticated users
+- Uses `useAuth` hook to check authentication state
 
 ## External Dependencies
 
@@ -61,8 +63,16 @@ Preferred communication style: Simple, everyday language.
   - Requires `OPENAI_API_KEY`
 
 ### Authentication
-- **Static Secret Header**: `ARC_BACKEND_SECRET` environment variable for API authentication
+- **Replit Auth**: User authentication via OpenID Connect (Replit as identity provider)
+  - `/api/login` - Initiates login flow
+  - `/api/logout` - Logs user out
+  - `/api/callback` - OAuth callback handler
+  - `/api/auth/user` - Returns authenticated user info
+  - Sessions stored in PostgreSQL `sessions` table
+  - User data stored in `users` table
+- **Static Secret Header**: `ARC_BACKEND_SECRET` for API authentication
 - All `/api/arc/*` endpoints require `X-ARC-SECRET` header matching the secret
+- Auth routes (`/api/login`, `/api/logout`, `/api/callback`, `/api/auth/user`) bypass X-ARC-SECRET check
 
 ### Key NPM Packages
 - `express`: Web framework
