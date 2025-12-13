@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { sql } from 'drizzle-orm';
-import { index, jsonb, pgTable, timestamp, varchar } from "drizzle-orm/pg-core";
+import { index, integer, jsonb, pgTable, text, timestamp, varchar } from "drizzle-orm/pg-core";
 
 // ============================================
 // Virtual Office Agent Definitions
@@ -313,3 +313,101 @@ export const users = pgTable("users", {
 
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
+
+// ============================================
+// Conversations Table
+// ============================================
+export const conversations = pgTable("conversations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id),
+  title: varchar("title").notNull(),
+  activeAgents: text("active_agents").array(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// ============================================
+// Chat Messages Table
+// ============================================
+export const chatMessages = pgTable("chat_messages", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  conversationId: varchar("conversation_id").notNull().references(() => conversations.id),
+  role: varchar("role").notNull(),
+  content: text("content").notNull(),
+  agentId: varchar("agent_id"),
+  timestamp: timestamp("timestamp").defaultNow(),
+});
+
+// ============================================
+// Agent Events Table
+// ============================================
+export const agentEvents = pgTable("agent_events", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  eventId: varchar("event_id").notNull(),
+  agentId: varchar("agent_id").notNull(),
+  type: varchar("type").notNull(),
+  payload: jsonb("payload").default({}),
+  createdAt: timestamp("created_at"),
+  receivedAt: timestamp("received_at").defaultNow(),
+});
+
+// ============================================
+// CEO Reminders Table
+// ============================================
+export const ceoReminders = pgTable("ceo_reminders", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  date: varchar("date").notNull(),
+  missingCeos: text("missing_ceos").array(),
+  receivedAt: timestamp("received_at").defaultNow(),
+});
+
+// ============================================
+// Executive Summaries Table
+// ============================================
+export const executiveSummaries = pgTable("executive_summaries", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  date: varchar("date").notNull(),
+  summaryText: text("summary_text").notNull(),
+  profitScore: integer("profit_score"),
+  riskScore: integer("risk_score"),
+  topDecisions: text("top_decisions").array(),
+  generatedAt: timestamp("generated_at").defaultNow(),
+});
+
+// ============================================
+// Governance Notifications Table
+// ============================================
+export const governanceNotifications = pgTable("governance_notifications", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  ruleId: varchar("rule_id").notNull(),
+  status: varchar("status").notNull(),
+  title: varchar("title").notNull(),
+  summary: text("summary"),
+  proposerAgentId: varchar("proposer_agent_id"),
+  receivedAt: timestamp("received_at").defaultNow(),
+});
+
+// ============================================
+// Rule Broadcasts Table
+// ============================================
+export const ruleBroadcasts = pgTable("rule_broadcasts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  ruleId: varchar("rule_id").notNull(),
+  effectiveAt: timestamp("effective_at"),
+  status: varchar("status").notNull(),
+  title: varchar("title").notNull(),
+  broadcastAt: timestamp("broadcast_at").defaultNow(),
+});
+
+// ============================================
+// High Priority Notifications Table
+// ============================================
+export const highPriorityNotifications = pgTable("high_priority_notifications", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  sourceAgentId: varchar("source_agent_id").notNull(),
+  severity: varchar("severity").notNull(),
+  title: varchar("title").notNull(),
+  body: text("body"),
+  context: jsonb("context").default({}),
+  receivedAt: timestamp("received_at").defaultNow(),
+});
