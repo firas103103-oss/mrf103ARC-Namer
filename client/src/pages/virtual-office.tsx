@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest, classifyError, getErrorMessage } from "@/lib/queryClient";
-import type { AgentType } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -64,7 +63,7 @@ import {
   RotateCcw,
   AlertCircle,
 } from "lucide-react";
-import type { VirtualAgent, StoredChatMessage, StoredConversation } from "@shared/schema";
+import type { VirtualAgent, AgentType, StoredChatMessage, StoredConversation } from "@shared/schema";
 import { format } from "date-fns";
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -804,6 +803,36 @@ function VirtualOfficeContent() {
                       </Avatar>
                       <div className="bg-muted rounded-lg p-3">
                         <p className="text-sm text-muted-foreground">Thinking...</p>
+                      </div>
+                    </div>
+                  )}
+                  {failedMessage && !chatMutation.isPending && (
+                    <div className="flex gap-3 justify-end" data-testid="status-failed-message">
+                      <div className="max-w-[80%] rounded-lg p-3 bg-destructive/10 border border-destructive/20">
+                        <div className="flex items-center gap-2 mb-2">
+                          <AlertCircle className="h-4 w-4 text-destructive" />
+                          <p className="text-xs font-medium text-destructive">Failed to send</p>
+                        </div>
+                        <p className="text-sm whitespace-pre-wrap mb-3">{failedMessage.content}</p>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={handleRetryFailedMessage}
+                            data-testid="button-retry-message"
+                          >
+                            <RotateCcw className="h-3 w-3 mr-1" />
+                            Retry
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={dismissFailedMessage}
+                            data-testid="button-dismiss-failed"
+                          >
+                            Dismiss
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   )}
