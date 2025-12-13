@@ -1,17 +1,16 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
+import runtimeErrorModal from "@replit/vite-plugin-runtime-error-modal";
+import { cartographer } from "@replit/vite-plugin-cartographer";
+import { devBanner } from "@replit/vite-plugin-dev-banner";
 
-export default defineConfig(async () => ({
+export default defineConfig({
   plugins: [
     react(),
-    ...(process.env.NODE_ENV !== "production" && process.env.REPL_ID
-      ? [
-          (await import("@replit/vite-plugin-runtime-error-modal")).default(),
-          (await import("@replit/vite-plugin-cartographer")).cartographer(),
-          (await import("@replit/vite-plugin-dev-banner")).devBanner(),
-        ]
-      : []),
+    runtimeErrorModal(),
+    cartographer(),
+    devBanner(),
   ],
   resolve: {
     alias: {
@@ -31,4 +30,4 @@ export default defineConfig(async () => ({
       deny: ["**/.*"],
     },
   },
-}));
+});
