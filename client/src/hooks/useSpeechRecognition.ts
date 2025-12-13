@@ -58,6 +58,8 @@ export function useSpeechRecognition(language: "ar" | "en" = "ar"): SpeechRecogn
     recognition.continuous = true;
     recognition.interimResults = true;
     recognition.lang = language === "ar" ? "ar-SA" : "en-US";
+    
+    console.log(`[Speech] Initialized with language: ${recognition.lang}`);
 
     recognition.onresult = (event: SpeechRecognitionEvent) => {
       let interimTranscript = "";
@@ -75,6 +77,7 @@ export function useSpeechRecognition(language: "ar" | "en" = "ar"): SpeechRecogn
     };
 
     recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+      console.error(`[Speech] Error: ${event.error}`, event);
       let errorMessage = "Speech recognition error";
       
       switch (event.error) {

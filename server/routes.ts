@@ -333,9 +333,8 @@ export async function registerRoutes(
 
       const mp3Response = await openai.audio.speech.create({
         model: "tts-1",
-        voice: selectedVoice as any, // Using 'as any' because typescript types might not perfectly align with string literals from req.body
+        voice: selectedVoice as any,
         input: text,
-        language: language, // Explicitly set language
       });
 
       const buffer = Buffer.from(await mp3Response.arrayBuffer());

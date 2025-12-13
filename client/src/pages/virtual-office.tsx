@@ -861,10 +861,10 @@ function VirtualOfficeContent() {
                     selectedAgents.length === 0
                       ? "Select agents to start chatting..."
                       : isListening 
-                        ? "Listening... Speak now"
+                        ? "🎤 Listening... Speak now"
                         : "Type your message... (Press Enter to send)"
                   }
-                  className={`resize-none min-h-[60px] ${isListening ? "border-primary ring-1 ring-primary" : ""}`}
+                  className={`resize-none min-h-[60px] ${isListening ? "border-primary ring-2 ring-primary animate-pulse" : ""}`}
                   disabled={chatMutation.isPending}
                   data-testid="input-message"
                 />
