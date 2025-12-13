@@ -56,15 +56,21 @@ setInterval(() => {
 }, 24 * 60 * 60 * 1000); // 24 hours
 
 // ==================== SECURITY MIDDLEWARE ====================
-// Auth routes that bypass X-ARC-SECRET check (Replit Auth routes)
+// Routes that bypass X-ARC-SECRET check
 // These are paths RELATIVE to the /api mount point
-const authBypassPaths = ["/login", "/logout", "/callback", "/auth/user"];
+const authBypassPaths = [
+  // Replit Auth routes
+  "/login", "/logout", "/callback", "/auth/user",
+  // Virtual Office routes (public-facing, authenticated via session)
+  "/agents", "/conversations", "/chat", "/health"
+];
 
-// Protect all /api routes using ARC_BACKEND_SECRET (except auth routes)
+// Protect all /api routes using ARC_BACKEND_SECRET (except bypassed routes)
 app.use("/api", (req: Request, res: Response, next: NextFunction) => {
-  // Skip X-ARC-SECRET check for auth routes
+  // Skip X-ARC-SECRET check for bypassed routes
   // req.path is relative to the mount point (/api), so check against paths without /api prefix
-  if (authBypassPaths.some(bypassPath => req.path === bypassPath || req.path.startsWith(bypassPath + "?"))) {
+  // Use startsWith to handle dynamic paths like /conversations/:id/messages
+  if (authBypassPaths.some(bypassPath => req.path === bypassPath || req.path.startsWith(bypassPath + "/") || req.path.startsWith(bypassPath + "?"))) {
     return next();
   }
 

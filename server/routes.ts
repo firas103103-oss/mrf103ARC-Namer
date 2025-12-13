@@ -121,15 +121,16 @@ export async function registerRoutes(
 
   // ============================================
   // Virtual Office Chat Routes
+  // These routes require session authentication (logged-in users)
   // ============================================
   
-  // Get all agents
+  // Get all agents (public - just returns static agent list)
   app.get("/api/agents", (_req: Request, res: Response) => {
     sendSuccess(res, VIRTUAL_AGENTS);
   });
 
-  // Get all conversations
-  app.get("/api/conversations", async (_req: Request, res: Response) => {
+  // Get all conversations (requires auth)
+  app.get("/api/conversations", isAuthenticated, async (_req: Request, res: Response) => {
     try {
       const conversations = await storage.getConversations();
       sendSuccess(res, conversations);
@@ -139,8 +140,8 @@ export async function registerRoutes(
     }
   });
 
-  // Create a new conversation
-  app.post("/api/conversations", async (req: Request, res: Response) => {
+  // Create a new conversation (requires auth)
+  app.post("/api/conversations", isAuthenticated, async (req: Request, res: Response) => {
     try {
       logRequest("POST /api/conversations", req.body);
       const parsed = conversationSchema.parse(req.body);
@@ -156,8 +157,8 @@ export async function registerRoutes(
     }
   });
 
-  // Get messages for a conversation
-  app.get("/api/conversations/:id/messages", async (req: Request, res: Response) => {
+  // Get messages for a conversation (requires auth)
+  app.get("/api/conversations/:id/messages", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const messages = await storage.getMessages(req.params.id);
       sendSuccess(res, messages);
@@ -167,8 +168,8 @@ export async function registerRoutes(
     }
   });
 
-  // Send a chat message and get AI responses
-  app.post("/api/chat", async (req: Request, res: Response) => {
+  // Send a chat message and get AI responses (requires auth)
+  app.post("/api/chat", isAuthenticated, async (req: Request, res: Response) => {
     try {
       logRequest("POST /api/chat", req.body);
       const parsed = chatRequestSchema.parse(req.body);
