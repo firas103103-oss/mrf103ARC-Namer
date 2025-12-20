@@ -399,9 +399,17 @@ i18n.on('languageChanged', (lng) => {
   localStorage.setItem('arc-language', lng);
 });
 
-const savedLang = localStorage.getItem('arc-language');
-if (savedLang) {
-  updateDocumentDirection(savedLang);
+i18n.on('initialized', () => {
+  updateDocumentDirection(i18n.language);
+});
+
+if (i18n.isInitialized) {
+  updateDocumentDirection(i18n.language);
+} else {
+  const savedLang = localStorage.getItem('arc-language');
+  if (savedLang) {
+    updateDocumentDirection(savedLang);
+  }
 }
 
 export default i18n;

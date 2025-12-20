@@ -175,7 +175,7 @@ export default function Home() {
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {quickAccessCards.map((card, index) => (
-            <Link key={index} href={card.href}>
+            <Link key={index} href={card.href} data-testid={`link-quick-access-${card.href.replace('/', '')}`}>
               <Card 
                 className="h-full cursor-pointer transition-all duration-200 hover-elevate bg-card/50 border-border"
                 data-testid={`card-quick-access-${index}`}

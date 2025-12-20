@@ -243,3 +243,69 @@ X Bio Sentinel is an integrated ESP32-S3 N16R8 + Waveshare BME688 sensor system 
 ### Documentation
 - `docs/x-bio-sentinel-spec.md` - Complete integration specification
 - `docs/esp32-firmware-prompt.md` - PlatformIO firmware generation prompt for AI
+
+## Internationalization (i18n)
+
+### Setup
+- Uses `react-i18next` with `i18next-browser-languagedetector`
+- Configuration in `client/src/lib/i18n.ts`
+- Supports English (en) and Arabic (ar) with full RTL support
+
+### Language Detection Order
+1. localStorage (key: `arc-language`)
+2. Browser navigator language
+3. HTML tag language attribute
+
+### RTL Support
+- Automatic direction switching when language changes
+- Uses `ltr:` and `rtl:` Tailwind prefixes for direction-aware spacing
+- Noto Sans Arabic font loaded for Arabic text
+- Direction utilities: `updateDocumentDirection(lng)` function
+
+### Usage
+```typescript
+import { useTranslation } from 'react-i18next';
+
+function MyComponent() {
+  const { t, i18n } = useTranslation();
+  return <h1>{t('nav.dashboard')}</h1>;
+}
+```
+
+### Language Toggle
+- `LanguageToggle` component in header for switching languages
+- Persists selection to localStorage
+- Updates document direction and lang attribute
+
+## Android APK (Capacitor)
+
+### Configuration
+- `capacitor.config.ts` - Main Capacitor configuration
+- App ID: `com.xbioai.arc`
+- App Name: `ARC Intelligence`
+- Web Dir: `dist/public`
+
+### Android Project
+- Location: `android/` directory
+- Permissions: Internet, WiFi, Network State, Bluetooth (for ESP32), Audio (for voice features)
+
+### Build Commands
+```bash
+# Build web assets
+npm run build
+
+# Sync web assets to Android
+npx cap sync android
+
+# Open in Android Studio
+npx cap open android
+
+# Build APK (from Android Studio)
+# Build > Build Bundle(s) / APK(s) > Build APK(s)
+```
+
+### Permissions (AndroidManifest.xml)
+- INTERNET, ACCESS_NETWORK_STATE, ACCESS_WIFI_STATE
+- RECORD_AUDIO, MODIFY_AUDIO_SETTINGS (voice features)
+- BLUETOOTH, BLUETOOTH_ADMIN, BLUETOOTH_CONNECT, BLUETOOTH_SCAN (ESP32 connectivity)
+- VIBRATE (haptic feedback)
