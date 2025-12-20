@@ -55,7 +55,7 @@ export default function Dashboard() {
         timestamp,
         message: `${cmd.command} - ${cmd.status}`,
         severity: cmd.status === 'completed' ? 'success' : cmd.status === 'failed' ? 'error' : 'info',
-        source: 'SYSTEM',
+        eventType: 'SYSTEM',
       };
     } else if (type === 'event') {
       const evt = data as AgentEvent;
@@ -64,7 +64,7 @@ export default function Dashboard() {
         timestamp,
         message: `${evt.agent_name}: ${evt.event_type}`,
         severity: 'info',
-        source: 'AGENT',
+        eventType: 'AGENT',
       };
     } else {
       const fb = data as ArcFeedback;
@@ -73,13 +73,13 @@ export default function Dashboard() {
         timestamp,
         message: `Callback: ${fb.source || fb.command_id || 'n8n'} - ${fb.status || 'received'}`,
         severity: fb.status === 'success' ? 'success' : fb.status === 'error' ? 'error' : 'info',
-        source: 'API',
+        eventType: 'API',
       };
     }
   };
 
   const convertToTimelineEvent = (data: CommandLog | AgentEvent | ArcFeedback, type: 'command' | 'event' | 'feedback'): TimelineEvent => {
-    const timestamp = new Date(data.created_at);
+    const timestamp = data.created_at;
     
     if (type === 'command') {
       const cmd = data as CommandLog;
