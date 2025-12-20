@@ -1,6 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { useTranslation } from "react-i18next";
+import { LanguageToggle } from "@/components/LanguageToggle";
 import { 
   Shield, 
   LogIn, 
@@ -15,6 +17,8 @@ import {
 } from "lucide-react";
 
 export default function Landing() {
+  const { t } = useTranslation();
+
   return (
     <div className="min-h-screen bg-background flex flex-col bg-grid-pattern">
       <header className="command-bar sticky top-0 z-50">
@@ -22,14 +26,14 @@ export default function Landing() {
           <div className="flex items-center gap-3">
             <div className="relative">
               <Shield className="h-8 w-8 text-primary" />
-              <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-secondary rounded-full animate-pulse" />
+              <div className="absolute -top-0.5 ltr:-right-0.5 rtl:-left-0.5 w-2.5 h-2.5 bg-secondary rounded-full animate-pulse" />
             </div>
             <div className="flex flex-col">
               <span className="text-lg font-display text-foreground" data-testid="text-logo">
-                ARC INTELLIGENCE
+                {t('header.arcIntelligence')}
               </span>
               <span className="text-[10px] text-muted-foreground tracking-widest uppercase">
-                Cyber Defense Command
+                {t('landing.cyberDefenseCommand')}
               </span>
             </div>
           </div>
@@ -37,18 +41,19 @@ export default function Landing() {
           <div className="flex items-center gap-4">
             <div className="hidden md:flex items-center gap-2">
               <Badge variant="outline" className="bg-secondary/10 text-secondary border-secondary/30" data-testid="badge-system-online">
-                <Activity className="w-3 h-3 mr-1" />
-                System Online
+                <Activity className="w-3 h-3 ltr:mr-1 rtl:ml-1" />
+                {t('common.systemOnline')}
               </Badge>
               <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30" data-testid="badge-secure">
-                <Lock className="w-3 h-3 mr-1" />
-                Secure
+                <Lock className="w-3 h-3 ltr:mr-1 rtl:ml-1" />
+                {t('common.secure')}
               </Badge>
             </div>
+            <LanguageToggle />
             <Button asChild data-testid="button-header-login">
               <a href="/api/login">
-                <LogIn className="h-4 w-4 mr-2" />
-                Access Portal
+                <LogIn className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
+                {t('landing.accessPortal')}
               </a>
             </Button>
           </div>
@@ -61,24 +66,22 @@ export default function Landing() {
           <div className="relative max-w-5xl mx-auto text-center space-y-8">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-muted/50 border border-border">
               <Radio className="w-4 h-4 text-secondary animate-pulse" />
-              <span className="text-sm text-muted-foreground">Multi-Agent Intelligence Framework v2.0</span>
+              <span className="text-sm text-muted-foreground">{t('landing.multiAgentFramework')}</span>
             </div>
             
             <h1 
               className="enterprise-title text-4xl md:text-6xl lg:text-7xl text-foreground"
               data-testid="text-hero-title"
             >
-              ARC Intelligence
-              <span className="block text-gradient-blue">Command Center</span>
+              {t('landing.title')}
+              <span className="block text-gradient-blue">{t('landing.subtitle')}</span>
             </h1>
             
             <p 
               className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed"
               data-testid="text-hero-subtitle"
             >
-              Enterprise-grade AI orchestration platform. Deploy, monitor, and coordinate 
-              specialized AI agents across your organization with real-time threat intelligence 
-              and operational awareness.
+              {t('landing.description')}
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
@@ -89,8 +92,8 @@ export default function Landing() {
                 data-testid="button-login"
               >
                 <a href="/api/login">
-                  <Shield className="h-5 w-5 mr-2" />
-                  Enter Command Center
+                  <Shield className="h-5 w-5 ltr:mr-2 rtl:ml-2" />
+                  {t('landing.enterCommandCenter')}
                 </a>
               </Button>
               <Button 
@@ -99,8 +102,8 @@ export default function Landing() {
                 className="min-w-[200px]"
                 data-testid="button-learn-more"
               >
-                <Eye className="h-5 w-5 mr-2" />
-                View Capabilities
+                <Eye className="h-5 w-5 ltr:mr-2 rtl:ml-2" />
+                {t('landing.viewCapabilities')}
               </Button>
             </div>
           </div>
@@ -110,10 +113,10 @@ export default function Landing() {
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-12">
               <h2 className="text-2xl md:text-3xl font-display text-foreground mb-3" data-testid="text-section-title">
-                Operational Capabilities
+                {t('landing.operationalCapabilities')}
               </h2>
               <p className="text-muted-foreground">
-                Mission-critical features for enterprise AI coordination
+                {t('landing.missionCriticalFeatures')}
               </p>
             </div>
 
@@ -125,11 +128,10 @@ export default function Landing() {
                   </div>
                   <div className="flex-1">
                     <h3 className="font-semibold text-foreground mb-1" data-testid="text-feature-agents">
-                      Multi-Agent Fleet
+                      {t('landing.multiAgentFleet')}
                     </h3>
                     <p className="text-sm text-muted-foreground">
-                      Deploy specialized AI agents for operations, communications, 
-                      intelligence, and executive functions
+                      {t('landing.multiAgentFleetDesc')}
                     </p>
                   </div>
                 </div>

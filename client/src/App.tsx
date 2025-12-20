@@ -26,6 +26,8 @@ import TeamCommandCenter from "@/pages/TeamCommandCenter";
 import OperationsSimulator from "@/pages/OperationsSimulator";
 import AnalyticsHub from "@/pages/AnalyticsHub";
 import { Shield, Activity, Lock } from "lucide-react";
+import { LanguageToggle } from "@/components/LanguageToggle";
+import { useTranslation } from "react-i18next";
 
 function CommandLogsPage() {
   return <CommandLogsView />;
@@ -80,6 +82,7 @@ function MetricsPage() {
 }
 
 function AuthenticatedLayout() {
+  const { t } = useTranslation();
   const sidebarStyle = {
     "--sidebar-width": "16rem",
     "--sidebar-width-icon": "3rem",
@@ -95,18 +98,19 @@ function AuthenticatedLayout() {
               <SidebarTrigger data-testid="button-sidebar-toggle" />
               <div className="flex items-center gap-2">
                 <Shield className="h-5 w-5 text-primary" />
-                <span className="font-display text-sm text-foreground hidden sm:inline">ARC Command Center</span>
+                <span className="font-display text-sm text-foreground hidden sm:inline">{t('header.arcCommandCenter')}</span>
               </div>
             </div>
             <div className="flex items-center gap-2">
               <Badge variant="outline" className="bg-secondary/10 text-secondary border-secondary/30 text-[10px]" data-testid="badge-online-status">
-                <Activity className="w-3 h-3 mr-1" />
-                Online
+                <Activity className="w-3 h-3 ltr:mr-1 rtl:ml-1" />
+                {t('common.online')}
               </Badge>
               <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 text-[10px]" data-testid="badge-secure-status">
-                <Lock className="w-3 h-3 mr-1" />
-                Secure
+                <Lock className="w-3 h-3 ltr:mr-1 rtl:ml-1" />
+                {t('common.secure')}
               </Badge>
+              <LanguageToggle />
             </div>
           </header>
           <main className="flex-1 overflow-auto">

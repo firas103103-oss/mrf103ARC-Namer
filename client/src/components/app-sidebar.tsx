@@ -1,4 +1,5 @@
 import { Link, useLocation } from "wouter";
+import { useTranslation } from "react-i18next";
 import {
   LayoutDashboard,
   Terminal,
@@ -34,111 +35,37 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 
-const operationsItems = [
-  {
-    title: "Dashboard",
-    url: "/",
-    icon: LayoutDashboard,
-    testId: "link-dashboard",
-  },
-  {
-    title: "Command Logs",
-    url: "/command-logs",
-    icon: Terminal,
-    testId: "link-command-logs",
-  },
-  {
-    title: "System Monitor",
-    url: "/system-monitor",
-    icon: Activity,
-    testId: "link-system-monitor",
-  },
-  {
-    title: "Team Command",
-    url: "/team-command",
-    icon: Target,
-    testId: "link-team-command",
-  },
-  {
-    title: "Operations Simulator",
-    url: "/operations-simulator",
-    icon: Workflow,
-    testId: "link-operations-simulator",
-  },
-  {
-    title: "Analytics Hub",
-    url: "/analytics",
-    icon: TrendingUp,
-    testId: "link-analytics",
-  },
-];
-
-const communicationsItems = [
-  {
-    title: "Voice Chat",
-    url: "/voice-chat",
-    icon: MessageSquare,
-    testId: "link-voice-chat",
-  },
-  {
-    title: "Voice Selector",
-    url: "/voice-selector",
-    icon: Mic2,
-    testId: "link-voice-selector",
-  },
-  {
-    title: "Agent Voices",
-    url: "/agent-voices",
-    icon: Users,
-    testId: "link-agent-voices",
-  },
-];
-
-const intelligenceItems = [
-  {
-    title: "Investigation Lounge",
-    url: "/investigation-lounge",
-    icon: Search,
-    testId: "link-investigation-lounge",
-  },
-  {
-    title: "Quantum WarRoom",
-    url: "/quantum-warroom",
-    icon: Crosshair,
-    testId: "link-quantum-warroom",
-  },
-  {
-    title: "Temporal Anomaly Lab",
-    url: "/temporal-anomaly-lab",
-    icon: Clock,
-    testId: "link-temporal-anomaly-lab",
-  },
-  {
-    title: "Self Check",
-    url: "/self-check",
-    icon: Shield,
-    testId: "link-self-check",
-  },
-  {
-    title: "Metrics",
-    url: "/metrics",
-    icon: BarChart3,
-    testId: "link-metrics",
-  },
-];
-
-const bioSentinelItems = [
-  {
-    title: "X Bio Sentinel",
-    url: "/bio-sentinel",
-    icon: Zap,
-    testId: "link-bio-sentinel",
-  },
-];
-
 export function AppSidebar() {
   const [location] = useLocation();
   const { user } = useAuth();
+  const { t } = useTranslation();
+
+  const operationsItems = [
+    { titleKey: "nav.dashboard", url: "/", icon: LayoutDashboard, testId: "link-dashboard" },
+    { titleKey: "nav.commandLogs", url: "/command-logs", icon: Terminal, testId: "link-command-logs" },
+    { titleKey: "nav.systemMonitor", url: "/system-monitor", icon: Activity, testId: "link-system-monitor" },
+    { titleKey: "nav.teamCommand", url: "/team-command", icon: Target, testId: "link-team-command" },
+    { titleKey: "nav.operationsSimulator", url: "/operations-simulator", icon: Workflow, testId: "link-operations-simulator" },
+    { titleKey: "nav.analyticsHub", url: "/analytics", icon: TrendingUp, testId: "link-analytics" },
+  ];
+
+  const communicationsItems = [
+    { titleKey: "nav.voiceChat", url: "/voice-chat", icon: MessageSquare, testId: "link-voice-chat" },
+    { titleKey: "nav.voiceSelector", url: "/voice-selector", icon: Mic2, testId: "link-voice-selector" },
+    { titleKey: "nav.agentVoices", url: "/agent-voices", icon: Users, testId: "link-agent-voices" },
+  ];
+
+  const intelligenceItems = [
+    { titleKey: "nav.investigationLounge", url: "/investigation-lounge", icon: Search, testId: "link-investigation-lounge" },
+    { titleKey: "nav.quantumWarroom", url: "/quantum-warroom", icon: Crosshair, testId: "link-quantum-warroom" },
+    { titleKey: "nav.temporalAnomalyLab", url: "/temporal-anomaly-lab", icon: Clock, testId: "link-temporal-anomaly-lab" },
+    { titleKey: "nav.selfCheck", url: "/self-check", icon: Shield, testId: "link-self-check" },
+    { titleKey: "nav.metrics", url: "/metrics", icon: BarChart3, testId: "link-metrics" },
+  ];
+
+  const bioSentinelItems = [
+    { titleKey: "nav.bioSentinel", url: "/bio-sentinel", icon: Zap, testId: "link-bio-sentinel" },
+  ];
 
   const handleLogout = () => {
     window.location.href = "/api/logout";
@@ -176,7 +103,7 @@ export function AppSidebar() {
               ARC Virtual Office
             </span>
             <span className="text-xs text-sidebar-foreground/70">
-              Command Center
+              {t('common.commandCenter')}
             </span>
           </div>
         </div>
@@ -187,12 +114,12 @@ export function AppSidebar() {
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel data-testid="label-operations">
-            Operations
+            {t('nav.operations')}
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {operationsItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
+                <SidebarMenuItem key={item.titleKey}>
                   <SidebarMenuButton
                     asChild
                     isActive={location === item.url}
@@ -200,7 +127,7 @@ export function AppSidebar() {
                   >
                     <Link href={item.url}>
                       <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
+                      <span>{t(item.titleKey)}</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -211,12 +138,12 @@ export function AppSidebar() {
 
         <SidebarGroup>
           <SidebarGroupLabel data-testid="label-communications">
-            Communications
+            {t('nav.communications')}
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {communicationsItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
+                <SidebarMenuItem key={item.titleKey}>
                   <SidebarMenuButton
                     asChild
                     isActive={location === item.url}
@@ -224,7 +151,7 @@ export function AppSidebar() {
                   >
                     <Link href={item.url}>
                       <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
+                      <span>{t(item.titleKey)}</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -235,12 +162,12 @@ export function AppSidebar() {
 
         <SidebarGroup>
           <SidebarGroupLabel data-testid="label-intelligence">
-            Intelligence
+            {t('nav.intelligence')}
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {intelligenceItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
+                <SidebarMenuItem key={item.titleKey}>
                   <SidebarMenuButton
                     asChild
                     isActive={location === item.url}
@@ -248,7 +175,7 @@ export function AppSidebar() {
                   >
                     <Link href={item.url}>
                       <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
+                      <span>{t(item.titleKey)}</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -264,7 +191,7 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {bioSentinelItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
+                <SidebarMenuItem key={item.titleKey}>
                   <SidebarMenuButton
                     asChild
                     isActive={location === item.url}
@@ -272,7 +199,7 @@ export function AppSidebar() {
                   >
                     <Link href={item.url}>
                       <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
+                      <span>{t(item.titleKey)}</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -316,7 +243,7 @@ export function AppSidebar() {
             data-testid="button-logout"
           >
             <LogOut className="h-4 w-4" />
-            <span className="sr-only">Logout</span>
+            <span className="sr-only">{t('nav.logout')}</span>
           </Button>
         </div>
       </SidebarFooter>
