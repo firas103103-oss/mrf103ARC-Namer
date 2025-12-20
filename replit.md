@@ -119,9 +119,51 @@ Preferred communication style: Simple, everyday language.
 
 ### ARC System Endpoints (n8n Integration)
 
-**POST /api/arc/agent-events** - Ingest agent events
+**POST /api/arc/agent-events** - Ingest agent events (local PostgreSQL)
 **POST /api/arc/ceo-reminders** - Handle CEO reminders
 **POST /api/arc/executive-summary** - Generate executive summary
 **POST /api/arc/governance/notify** - Governance notifications
 **POST /api/arc/rules/broadcast** - Rule broadcasts
 **POST /api/arc/notifications/high** - High priority notifications
+
+### Supabase Bridge Endpoints (n8n Callbacks)
+
+**POST /api/arc/receive**
+- Purpose: Store n8n callback data in Supabase `arc_feedback` table
+- Headers: `X-ARC-SECRET: <ARC_BACKEND_SECRET>`
+- Request body:
+  ```json
+  {
+    "command_id": "cmd-123",
+    "source": "n8n",
+    "status": "completed",
+    "data": { "result": "success" }
+  }
+  ```
+- Response: `{ "status": "ok", "id": "<uuid>", "stored": "supabase" }`
+
+**POST /api/arc/command**
+- Purpose: Log Mr.F Brain commands in Supabase `arc_command_log` table
+- Headers: `X-ARC-SECRET: <ARC_BACKEND_SECRET>`
+- Request body:
+  ```json
+  {
+    "command": "generate_report",
+    "payload": { "type": "daily" },
+    "status": "pending"
+  }
+  ```
+- Response: `{ "status": "ok", "id": "<uuid>", "stored": "supabase" }`
+
+**POST /api/arc/events**
+- Purpose: Store agent events in Supabase `agent_events` table
+- Headers: `X-ARC-SECRET: <ARC_BACKEND_SECRET>`
+- Request body:
+  ```json
+  {
+    "agent_name": "Mr.F",
+    "event_type": "task_completed",
+    "payload": { "task_id": "123" }
+  }
+  ```
+- Response: `{ "status": "ok", "id": "<uuid>", "stored": "supabase" }`

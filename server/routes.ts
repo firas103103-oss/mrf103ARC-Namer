@@ -13,6 +13,9 @@ import {
   highPriorityNotificationSchema,
   chatRequestSchema,
   conversationSchema,
+  arcFeedbackSchema,
+  arcCommandLogSchema,
+  supabaseAgentEventSchema,
   VIRTUAL_AGENTS,
   type ExecutiveSummaryResponse,
   type ApiSuccessResponse,
@@ -708,6 +711,167 @@ export async function registerRoutes(
     }
   });
 
+  // ============================================
+  // Supabase Bridge Routes (n8n Integration)
+  // ============================================
+
+  // Helper to get Supabase client
+  function getSupabaseClient() {
+    const supabaseUrl = process.env.SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
+    
+    if (!supabaseUrl || !supabaseKey) {
+      return null;
+    }
+    
+    return createClient(supabaseUrl, supabaseKey);
+  }
+
+  // POST /api/arc/receive - Store n8n callbacks in arc_feedback
+  app.post("/api/arc/receive", async (req: Request, res: Response) => {
+    try {
+      logRequest("POST /api/arc/receive", req.body);
+      const parsed = arcFeedbackSchema.parse(req.body);
+      
+      const supabase = getSupabaseClient();
+      if (!supabase) {
+        console.warn("[ARC] Supabase not configured - storing feedback locally only");
+        return sendSuccess(res, { 
+          status: "ok", 
+          stored: "local_only",
+          note: "Supabase not configured" 
+        });
+      }
+
+      const { data, error } = await supabase
+        .from("arc_feedback")
+        .insert({
+          command_id: parsed.command_id || null,
+          source: parsed.source || "n8n",
+          status: parsed.status || "received",
+          data: parsed.data || {},
+          created_at: new Date().toISOString(),
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error("[ARC] Supabase insert error:", error);
+        return sendError(res, 500, "Failed to store feedback", error.message);
+      }
+
+      console.log(`[ARC] Feedback stored with ID: ${data.id}`);
+      sendSuccess(res, { 
+        status: "ok", 
+        id: data.id,
+        stored: "supabase" 
+      });
+    } catch (error) {
+      if (error instanceof ZodError) {
+        sendError(res, 400, "Validation error", error.errors);
+      } else {
+        console.error("[ARC] Error in /receive:", error);
+        sendError(res, 500, "Internal server error");
+      }
+    }
+  });
+
+  // POST /api/arc/command - Log Mr.F Brain commands in arc_command_log
+  app.post("/api/arc/command", async (req: Request, res: Response) => {
+    try {
+      logRequest("POST /api/arc/command", req.body);
+      const parsed = arcCommandLogSchema.parse(req.body);
+      
+      const supabase = getSupabaseClient();
+      if (!supabase) {
+        console.warn("[ARC] Supabase not configured - command not stored");
+        return sendSuccess(res, { 
+          status: "ok", 
+          stored: "local_only",
+          note: "Supabase not configured" 
+        });
+      }
+
+      const { data, error } = await supabase
+        .from("arc_command_log")
+        .insert({
+          command: parsed.command,
+          payload: parsed.payload || {},
+          status: parsed.status || "pending",
+          created_at: new Date().toISOString(),
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error("[ARC] Supabase insert error:", error);
+        return sendError(res, 500, "Failed to store command", error.message);
+      }
+
+      console.log(`[ARC] Command logged with ID: ${data.id}`);
+      sendSuccess(res, { 
+        status: "ok", 
+        id: data.id,
+        stored: "supabase" 
+      });
+    } catch (error) {
+      if (error instanceof ZodError) {
+        sendError(res, 400, "Validation error", error.errors);
+      } else {
+        console.error("[ARC] Error in /command:", error);
+        sendError(res, 500, "Internal server error");
+      }
+    }
+  });
+
+  // POST /api/arc/events - Store agent events in Supabase agent_events
+  app.post("/api/arc/events", async (req: Request, res: Response) => {
+    try {
+      logRequest("POST /api/arc/events", req.body);
+      const parsed = supabaseAgentEventSchema.parse(req.body);
+      
+      const supabase = getSupabaseClient();
+      if (!supabase) {
+        console.warn("[ARC] Supabase not configured - event not stored");
+        return sendSuccess(res, { 
+          status: "ok", 
+          stored: "local_only",
+          note: "Supabase not configured" 
+        });
+      }
+
+      const { data, error } = await supabase
+        .from("agent_events")
+        .insert({
+          agent_name: parsed.agent_name,
+          event_type: parsed.event_type,
+          payload: parsed.payload || {},
+          created_at: new Date().toISOString(),
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error("[ARC] Supabase insert error:", error);
+        return sendError(res, 500, "Failed to store event", error.message);
+      }
+
+      console.log(`[ARC] Event stored with ID: ${data.id}`);
+      sendSuccess(res, { 
+        status: "ok", 
+        id: data.id,
+        stored: "supabase" 
+      });
+    } catch (error) {
+      if (error instanceof ZodError) {
+        sendError(res, 400, "Validation error", error.errors);
+      } else {
+        console.error("[ARC] Error in /events:", error);
+        sendError(res, 500, "Internal server error");
+      }
+    }
+  });
+
   // Health check endpoint
   app.get("/api/health", (_req: Request, res: Response) => {
     res.json({
@@ -725,18 +889,37 @@ export async function registerRoutes(
 // ============================================
 //
 // 1) Test mrf-brain relay:
-//
 // curl -X POST \
 //   -H "Content-Type: application/json" \
-//   -H "X-ARC-SECRET: <SAME_SECRET_IN_ENV>" \
+//   -H "X-ARC-SECRET: <YOUR_SECRET>" \
 //   -d '{"from":"test","free_text":"hello from test"}' \
-//   https://arc-namer--firas103103.replit.app/api/arc/agents/mrf-brain
+//   https://your-app.replit.app/api/arc/agents/mrf-brain
 //
 // 2) Test summary:
-//
 // curl -X POST \
 //   -H "Content-Type: application/json" \
-//   -H "X-ARC-SECRET: <SAME_SECRET_IN_ENV>" \
+//   -H "X-ARC-SECRET: <YOUR_SECRET>" \
 //   -d '{"agent_id":"ARC-L1-FIN-CEO-0001","days":7}' \
-//   https://arc-namer--firas103103.replit.app/api/arc/agents/summary
+//   https://your-app.replit.app/api/arc/agents/summary
+//
+// 3) Test n8n callback (arc_feedback):
+// curl -X POST \
+//   -H "Content-Type: application/json" \
+//   -H "X-ARC-SECRET: <YOUR_SECRET>" \
+//   -d '{"command_id":"cmd-123","source":"n8n","status":"completed","data":{"result":"success"}}' \
+//   https://your-app.replit.app/api/arc/receive
+//
+// 4) Test command log (arc_command_log):
+// curl -X POST \
+//   -H "Content-Type: application/json" \
+//   -H "X-ARC-SECRET: <YOUR_SECRET>" \
+//   -d '{"command":"generate_report","payload":{"type":"daily"},"status":"pending"}' \
+//   https://your-app.replit.app/api/arc/command
+//
+// 5) Test agent event (agent_events):
+// curl -X POST \
+//   -H "Content-Type: application/json" \
+//   -H "X-ARC-SECRET: <YOUR_SECRET>" \
+//   -d '{"agent_name":"Mr.F","event_type":"task_completed","payload":{"task_id":"123"}}' \
+//   https://your-app.replit.app/api/arc/events
 //

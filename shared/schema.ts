@@ -298,6 +298,38 @@ export interface ApiErrorResponse {
 export type ApiResponse<T = ApiSuccessResponse> = T | ApiErrorResponse;
 
 // ============================================
+// Supabase Integration Schemas (n8n Bridge)
+// ============================================
+
+// arc_feedback - n8n callback storage
+export const arcFeedbackSchema = z.object({
+  command_id: z.string().optional(),
+  source: z.string().optional(),
+  status: z.string().optional(),
+  data: z.record(z.unknown()).optional(),
+});
+
+export type ArcFeedback = z.infer<typeof arcFeedbackSchema>;
+
+// arc_command_log - Mr.F Brain commands
+export const arcCommandLogSchema = z.object({
+  command: z.string(),
+  payload: z.record(z.unknown()).optional(),
+  status: z.string().default("pending"),
+});
+
+export type ArcCommandLog = z.infer<typeof arcCommandLogSchema>;
+
+// agent_events (Supabase version) - event tracking
+export const supabaseAgentEventSchema = z.object({
+  agent_name: z.string(),
+  event_type: z.string(),
+  payload: z.record(z.unknown()).optional(),
+});
+
+export type SupabaseAgentEvent = z.infer<typeof supabaseAgentEventSchema>;
+
+// ============================================
 // Replit Auth Tables
 // ============================================
 
