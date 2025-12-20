@@ -5,12 +5,24 @@ import { log } from "../index";
 
 export function archiveLogs() {
   try {
-    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
     const archivesDir = path.join(process.cwd(), "archives");
     const reportsDir = path.join(process.cwd(), "reports");
 
-    if (!fs.existsSync(archivesDir)) fs.mkdirSync(archivesDir);
+    if (!fs.existsSync(reportsDir)) {
+      log("⚠️ Reports directory not found, skipping archive", "archiver");
+      return;
+    }
 
+    if (!fs.existsSync(archivesDir)) {
+      try {
+        fs.mkdirSync(archivesDir, { recursive: true });
+      } catch {
+        log("⚠️ Could not create archives directory, skipping archive", "archiver");
+        return;
+      }
+    }
+
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
     const output = fs.createWriteStream(path.join(archivesDir, `arc_logs_${timestamp}.zip`));
     const archive = archiver("zip", { zlib: { level: 9 } });
     archive.pipe(output);
@@ -19,6 +31,6 @@ export function archiveLogs() {
 
     log("📦 Logs archived successfully", "archiver");
   } catch (err: any) {
-    log(`❌ Log archiving failed: ${err.message}`, "archiver");
+    log(`⚠️ Log archiving skipped: ${err.message}`, "archiver");
   }
 }

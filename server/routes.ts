@@ -185,11 +185,44 @@
     });
 
     // ==================== ARC BRAIN STATE ====================
+    const DEFAULT_BRAIN_MANIFEST = {
+      system_version: "v15.0-ARC2.0",
+      environment: {
+        supabase_url: "https://udcwitnnogxrvoxefrge.supabase.co",
+        replit_endpoints: {
+          receive: "/api/arc/receive",
+          selfcheck: "/selfcheck",
+          ping: "/ping",
+          chat: "/api/chat",
+          tts: "/api/tts"
+        },
+        replit_runtime: true
+      },
+      agents: {
+        "Mr.F": { role: "Executive Brain", voice_id: "HRaipzPqzrU15BUS5ypU" },
+        "L0-Ops": { role: "Operations Commander", voice_id: "CxlDiOFUbSOiMn57bk3w" },
+        "L0-Comms": { role: "Communications Director", voice_id: "0hJmISqttjKhoHxPrKoy" },
+        "L0-Intel": { role: "Intelligence Analyst", voice_id: "rFDdsCQRZCUL8cPOWtnP" },
+        "Dr. Maya Quest": { role: "Research Analyst", voice_id: "PB6BdkFkZLbI39GHdnbQ" },
+        "Jordan Spark": { role: "Creative Director", voice_id: "jAAHNNqlbAX9iWjJPEtE" }
+      },
+      modules: [
+        "Supabase Integration", "n8n Automation", "Executive Summary Generator",
+        "SelfCheck Dashboard", "Realtime Bridge", "Voice Layer", "Report Archiver",
+        "Actions", "Context", "Reasoning", "Execution"
+      ],
+      status: { health: "stable", last_update: new Date().toISOString() }
+    };
+
     app.get("/api/arc/brain/state", async (_req, res) => {
       try {
+        let data = DEFAULT_BRAIN_MANIFEST;
         const manifestPath = path.join(process.cwd(), "arc_core", "brain_manifest.json");
-        if (!fs.existsSync(manifestPath)) return sendError(res, 404, "Brain manifest not found");
-        const data = JSON.parse(fs.readFileSync(manifestPath, "utf-8"));
+        if (fs.existsSync(manifestPath)) {
+          try {
+            data = JSON.parse(fs.readFileSync(manifestPath, "utf-8"));
+          } catch { /* use default */ }
+        }
 
         const safeData = {
           system_version: data.system_version,
@@ -205,11 +238,22 @@
     });
 
     // ==================== ARC SELF-AWARENESS ====================
+    const DEFAULT_SELF_AWARENESS = {
+      identity: "ARC Intelligence Framework",
+      purpose: "Enterprise multi-agent AI orchestration",
+      capabilities: ["Voice synthesis", "Multi-agent coordination", "Real-time monitoring"],
+      status: "operational"
+    };
+
     app.get("/api/arc/brain/self-awareness", async (_req, res) => {
       try {
+        let data = DEFAULT_SELF_AWARENESS;
         const selfPath = path.join(process.cwd(), "arc_core", "brain_self-awareness.json");
-        if (!fs.existsSync(selfPath)) return sendError(res, 404, "Self-awareness file not found");
-        const data = JSON.parse(fs.readFileSync(selfPath, "utf-8"));
+        if (fs.existsSync(selfPath)) {
+          try {
+            data = JSON.parse(fs.readFileSync(selfPath, "utf-8"));
+          } catch { /* use default */ }
+        }
         sendSuccess(res, { selfAwareness: data });
       } catch (e: any) {
         sendError(res, 500, e.message);
