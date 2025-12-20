@@ -1,0 +1,51 @@
+Here’s a refined plan aligned to the ARC codebase paths and existing contracts you shared.
+
+Plan
+Integrate the X Bio Sentinel feature into ARC by extending the existing BioSentinel page, WebSocket server route, and REST endpoints in routes.ts, while formalizing ESP32 message schemas and adding pgvector support in schema.ts + Drizzle. This plan assumes the /ws/bio-sentinel channel and /api/bio-sentinel/* routes are the primary integration points.
+
+Requirements
+New route /bio-sentinel in App.tsx rendering BioSentinel.tsx.
+Sidebar entry in app-sidebar.tsx under bioSentinelItems.
+WebSocket endpoint at /ws/bio-sentinel with typed JSON envelopes for events/commands.
+REST endpoints under /api/bio-sentinel/* for profiles and chat.
+pgvector support for smell embeddings in schema.ts + Drizzle migrations.
+UI matches cybersecurity theme in index.css and design_guidelines.md.
+Scope
+In: Frontend page updates, WS event handling, REST profiles CRUD + import/export, AI chat integration, schema updates, firmware message spec.
+Out: Hosting/deployment pipelines and hardware procurement details.
+Files and entry points
+Routes: App.tsx
+Page: BioSentinel.tsx
+Sidebar: app-sidebar.tsx
+Backend: routes.ts
+Schema/DB: schema.ts, db.ts, drizzle.config.ts
+Theme: index.css, design_guidelines.md
+UI components: client/src/components/ui/*
+Data model / API changes
+Extend smellProfiles in schema.ts with embedding (pgvector) and consistent metadata (label, notes, raw_signature).
+Ensure sensorReadings captures gas resistance, temp, humidity, IAQ, heater status, and device_id.
+WebSocket schemas:
+ESP32 → server: sensor_reading, device_status, capture_complete.
+Server → ESP32: set_mode, start_capture, stop, set_heater_profile, calibrate.
+REST: /api/bio-sentinel/profiles CRUD; /api/bio-sentinel/export and /api/bio-sentinel/import; /api/bio-sentinel/chat.
+Action items
+[ ] Formalize WebSocket message schemas and update routes.ts handling to validate and route by type.
+[ ] Align BioSentinel.tsx WS client logic with the schema; add UI state for offline/connecting/errors.
+[ ] Define the JSON import/export format and align it with schema.ts.
+[ ] Add pgvector column + migration in schema.ts and Drizzle migration; update /profiles to store embeddings.
+[ ] Update AI chat endpoint to pull relevant profiles and attach embeddings/context for analysis.
+[ ] Audit index.css and design_guidelines.md for the cybersecurity theme and update page styling accordingly.
+[ ] Document ESP32 firmware requirements and message formats for the firmware builder.
+
+Testing and validation
+npm run dev and verify /bio-sentinel route renders and nav works.
+Validate WS event flow with a mock ESP32 client.
+Verify profile CRUD and import/export against schema.
+Confirm embeddings stored and queried using pgvector.
+Risks and edge cases
+WS disconnects and reconnection state causing stale UI.
+Vector schema changes require data migration and re-embedding.
+IAQ or heater profile values out of range leading to invalid analytics.
+Open questions
+None at the moment based on the provided context.
+Want me to proceed with implementation, or save this plan to ~/.codex/plans?
