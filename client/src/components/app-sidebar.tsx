@@ -9,6 +9,9 @@ import {
   Shield,
   BarChart3,
   LogOut,
+  Search,
+  Crosshair,
+  Clock,
 } from "lucide-react";
 import {
   Sidebar,
@@ -70,6 +73,24 @@ const communicationsItems = [
 ];
 
 const intelligenceItems = [
+  {
+    title: "Investigation Lounge",
+    url: "/investigation-lounge",
+    icon: Search,
+    testId: "link-investigation-lounge",
+  },
+  {
+    title: "Quantum WarRoom",
+    url: "/quantum-warroom",
+    icon: Crosshair,
+    testId: "link-quantum-warroom",
+  },
+  {
+    title: "Temporal Anomaly Lab",
+    url: "/temporal-anomaly-lab",
+    icon: Clock,
+    testId: "link-temporal-anomaly-lab",
+  },
   {
     title: "Self Check",
     url: "/self-check",

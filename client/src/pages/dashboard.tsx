@@ -7,6 +7,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Brain, Activity, RefreshCw, AlertCircle, Zap } from "lucide-react";
 import { format } from "date-fns";
+import { TerminalHeartbeat, type LogEvent } from "@/components/TerminalHeartbeat";
+import { EventTimeline, type TimelineEvent } from "@/components/EventTimeline";
 
 interface CommandLog {
   id: string;
@@ -40,6 +42,74 @@ export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [terminalEvents, setTerminalEvents] = useState<LogEvent[]>([]);
+  const [timelineEvents, setTimelineEvents] = useState<TimelineEvent[]>([]);
+
+  const convertToTerminalEvent = (data: CommandLog | AgentEvent | ArcFeedback, type: 'command' | 'event' | 'feedback'): LogEvent => {
+    const timestamp = new Date(data.created_at);
+    
+    if (type === 'command') {
+      const cmd = data as CommandLog;
+      return {
+        id: `cmd-${cmd.id}`,
+        timestamp,
+        message: `${cmd.command} - ${cmd.status}`,
+        severity: cmd.status === 'completed' ? 'success' : cmd.status === 'failed' ? 'error' : 'info',
+        source: 'SYSTEM',
+      };
+    } else if (type === 'event') {
+      const evt = data as AgentEvent;
+      return {
+        id: `evt-${evt.id}`,
+        timestamp,
+        message: `${evt.agent_name}: ${evt.event_type}`,
+        severity: 'info',
+        source: 'AGENT',
+      };
+    } else {
+      const fb = data as ArcFeedback;
+      return {
+        id: `fb-${fb.id}`,
+        timestamp,
+        message: `Callback: ${fb.source || fb.command_id || 'n8n'} - ${fb.status || 'received'}`,
+        severity: fb.status === 'success' ? 'success' : fb.status === 'error' ? 'error' : 'info',
+        source: 'API',
+      };
+    }
+  };
+
+  const convertToTimelineEvent = (data: CommandLog | AgentEvent | ArcFeedback, type: 'command' | 'event' | 'feedback'): TimelineEvent => {
+    const timestamp = new Date(data.created_at);
+    
+    if (type === 'command') {
+      const cmd = data as CommandLog;
+      return {
+        id: `cmd-${cmd.id}`,
+        timestamp,
+        agentName: 'Mr.F Brain',
+        eventType: cmd.status === 'completed' ? 'success' : cmd.status === 'failed' ? 'alert' : 'action',
+        description: cmd.command,
+      };
+    } else if (type === 'event') {
+      const evt = data as AgentEvent;
+      return {
+        id: `evt-${evt.id}`,
+        timestamp,
+        agentName: evt.agent_name,
+        eventType: evt.event_type === 'message' ? 'message' : 'action',
+        description: evt.event_type,
+      };
+    } else {
+      const fb = data as ArcFeedback;
+      return {
+        id: `fb-${fb.id}`,
+        timestamp,
+        agentName: 'n8n',
+        eventType: 'system',
+        description: `${fb.source || 'Callback'}: ${fb.status || 'received'}`,
+      };
+    }
+  };
 
   const fetchData = async () => {
     if (!supabase) {
@@ -70,15 +140,32 @@ export default function Dashboard() {
           .limit(10),
       ]);
 
-      // Handle errors gracefully - tables may not exist yet
       if (cmdResult.error) console.warn("arc_command_log query failed:", cmdResult.error);
       if (evtResult.error) console.warn("agent_events query failed:", evtResult.error);
       if (fbResult.error) console.warn("arc_feedback query failed:", fbResult.error);
 
-      setCommands(cmdResult.data || []);
-      setEvents(evtResult.data || []);
-      setFeedback(fbResult.data || []);
+      const cmds = cmdResult.data || [];
+      const evts = evtResult.data || [];
+      const fbs = fbResult.data || [];
+
+      setCommands(cmds);
+      setEvents(evts);
+      setFeedback(fbs);
       setLastUpdated(new Date());
+
+      const allTerminal: LogEvent[] = [
+        ...cmds.map(c => convertToTerminalEvent(c, 'command')),
+        ...evts.map(e => convertToTerminalEvent(e, 'event')),
+        ...fbs.map(f => convertToTerminalEvent(f, 'feedback')),
+      ].sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+      setTerminalEvents(allTerminal);
+
+      const allTimeline: TimelineEvent[] = [
+        ...cmds.map(c => convertToTimelineEvent(c, 'command')),
+        ...evts.map(e => convertToTimelineEvent(e, 'event')),
+        ...fbs.map(f => convertToTimelineEvent(f, 'feedback')),
+      ].sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+      setTimelineEvents(allTimeline);
     } catch (err) {
       console.error("Error fetching data:", err);
       setError(err instanceof Error ? err.message : "Failed to fetch data");
@@ -167,10 +254,10 @@ export default function Dashboard() {
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div>
           <h1 className="text-2xl font-bold" data-testid="dashboard-title">
-            ARC Real-time Dashboard
+            ARC Command Center
           </h1>
           <p className="text-muted-foreground text-sm">
-            Live view of n8n callbacks, commands, and agent events
+            Live view of system activity, commands, and agent events
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -201,6 +288,23 @@ export default function Dashboard() {
         </Card>
       )}
 
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <TerminalHeartbeat events={terminalEvents} maxEvents={30} />
+        
+        <Card data-testid="card-timeline-wrapper">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Activity className="h-5 w-5 text-primary" />
+              Event Timeline
+            </CardTitle>
+            <CardDescription>Horizontal view of all activity</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <EventTimeline events={timelineEvents} />
+          </CardContent>
+        </Card>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card data-testid="card-commands">
           <CardHeader className="pb-3">
@@ -214,7 +318,7 @@ export default function Dashboard() {
             <CardDescription>Mr.F Brain command log</CardDescription>
           </CardHeader>
           <CardContent>
-            <ScrollArea className="h-[400px]">
+            <ScrollArea className="h-[300px]">
               {isLoading ? (
                 <div className="space-y-3">
                   {[1, 2, 3].map((i) => (
@@ -262,7 +366,7 @@ export default function Dashboard() {
             <CardDescription>Real-time agent activity</CardDescription>
           </CardHeader>
           <CardContent>
-            <ScrollArea className="h-[400px]">
+            <ScrollArea className="h-[300px]">
               {isLoading ? (
                 <div className="space-y-3">
                   {[1, 2, 3].map((i) => (
@@ -308,7 +412,7 @@ export default function Dashboard() {
             <CardDescription>Workflow feedback from n8n</CardDescription>
           </CardHeader>
           <CardContent>
-            <ScrollArea className="h-[400px]">
+            <ScrollArea className="h-[300px]">
               {isLoading ? (
                 <div className="space-y-3">
                   {[1, 2, 3].map((i) => (
