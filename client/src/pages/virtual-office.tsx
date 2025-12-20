@@ -1,10 +1,30 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+import { Link } from "wouter";
 import { supabase, isSupabaseConfigured } from "@/lib/supabaseClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Terminal, Bot, Wifi, WifiOff } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { useAuth } from "@/hooks/useAuth";
+import {
+  Terminal,
+  Bot,
+  Wifi,
+  WifiOff,
+  RefreshCw,
+  Search,
+  ChevronDown,
+  ChevronRight,
+  LogOut,
+  BarChart3,
+  Activity,
+  Clock,
+  Zap,
+} from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
 
 interface CommandLog {
   id: string;
@@ -19,14 +39,119 @@ interface AgentEvent {
   id: string;
   agent_name: string;
   event_type: string;
+  payload?: unknown;
   created_at: string;
 }
 
+const ITEMS_PER_PAGE = 10;
+
 export default function VirtualOffice() {
+  const { user } = useAuth();
+  
+  const handleLogout = () => {
+    window.location.href = "/api/logout";
+  };
   const [commands, setCommands] = useState<CommandLog[]>([]);
   const [agents, setAgents] = useState<AgentEvent[]>([]);
   const [connected, setConnected] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  
+  const [commandSearch, setCommandSearch] = useState("");
+  const [agentSearch, setAgentSearch] = useState("");
+  
+  const [commandsPage, setCommandsPage] = useState(1);
+  const [agentsPage, setAgentsPage] = useState(1);
+  const [hasMoreCommands, setHasMoreCommands] = useState(true);
+  const [hasMoreAgents, setHasMoreAgents] = useState(true);
+  const [loadingMoreCommands, setLoadingMoreCommands] = useState(false);
+  const [loadingMoreAgents, setLoadingMoreAgents] = useState(false);
+  
+  const [expandedCommands, setExpandedCommands] = useState<Set<string>>(new Set());
+  const [expandedAgents, setExpandedAgents] = useState<Set<string>>(new Set());
+
+  const [totalCommands, setTotalCommands] = useState(0);
+  const [totalAgents, setTotalAgents] = useState(0);
+
+  const loadCommands = useCallback(async (page = 1, append = false) => {
+    if (!supabase) return;
+    const limit = ITEMS_PER_PAGE;
+    const offset = (page - 1) * limit;
+    
+    const { data, count } = await supabase
+      .from("arc_command_log")
+      .select("*", { count: "exact" })
+      .order("created_at", { ascending: false })
+      .range(offset, offset + limit - 1);
+    
+    if (data) {
+      if (append) {
+        setCommands(prev => [...prev, ...data]);
+      } else {
+        setCommands(data);
+      }
+      setHasMoreCommands(data.length === limit);
+    }
+    if (count !== null) {
+      setTotalCommands(count);
+    }
+  }, []);
+
+  const loadAgents = useCallback(async (page = 1, append = false) => {
+    if (!supabase) return;
+    const limit = ITEMS_PER_PAGE;
+    const offset = (page - 1) * limit;
+    
+    const { data, count } = await supabase
+      .from("agent_events")
+      .select("*", { count: "exact" })
+      .order("created_at", { ascending: false })
+      .range(offset, offset + limit - 1);
+    
+    if (data) {
+      if (append) {
+        setAgents(prev => [...prev, ...data]);
+      } else {
+        setAgents(data);
+      }
+      setHasMoreAgents(data.length === limit);
+    }
+    if (count !== null) {
+      setTotalAgents(count);
+    }
+  }, []);
+
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    setCommandsPage(1);
+    setAgentsPage(1);
+    await Promise.all([loadCommands(1), loadAgents(1)]);
+    setLastUpdated(new Date());
+    setLoading(false);
+  }, [loadCommands, loadAgents]);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await loadData();
+    setRefreshing(false);
+  };
+
+  const loadMoreCommands = async () => {
+    setLoadingMoreCommands(true);
+    const nextPage = commandsPage + 1;
+    await loadCommands(nextPage, true);
+    setCommandsPage(nextPage);
+    setLoadingMoreCommands(false);
+  };
+
+  const loadMoreAgents = async () => {
+    setLoadingMoreAgents(true);
+    const nextPage = agentsPage + 1;
+    await loadAgents(nextPage, true);
+    setAgentsPage(nextPage);
+    setLoadingMoreAgents(false);
+  };
 
   useEffect(() => {
     if (!isSupabaseConfigured() || !supabase) {
@@ -41,9 +166,10 @@ export default function VirtualOffice() {
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "arc_command_log" },
-        (payload) => {
-          console.log("New Command Event:", payload);
-          loadCommands();
+        () => {
+          setCommandsPage(1);
+          loadCommands(1);
+          setLastUpdated(new Date());
         }
       )
       .subscribe(() => setConnected(true));
@@ -53,9 +179,10 @@ export default function VirtualOffice() {
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "agent_events" },
-        (payload) => {
-          console.log("New Agent Event:", payload);
-          loadAgents();
+        () => {
+          setAgentsPage(1);
+          loadAgents(1);
+          setLastUpdated(new Date());
         }
       )
       .subscribe();
@@ -64,32 +191,30 @@ export default function VirtualOffice() {
       supabase!.removeChannel(cmdChannel);
       supabase!.removeChannel(agentChannel);
     };
-  }, []);
+  }, [loadData, loadCommands, loadAgents]);
 
-  const loadData = async () => {
-    setLoading(true);
-    await Promise.all([loadCommands(), loadAgents()]);
-    setLoading(false);
+  const toggleCommandExpanded = (id: string) => {
+    setExpandedCommands(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
   };
 
-  const loadCommands = async () => {
-    if (!supabase) return;
-    const { data } = await supabase
-      .from("arc_command_log")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(10);
-    if (data) setCommands(data);
-  };
-
-  const loadAgents = async () => {
-    if (!supabase) return;
-    const { data } = await supabase
-      .from("agent_events")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(10);
-    if (data) setAgents(data);
+  const toggleAgentExpanded = (id: string) => {
+    setExpandedAgents(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
   };
 
   const getStatusVariant = (status: string): "default" | "secondary" | "destructive" | "outline" => {
@@ -106,6 +231,45 @@ export default function VirtualOffice() {
         return "outline";
     }
   };
+
+  const formatRelativeTime = (dateStr: string) => {
+    try {
+      return formatDistanceToNow(new Date(dateStr), { addSuffix: true });
+    } catch {
+      return dateStr;
+    }
+  };
+
+  const filteredCommands = commands.filter(cmd => {
+    if (!commandSearch) return true;
+    const search = commandSearch.toLowerCase();
+    return (
+      cmd.command?.toLowerCase().includes(search) ||
+      cmd.command_id?.toLowerCase().includes(search) ||
+      cmd.status?.toLowerCase().includes(search)
+    );
+  });
+
+  const filteredAgents = agents.filter(ag => {
+    if (!agentSearch) return true;
+    const search = agentSearch.toLowerCase();
+    return (
+      ag.agent_name?.toLowerCase().includes(search) ||
+      ag.event_type?.toLowerCase().includes(search)
+    );
+  });
+
+  const recentCommandsCount = commands.filter(cmd => {
+    const created = new Date(cmd.created_at);
+    const hourAgo = new Date(Date.now() - 60 * 60 * 1000);
+    return created > hourAgo;
+  }).length;
+
+  const recentAgentsCount = agents.filter(ag => {
+    const created = new Date(ag.created_at);
+    const hourAgo = new Date(Date.now() - 60 * 60 * 1000);
+    return created > hourAgo;
+  }).length;
 
   if (!isSupabaseConfigured()) {
     return (
@@ -128,115 +292,291 @@ export default function VirtualOffice() {
   }
 
   return (
-    <div className="min-h-screen bg-background p-6 md:p-8" data-testid="virtual-office">
-      <div className="max-w-6xl mx-auto space-y-6">
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <h1 className="text-2xl md:text-3xl font-bold" data-testid="text-dashboard-title">
-            ARC Virtual Office Dashboard
-          </h1>
-          <Badge variant={connected ? "default" : "secondary"} data-testid="status-connection">
-            {connected ? (
-              <>
-                <Wifi className="h-3 w-3 mr-1" />
-                Live
-              </>
-            ) : (
-              <>
-                <WifiOff className="h-3 w-3 mr-1" />
-                Connecting...
-              </>
+    <div className="min-h-screen bg-background" data-testid="virtual-office">
+      <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="max-w-6xl mx-auto px-4 md:px-6 py-3 flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex items-center gap-4">
+            <h1 className="text-xl md:text-2xl font-bold" data-testid="text-dashboard-title">
+              ARC Virtual Office
+            </h1>
+            <Badge variant={connected ? "default" : "secondary"} data-testid="status-connection">
+              {connected ? (
+                <>
+                  <Wifi className="h-3 w-3 mr-1" />
+                  Live
+                </>
+              ) : (
+                <>
+                  <WifiOff className="h-3 w-3 mr-1" />
+                  Connecting
+                </>
+              )}
+            </Badge>
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            {lastUpdated && (
+              <span className="text-xs text-muted-foreground hidden sm:inline">
+                Updated {formatRelativeTime(lastUpdated.toISOString())}
+              </span>
             )}
-          </Badge>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleRefresh}
+              disabled={refreshing}
+              data-testid="button-refresh"
+            >
+              <RefreshCw className={`h-4 w-4 mr-1 ${refreshing ? "animate-spin" : ""}`} />
+              Refresh
+            </Button>
+            <Link href="/dashboard">
+              <Button variant="outline" size="sm" data-testid="link-dashboard">
+                <BarChart3 className="h-4 w-4 mr-1" />
+                Analytics
+              </Button>
+            </Link>
+            {user && (
+              <Button variant="ghost" size="sm" onClick={handleLogout} data-testid="button-logout">
+                <LogOut className="h-4 w-4 mr-1" />
+                Logout
+              </Button>
+            )}
+          </div>
+        </div>
+      </header>
+
+      <main className="max-w-6xl mx-auto px-4 md:px-6 py-6 space-y-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Card data-testid="stat-total-commands">
+            <CardContent className="pt-4">
+              <div className="flex items-center gap-2">
+                <Terminal className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">Total Commands</span>
+              </div>
+              <p className="text-2xl font-bold mt-1">{totalCommands}</p>
+            </CardContent>
+          </Card>
+          <Card data-testid="stat-total-events">
+            <CardContent className="pt-4">
+              <div className="flex items-center gap-2">
+                <Bot className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">Total Events</span>
+              </div>
+              <p className="text-2xl font-bold mt-1">{totalAgents}</p>
+            </CardContent>
+          </Card>
+          <Card data-testid="stat-recent-commands">
+            <CardContent className="pt-4">
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">Last Hour</span>
+              </div>
+              <p className="text-2xl font-bold mt-1">{recentCommandsCount} cmds</p>
+            </CardContent>
+          </Card>
+          <Card data-testid="stat-recent-events">
+            <CardContent className="pt-4">
+              <div className="flex items-center gap-2">
+                <Activity className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">Active Agents</span>
+              </div>
+              <p className="text-2xl font-bold mt-1">{recentAgentsCount} events</p>
+            </CardContent>
+          </Card>
         </div>
 
         <div className="grid md:grid-cols-2 gap-6">
           <Card data-testid="card-commands">
-            <CardHeader className="flex flex-row items-center justify-between gap-2">
+            <CardHeader className="flex flex-row items-center justify-between gap-2 pb-3">
               <CardTitle className="flex items-center gap-2 text-lg">
                 <Terminal className="h-5 w-5" />
-                Latest Commands
+                Commands
               </CardTitle>
+              <Badge variant="outline">{filteredCommands.length}</Badge>
             </CardHeader>
-            <CardContent>
-              <ScrollArea className="h-[400px]">
+            <CardContent className="space-y-3">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search commands..."
+                  value={commandSearch}
+                  onChange={(e) => setCommandSearch(e.target.value)}
+                  className="pl-9"
+                  data-testid="input-search-commands"
+                />
+              </div>
+              <ScrollArea className="h-[350px]">
                 {loading ? (
                   <div className="space-y-3">
                     {[1, 2, 3, 4, 5].map((i) => (
                       <Skeleton key={i} className="h-16 w-full" />
                     ))}
                   </div>
-                ) : commands.length === 0 ? (
+                ) : filteredCommands.length === 0 ? (
                   <p className="text-muted-foreground text-center py-8" data-testid="text-no-commands">
-                    No commands yet.
+                    {commandSearch ? "No matching commands." : "No commands yet."}
                   </p>
                 ) : (
-                  <ul className="space-y-3">
-                    {commands.map((cmd) => (
-                      <li
+                  <div className="space-y-2">
+                    {filteredCommands.map((cmd) => (
+                      <Collapsible
                         key={cmd.id}
-                        className="border-b border-border pb-3 last:border-0"
-                        data-testid={`command-${cmd.id}`}
+                        open={expandedCommands.has(cmd.id)}
+                        onOpenChange={() => toggleCommandExpanded(cmd.id)}
                       >
-                        <div className="flex items-center justify-between gap-2 mb-1">
-                          <p className="font-medium truncate">
-                            {cmd.command || cmd.command_id || "No ID"}
-                          </p>
-                          <Badge variant={getStatusVariant(cmd.status)}>
-                            {cmd.status}
-                          </Badge>
+                        <div
+                          className="border border-border rounded-md p-3 hover-elevate"
+                          data-testid={`command-${cmd.id}`}
+                        >
+                          <CollapsibleTrigger className="w-full text-left">
+                            <div className="flex items-center justify-between gap-2 mb-1">
+                              <div className="flex items-center gap-2 min-w-0">
+                                {expandedCommands.has(cmd.id) ? (
+                                  <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
+                                ) : (
+                                  <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                                )}
+                                <p className="font-medium truncate">
+                                  {cmd.command || cmd.command_id || "No ID"}
+                                </p>
+                              </div>
+                              <Badge variant={getStatusVariant(cmd.status)}>
+                                {cmd.status}
+                              </Badge>
+                            </div>
+                            <p className="text-xs text-muted-foreground pl-6">
+                              {formatRelativeTime(cmd.created_at)}
+                            </p>
+                          </CollapsibleTrigger>
+                          <CollapsibleContent>
+                            <pre className="mt-3 p-3 bg-muted rounded-md text-xs overflow-x-auto">
+                              {cmd.payload ? JSON.stringify(cmd.payload, null, 2) : "No payload"}
+                            </pre>
+                          </CollapsibleContent>
                         </div>
-                        <p className="text-xs text-muted-foreground">
-                          {new Date(cmd.created_at).toLocaleString()}
-                        </p>
-                      </li>
+                      </Collapsible>
                     ))}
-                  </ul>
+                    {hasMoreCommands && !commandSearch && (
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={loadMoreCommands}
+                        disabled={loadingMoreCommands}
+                        data-testid="button-load-more-commands"
+                      >
+                        {loadingMoreCommands ? (
+                          <>
+                            <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                            Loading...
+                          </>
+                        ) : (
+                          <>
+                            <Zap className="h-4 w-4 mr-2" />
+                            Load More
+                          </>
+                        )}
+                      </Button>
+                    )}
+                  </div>
                 )}
               </ScrollArea>
             </CardContent>
           </Card>
 
           <Card data-testid="card-agent-events">
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between gap-2 pb-3">
               <CardTitle className="flex items-center gap-2 text-lg">
                 <Bot className="h-5 w-5" />
                 Agent Events
               </CardTitle>
+              <Badge variant="outline">{filteredAgents.length}</Badge>
             </CardHeader>
-            <CardContent>
-              <ScrollArea className="h-[400px]">
+            <CardContent className="space-y-3">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search agents..."
+                  value={agentSearch}
+                  onChange={(e) => setAgentSearch(e.target.value)}
+                  className="pl-9"
+                  data-testid="input-search-agents"
+                />
+              </div>
+              <ScrollArea className="h-[350px]">
                 {loading ? (
                   <div className="space-y-3">
                     {[1, 2, 3, 4, 5].map((i) => (
                       <Skeleton key={i} className="h-16 w-full" />
                     ))}
                   </div>
-                ) : agents.length === 0 ? (
+                ) : filteredAgents.length === 0 ? (
                   <p className="text-muted-foreground text-center py-8" data-testid="text-no-events">
-                    No events yet.
+                    {agentSearch ? "No matching events." : "No events yet."}
                   </p>
                 ) : (
-                  <ul className="space-y-3">
-                    {agents.map((ag) => (
-                      <li
+                  <div className="space-y-2">
+                    {filteredAgents.map((ag) => (
+                      <Collapsible
                         key={ag.id}
-                        className="border-b border-border pb-3 last:border-0"
-                        data-testid={`agent-event-${ag.id}`}
+                        open={expandedAgents.has(ag.id)}
+                        onOpenChange={() => toggleAgentExpanded(ag.id)}
                       >
-                        <p className="font-medium">{ag.agent_name}</p>
-                        <p className="text-sm text-muted-foreground">{ag.event_type}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {new Date(ag.created_at).toLocaleString()}
-                        </p>
-                      </li>
+                        <div
+                          className="border border-border rounded-md p-3 hover-elevate"
+                          data-testid={`agent-event-${ag.id}`}
+                        >
+                          <CollapsibleTrigger className="w-full text-left">
+                            <div className="flex items-center gap-2 mb-1">
+                              {expandedAgents.has(ag.id) ? (
+                                <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
+                              ) : (
+                                <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                              )}
+                              <p className="font-medium">{ag.agent_name}</p>
+                            </div>
+                            <div className="pl-6">
+                              <p className="text-sm text-muted-foreground">{ag.event_type}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {formatRelativeTime(ag.created_at)}
+                              </p>
+                            </div>
+                          </CollapsibleTrigger>
+                          <CollapsibleContent>
+                            <pre className="mt-3 p-3 bg-muted rounded-md text-xs overflow-x-auto">
+                              {ag.payload ? JSON.stringify(ag.payload, null, 2) : "No payload"}
+                            </pre>
+                          </CollapsibleContent>
+                        </div>
+                      </Collapsible>
                     ))}
-                  </ul>
+                    {hasMoreAgents && !agentSearch && (
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={loadMoreAgents}
+                        disabled={loadingMoreAgents}
+                        data-testid="button-load-more-agents"
+                      >
+                        {loadingMoreAgents ? (
+                          <>
+                            <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                            Loading...
+                          </>
+                        ) : (
+                          <>
+                            <Zap className="h-4 w-4 mr-2" />
+                            Load More
+                          </>
+                        )}
+                      </Button>
+                    )}
+                  </div>
                 )}
               </ScrollArea>
             </CardContent>
           </Card>
         </div>
-      </div>
+      </main>
     </div>
   );
 }
