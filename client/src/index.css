@@ -4,60 +4,60 @@
 @tailwind components;
 @tailwind utilities;
 
-/* DARK THEME - Hacker Green & Robotech Blue */
+/* DARK THEME - Deep Navy Command Center */
 :root {
-  --button-outline: rgba(0, 255, 136, 0.15);
-  --badge-outline: rgba(0, 194, 255, 0.1);
+  --button-outline: rgba(61, 214, 180, 0.15);
+  --badge-outline: rgba(59, 167, 255, 0.1);
   --opaque-button-border-intensity: 8;
-  --elevate-1: rgba(0, 255, 136, 0.05);
-  --elevate-2: rgba(0, 194, 255, 0.08);
-  --background: 0deg 0% 8%;
-  --foreground: 140deg 100% 85%;
-  --border: 140deg 40% 25%;
-  --card: 0deg 0% 12%;
-  --card-foreground: 140deg 80% 75%;
-  --card-border: 140deg 30% 18%;
-  --sidebar: 0 0% 10%;
-  --sidebar-foreground: 140deg 90% 80%;
-  --sidebar-border: 140deg 25% 15%;
-  --sidebar-primary: 195deg 100% 50%;
-  --sidebar-primary-foreground: 0deg 0% 100%;
-  --sidebar-accent: 140deg 80% 25%;
-  --sidebar-accent-foreground: 140deg 90% 85%;
-  --sidebar-ring: 195deg 100% 50%;
-  --popover: 0deg 0% 10%;
-  --popover-foreground: 140deg 85% 80%;
-  --popover-border: 140deg 35% 20%;
-  --primary: 140deg 100% 45%;
-  --primary-foreground: 0deg 0% 0%;
-  --secondary: 195deg 100% 40%;
-  --secondary-foreground: 0deg 0% 100%;
-  --muted: 140deg 20% 20%;
-  --muted-foreground: 140deg 40% 65%;
-  --accent: 195deg 100% 50%;
-  --accent-foreground: 0deg 0% 0%;
-  --destructive: 0deg 80% 50%;
-  --destructive-foreground: 0deg 0% 100%;
-  --input: 140deg 50% 30%;
-  --ring: 140deg 100% 50%;
-  --chart-1: 140deg 100% 50%;
-  --chart-2: 195deg 100% 55%;
-  --chart-3: 280deg 85% 60%;
-  --chart-4: 40deg 95% 55%;
-  --chart-5: 350deg 85% 55%;
-  --font-sans: 'Oxanium', 'Geist', sans-serif;
+  --elevate-1: rgba(61, 214, 180, 0.06);
+  --elevate-2: rgba(59, 167, 255, 0.1);
+  --background: 222 47% 6%;
+  --foreground: 210 20% 90%;
+  --border: 220 30% 18%;
+  --card: 222 40% 10%;
+  --card-foreground: 210 25% 88%;
+  --card-border: 220 25% 16%;
+  --sidebar: 222 45% 8%;
+  --sidebar-foreground: 210 20% 85%;
+  --sidebar-border: 220 30% 14%;
+  --sidebar-primary: 168 65% 46%;
+  --sidebar-primary-foreground: 222 47% 8%;
+  --sidebar-accent: 222 35% 18%;
+  --sidebar-accent-foreground: 168 50% 70%;
+  --sidebar-ring: 207 90% 54%;
+  --popover: 222 42% 9%;
+  --popover-foreground: 210 20% 88%;
+  --popover-border: 220 28% 17%;
+  --primary: 168 65% 46%;
+  --primary-foreground: 222 47% 8%;
+  --secondary: 207 90% 54%;
+  --secondary-foreground: 0 0% 100%;
+  --muted: 222 30% 16%;
+  --muted-foreground: 215 20% 60%;
+  --accent: 207 90% 54%;
+  --accent-foreground: 222 47% 8%;
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 0 0% 100%;
+  --input: 222 35% 20%;
+  --ring: 168 65% 46%;
+  --chart-1: 168 65% 46%;
+  --chart-2: 207 90% 54%;
+  --chart-3: 280 65% 60%;
+  --chart-4: 38 92% 50%;
+  --chart-5: 350 80% 55%;
+  --font-sans: 'Inter', 'Geist', sans-serif;
   --font-serif: 'IBM Plex Sans', sans-serif;
   --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
-  --radius: 0.375rem;
-  --shadow-2xs: 0px 0px 8px 0px hsl(140deg 100% 45% / 0.15);
-  --shadow-xs: 0px 0px 12px 0px hsl(140deg 100% 45% / 0.2);
-  --shadow-sm: 0px 2px 16px 0px hsl(140deg 100% 45% / 0.25);
-  --shadow: 0px 4px 20px 0px hsl(140deg 100% 45% / 0.3);
-  --shadow-md: 0px 6px 24px 0px hsl(195deg 100% 50% / 0.35);
-  --shadow-lg: 0px 8px 28px 0px hsl(195deg 100% 50% / 0.4);
-  --shadow-xl: 0px 12px 32px 0px hsl(195deg 100% 50% / 0.45);
-  --shadow-2xl: 0px 16px 40px 0px hsl(195deg 100% 50% / 0.5);
-  --tracking-normal: 0.02em;
+  --radius: 0.5rem;
+  --shadow-2xs: 0px 1px 2px 0px rgba(0, 0, 0, 0.3);
+  --shadow-xs: 0px 1px 3px 0px rgba(0, 0, 0, 0.35);
+  --shadow-sm: 0px 2px 4px 0px rgba(0, 0, 0, 0.4);
+  --shadow: 0px 4px 8px 0px rgba(0, 0, 0, 0.45);
+  --shadow-md: 0px 6px 12px 0px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0px 8px 16px 0px rgba(0, 0, 0, 0.55);
+  --shadow-xl: 0px 12px 24px 0px rgba(0, 0, 0, 0.6);
+  --shadow-2xl: 0px 16px 32px 0px rgba(0, 0, 0, 0.65);
+  --tracking-normal: 0.01em;
   --spacing: 0.25rem;
 
   --sidebar-primary-border: hsl(from hsl(var(--sidebar-primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
@@ -70,53 +70,53 @@
 }
 
 .dark {
-  --button-outline: rgba(0, 255, 136, 0.15);
-  --badge-outline: rgba(0, 194, 255, 0.1);
+  --button-outline: rgba(61, 214, 180, 0.15);
+  --badge-outline: rgba(59, 167, 255, 0.1);
   --opaque-button-border-intensity: 8;
-  --elevate-1: rgba(0, 255, 136, 0.05);
-  --elevate-2: rgba(0, 194, 255, 0.08);
-  --background: 0 0% 6%;
-  --foreground: 140deg 100% 85%;
-  --border: 140deg 40% 22%;
-  --card: 0 0% 10%;
-  --card-foreground: 140deg 80% 75%;
-  --card-border: 140deg 30% 15%;
-  --sidebar: 0 0% 8%;
-  --sidebar-foreground: 140deg 90% 80%;
-  --sidebar-border: 140deg 25% 12%;
-  --sidebar-primary: 195deg 100% 50%;
-  --sidebar-primary-foreground: 0deg 0% 100%;
-  --sidebar-accent: 140deg 80% 22%;
-  --sidebar-accent-foreground: 140deg 90% 85%;
-  --sidebar-ring: 195deg 100% 50%;
-  --popover: 0 0% 8%;
-  --popover-foreground: 140deg 85% 80%;
-  --popover-border: 140deg 35% 18%;
-  --primary: 140deg 100% 45%;
-  --primary-foreground: 0deg 0% 0%;
-  --secondary: 195deg 100% 40%;
-  --secondary-foreground: 0deg 0% 100%;
-  --muted: 140deg 20% 18%;
-  --muted-foreground: 140deg 40% 65%;
-  --accent: 195deg 100% 50%;
-  --accent-foreground: 0deg 0% 0%;
-  --destructive: 0deg 80% 50%;
-  --destructive-foreground: 0deg 0% 100%;
-  --input: 140deg 50% 28%;
-  --ring: 140deg 100% 50%;
-  --chart-1: 140deg 100% 50%;
-  --chart-2: 195deg 100% 55%;
-  --chart-3: 280deg 85% 60%;
-  --chart-4: 40deg 95% 55%;
-  --chart-5: 350deg 85% 55%;
-  --shadow-2xs: 0px 0px 8px 0px hsl(140deg 100% 45% / 0.15);
-  --shadow-xs: 0px 0px 12px 0px hsl(140deg 100% 45% / 0.2);
-  --shadow-sm: 0px 2px 16px 0px hsl(140deg 100% 45% / 0.25);
-  --shadow: 0px 4px 20px 0px hsl(140deg 100% 45% / 0.3);
-  --shadow-md: 0px 6px 24px 0px hsl(195deg 100% 50% / 0.35);
-  --shadow-lg: 0px 8px 28px 0px hsl(195deg 100% 50% / 0.4);
-  --shadow-xl: 0px 12px 32px 0px hsl(195deg 100% 50% / 0.45);
-  --shadow-2xl: 0px 16px 40px 0px hsl(195deg 100% 50% / 0.5);
+  --elevate-1: rgba(61, 214, 180, 0.06);
+  --elevate-2: rgba(59, 167, 255, 0.1);
+  --background: 222 47% 5%;
+  --foreground: 210 20% 90%;
+  --border: 220 30% 16%;
+  --card: 222 40% 9%;
+  --card-foreground: 210 25% 88%;
+  --card-border: 220 25% 14%;
+  --sidebar: 222 45% 7%;
+  --sidebar-foreground: 210 20% 85%;
+  --sidebar-border: 220 30% 12%;
+  --sidebar-primary: 168 65% 46%;
+  --sidebar-primary-foreground: 222 47% 8%;
+  --sidebar-accent: 222 35% 16%;
+  --sidebar-accent-foreground: 168 50% 70%;
+  --sidebar-ring: 207 90% 54%;
+  --popover: 222 42% 8%;
+  --popover-foreground: 210 20% 88%;
+  --popover-border: 220 28% 15%;
+  --primary: 168 65% 46%;
+  --primary-foreground: 222 47% 8%;
+  --secondary: 207 90% 54%;
+  --secondary-foreground: 0 0% 100%;
+  --muted: 222 30% 14%;
+  --muted-foreground: 215 20% 60%;
+  --accent: 207 90% 54%;
+  --accent-foreground: 222 47% 8%;
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 0 0% 100%;
+  --input: 222 35% 18%;
+  --ring: 168 65% 46%;
+  --chart-1: 168 65% 46%;
+  --chart-2: 207 90% 54%;
+  --chart-3: 280 65% 60%;
+  --chart-4: 38 92% 50%;
+  --chart-5: 350 80% 55%;
+  --shadow-2xs: 0px 1px 2px 0px rgba(0, 0, 0, 0.4);
+  --shadow-xs: 0px 1px 3px 0px rgba(0, 0, 0, 0.45);
+  --shadow-sm: 0px 2px 4px 0px rgba(0, 0, 0, 0.5);
+  --shadow: 0px 4px 8px 0px rgba(0, 0, 0, 0.55);
+  --shadow-md: 0px 6px 12px 0px rgba(0, 0, 0, 0.6);
+  --shadow-lg: 0px 8px 16px 0px rgba(0, 0, 0, 0.65);
+  --shadow-xl: 0px 12px 24px 0px rgba(0, 0, 0, 0.7);
+  --shadow-2xl: 0px 16px 32px 0px rgba(0, 0, 0, 0.75);
 
   --sidebar-primary-border: hsl(from hsl(var(--sidebar-primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
   --sidebar-accent-border: hsl(from hsl(var(--sidebar-accent)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
@@ -134,7 +134,7 @@
 
   body {
     @apply font-sans antialiased bg-background text-foreground;
-    background: radial-gradient(ellipse at top, hsl(0 0% 10%), hsl(0 0% 6%));
+    background: linear-gradient(180deg, hsl(222deg 47% 8%) 0%, hsl(222deg 47% 5%) 100%);
     min-height: 100vh;
   }
 }
@@ -166,7 +166,7 @@
 
   .toggle-elevate.toggle-elevated::before {
     background-color: var(--elevate-2);
-    box-shadow: 0 0 15px hsl(140deg 100% 45% / 0.3);
+    box-shadow: 0 0 15px hsl(168deg 65% 46% / 0.3);
   }
 
   .border.toggle-elevate::before {
@@ -211,16 +211,16 @@
     inset: -1px;
   }
 
-  /* Cyberpunk glow effect */
-  .glow-green {
-    box-shadow: 0 0 10px hsl(140deg 100% 45% / 0.5);
+  /* Subtle glow effects */
+  .glow-teal {
+    box-shadow: 0 0 10px hsl(168deg 65% 46% / 0.4);
   }
 
   .glow-blue {
-    box-shadow: 0 0 10px hsl(195deg 100% 50% / 0.5);
+    box-shadow: 0 0 10px hsl(207deg 90% 54% / 0.4);
   }
 
-  /* Enterprise command center animations */
+  /* Command center animations */
   @keyframes fadeSlideUp {
     from {
       opacity: 0;
@@ -234,10 +234,10 @@
 
   @keyframes pulseGlow {
     0%, 100% {
-      box-shadow: 0 0 5px hsl(195deg 100% 50% / 0.3);
+      box-shadow: 0 0 5px hsl(168deg 65% 46% / 0.2);
     }
     50% {
-      box-shadow: 0 0 15px hsl(195deg 100% 50% / 0.6);
+      box-shadow: 0 0 12px hsl(168deg 65% 46% / 0.4);
     }
   }
 
@@ -272,8 +272,8 @@
   /* Subtle grid background pattern */
   .bg-grid-pattern {
     background-image: 
-      linear-gradient(to right, hsl(140deg 100% 45% / 0.02) 1px, transparent 1px),
-      linear-gradient(to bottom, hsl(140deg 100% 45% / 0.02) 1px, transparent 1px);
+      linear-gradient(to right, hsl(168deg 65% 46% / 0.02) 1px, transparent 1px),
+      linear-gradient(to bottom, hsl(168deg 65% 46% / 0.02) 1px, transparent 1px);
     background-size: 24px 24px;
   }
 
@@ -283,7 +283,7 @@
   }
 
   .agent-card-glow.selected {
-    box-shadow: 0 0 20px hsl(140deg 100% 45% / 0.2);
+    box-shadow: 0 0 20px hsl(168deg 65% 46% / 0.2);
   }
 
   /* Message bubble styles */
@@ -302,7 +302,7 @@
     position: absolute;
     inset: -2px;
     border-radius: 50%;
-    background: hsl(140deg 100% 45% / 0.3);
+    background: hsl(168deg 65% 46% / 0.3);
     animation: pulseGlow 2s ease-in-out infinite;
     z-index: -1;
   }
@@ -323,9 +323,9 @@
 
   /* Header title styling */
   .enterprise-title {
-    font-family: 'Oxanium', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-weight: 600;
-    background: linear-gradient(135deg, hsl(140deg 100% 60%) 0%, hsl(195deg 100% 60%) 100%);
+    background: linear-gradient(135deg, hsl(168deg 65% 55%) 0%, hsl(207deg 90% 60%) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;

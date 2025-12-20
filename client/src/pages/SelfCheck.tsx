@@ -1,4 +1,9 @@
 import { useEffect, useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Shield, Calendar, FileText, Brain, Activity } from "lucide-react";
 
 export default function SelfCheck() {
   const [data, setData] = useState<any>({
@@ -13,18 +18,27 @@ export default function SelfCheck() {
     try {
       const base = import.meta.env.VITE_SUPABASE_URL;
       const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
+      
+      if (!base || !key) {
+        setLoading(false);
+        return;
+      }
+      
       const headers = { apikey: key, Authorization: `Bearer ${key}` };
 
       const [reminders, summaries, events] = await Promise.all([
-        fetch(`${base}/rest/v1/ceo_reminders?select=*`, { headers }).then(r => r.json()),
-        fetch(`${base}/rest/v1/executive_summaries?select=*`, { headers }).then(r => r.json()),
-        fetch(`${base}/rest/v1/agent_events?select=*`, { headers }).then(r => r.json()),
+        fetch(`${base}/rest/v1/ceo_reminders?select=*`, { headers }).then(r => r.json()).catch(() => []),
+        fetch(`${base}/rest/v1/executive_summaries?select=*`, { headers }).then(r => r.json()).catch(() => []),
+        fetch(`${base}/rest/v1/agent_events?select=*`, { headers }).then(r => r.json()).catch(() => []),
       ]);
 
-      setData({ reminders, summaries, events });
+      setData({ 
+        reminders: Array.isArray(reminders) ? reminders : [], 
+        summaries: Array.isArray(summaries) ? summaries : [], 
+        events: Array.isArray(events) ? events : [] 
+      });
 
-      // حساب الصحة بناءً على حجم البيانات وحداثتها
-      const recentEvents = events.filter(
+      const recentEvents = (Array.isArray(events) ? events : []).filter(
         (e: any) => new Date(e.created_at) > new Date(Date.now() - 3600 * 1000)
       ).length;
       const score = Math.min(100, 60 + recentEvents * 8);
@@ -32,127 +46,157 @@ export default function SelfCheck() {
 
       setLoading(false);
     } catch (err) {
-      console.error("❌ Error loading Supabase data:", err);
+      console.error("Error loading Supabase data:", err);
       setHealthScore(50);
+      setLoading(false);
     }
   }
 
   useEffect(() => {
     loadData();
-    const interval = setInterval(loadData, 10000); // تحديث كل 10 ثوانٍ
+    const interval = setInterval(loadData, 10000);
     return () => clearInterval(interval);
   }, []);
 
-  if (loading)
+  const getHealthBadge = () => {
+    if (healthScore > 85) {
+      return <Badge variant="default" className="text-lg px-4 py-1">Health: {healthScore}%</Badge>;
+    }
+    if (healthScore > 65) {
+      return <Badge variant="secondary" className="text-lg px-4 py-1">Health: {healthScore}%</Badge>;
+    }
+    return <Badge variant="destructive" className="text-lg px-4 py-1">Health: {healthScore}%</Badge>;
+  };
+
+  if (loading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center text-gray-400 text-xl">
-        جاري تحميل البيانات...
+      <div className="p-6 space-y-6">
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-8 w-64" />
+          <Skeleton className="h-10 w-32" />
+        </div>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <Skeleton className="h-64" />
+          <Skeleton className="h-64" />
+          <Skeleton className="h-64" />
+        </div>
       </div>
     );
+  }
 
   return (
-    <div className="min-h-screen bg-black text-gray-100 p-8 space-y-8">
-      <header className="flex flex-col md:flex-row md:items-center md:justify-between">
-        <h1 className="text-3xl font-bold text-green-400 mb-4 md:mb-0">
-          ARC Self-Check Dashboard
-        </h1>
-
-        {/* Health Score */}
-        <div
-          className={`px-5 py-3 rounded-2xl text-lg font-semibold border ${
-            healthScore > 85
-              ? "text-green-300 border-green-600"
-              : healthScore > 65
-              ? "text-yellow-300 border-yellow-500"
-              : "text-red-400 border-red-600"
-          }`}
-        >
-          🩺 ARC Health Score: {healthScore}%
+    <div className="p-6 space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold text-foreground flex items-center gap-2" data-testid="text-page-title">
+            <Shield className="h-6 w-6 text-primary" />
+            ARC Self-Check
+          </h1>
+          <p className="text-muted-foreground mt-1">Live system monitoring and health status</p>
         </div>
-      </header>
+        <div data-testid="health-score">
+          {getHealthBadge()}
+        </div>
+      </div>
 
-      <p className="text-gray-500 mb-6">
-        مراقبة حية لحالة النظام، التذكيرات، الأحداث، والملخصات التنفيذية.
-      </p>
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <Card data-testid="card-reminders">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Calendar className="h-5 w-5 text-primary" />
+              CEO Reminders
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {data.reminders.length === 0 ? (
+              <p className="text-muted-foreground text-sm">No active reminders</p>
+            ) : (
+              <ScrollArea className="h-48">
+                <ul className="space-y-2">
+                  {data.reminders.map((r: any) => (
+                    <li
+                      key={r.id}
+                      className="p-2 rounded-md bg-muted text-sm"
+                      data-testid={`reminder-${r.id}`}
+                    >
+                      <span className="font-medium text-foreground">{r.title}</span>
+                      <p className="text-muted-foreground text-xs mt-1">
+                        {new Date(r.due_date).toLocaleDateString()} - {r.priority}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              </ScrollArea>
+            )}
+          </CardContent>
+        </Card>
 
-      {/* تذكيرات CEO */}
-      <section className="bg-gray-900 p-6 rounded-2xl border border-gray-800 shadow-lg">
-        <h2 className="text-2xl text-green-300 mb-4">🗓️ تذكيرات CEO</h2>
-        {data.reminders.length === 0 ? (
-          <p className="text-gray-500">لا توجد تذكيرات حالياً</p>
-        ) : (
-          <ul className="space-y-3">
-            {data.reminders.map((r: any) => (
-              <li
-                key={r.id}
-                className="border-b border-gray-800 pb-2 hover:bg-gray-800/40 transition rounded-lg px-2"
-              >
-                <strong className="text-green-400">{r.title}</strong> —{" "}
-                <span className="text-gray-400">
-                  {new Date(r.due_date).toLocaleDateString("ar-SA")} ({r.priority})
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+        <Card data-testid="card-summaries">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <FileText className="h-5 w-5 text-secondary" />
+              Executive Summaries
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {data.summaries.length === 0 ? (
+              <p className="text-muted-foreground text-sm">No summaries available</p>
+            ) : (
+              <ScrollArea className="h-48">
+                <ul className="space-y-2">
+                  {data.summaries.map((s: any) => (
+                    <li
+                      key={s.id}
+                      className="p-2 rounded-md bg-muted text-sm"
+                      data-testid={`summary-${s.id}`}
+                    >
+                      <p className="text-foreground">{s.summary_text}</p>
+                      <p className="text-muted-foreground text-xs mt-1">
+                        {new Date(s.generated_at).toLocaleString()}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              </ScrollArea>
+            )}
+          </CardContent>
+        </Card>
 
-      {/* الملخصات التنفيذية */}
-      <section className="bg-gray-900 p-6 rounded-2xl border border-gray-800 shadow-lg">
-        <h2 className="text-2xl text-green-300 mb-4">📊 الملخصات التنفيذية</h2>
-        {data.summaries.length === 0 ? (
-          <p className="text-gray-500">لا يوجد ملخصات بعد</p>
-        ) : (
-          <ul className="space-y-3">
-            {data.summaries.map((s: any) => (
-              <li
-                key={s.id}
-                className="border-b border-gray-800 pb-2 hover:bg-gray-800/40 transition rounded-lg px-2"
-              >
-                <span className="text-gray-400">
-                  {new Date(s.generated_at).toLocaleString("ar-SA")}
-                </span>
-                <p className="text-green-200 mt-1 leading-relaxed">{s.summary_text}</p>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      {/* أحداث الوكلاء */}
-      <section className="bg-gray-900 p-6 rounded-2xl border border-gray-800 shadow-lg">
-        <h2 className="text-2xl text-green-300 mb-4">🧠 أحداث الوكلاء</h2>
-        {data.events.length === 0 ? (
-          <p className="text-gray-500">لا يوجد نشاط للوكلاء بعد</p>
-        ) : (
-          <ul className="space-y-3 max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-green-500/40 scrollbar-track-gray-800/40">
-            {data.events
-              .slice()
-              .reverse()
-              .map((e: any) => (
-                <li
-                  key={e.id}
-                  className="border-b border-gray-800 pb-2 hover:bg-gray-800/30 transition rounded-lg px-2"
-                >
-                  <strong className="text-green-400">{e.agent_name}</strong>{" "}
-                  <span className="text-gray-500">({e.event_type})</span>
-                  <p className="text-gray-300 text-sm mt-1">
-                    {JSON.stringify(e.event_data)}
-                  </p>
-                  <span className="text-gray-500 text-xs">
-                    {new Date(e.created_at).toLocaleTimeString("ar-SA")}
-                  </span>
-                </li>
-              ))}
-          </ul>
-        )}
-      </section>
-
-      <footer className="text-gray-600 text-sm pt-8 text-center border-t border-gray-800">
-        ARC Virtual Office © {new Date().getFullYear()} – Mr.F Brain / Autonomous Layer v15.0
-      </footer>
+        <Card data-testid="card-events">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Brain className="h-5 w-5 text-primary" />
+              Agent Events
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {data.events.length === 0 ? (
+              <p className="text-muted-foreground text-sm">No agent activity yet</p>
+            ) : (
+              <ScrollArea className="h-48">
+                <ul className="space-y-2">
+                  {data.events.slice().reverse().slice(0, 10).map((e: any) => (
+                    <li
+                      key={e.id}
+                      className="p-2 rounded-md bg-muted text-sm"
+                      data-testid={`event-${e.id}`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <Activity className="h-3 w-3 text-primary" />
+                        <span className="font-medium text-primary">{e.agent_name}</span>
+                        <Badge variant="outline" size="sm">{e.event_type}</Badge>
+                      </div>
+                      <p className="text-muted-foreground text-xs mt-1">
+                        {new Date(e.created_at).toLocaleTimeString()}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              </ScrollArea>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
-import SelfCheck from "./pages/SelfCheck";
-<Route path="/selfcheck" element={<SelfCheck />} />

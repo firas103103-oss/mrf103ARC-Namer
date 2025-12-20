@@ -1,4 +1,7 @@
 import { useEffect, useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Mic2, Loader2 } from "lucide-react";
 
 interface VoiceOption {
   voice_id: string;
@@ -30,34 +33,48 @@ export default function ARCVoiceSelector() {
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = e.target.value;
+  const handleChange = (value: string) => {
     setSelectedVoice(value);
     localStorage.setItem("arc_selected_voice", value);
   };
 
   return (
-    <div className="bg-gray-900 p-6 rounded-2xl border border-gray-800 shadow-md">
-      <h2 className="text-xl font-semibold text-green-400 mb-3">
-        🎚️ ARC Voice Selector
-      </h2>
-
-      {loading ? (
-        <p className="text-gray-400">Loading voices...</p>
-      ) : (
-        <select
-          value={selectedVoice}
-          onChange={handleChange}
-          className="bg-gray-800 text-gray-100 p-2 rounded-lg w-full text-sm border border-gray-700"
-        >
-          <option value="">Select a voice...</option>
-          {voices.map((v) => (
-            <option key={v.voice_id} value={v.voice_id}>
-              {v.name} {v.category ? `(${v.category})` : ""}
-            </option>
-          ))}
-        </select>
-      )}
-    </div>
+    <Card data-testid="card-voice-selector">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Mic2 className="h-5 w-5 text-primary" />
+          ARC Voice Selector
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        {loading ? (
+          <div className="flex items-center gap-2 text-muted-foreground" data-testid="status-loading">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Loading voices...
+          </div>
+        ) : voices.length === 0 ? (
+          <p className="text-muted-foreground text-sm" data-testid="status-no-voices">
+            No voices available. Make sure the ElevenLabs API is configured.
+          </p>
+        ) : (
+          <Select value={selectedVoice} onValueChange={handleChange}>
+            <SelectTrigger data-testid="select-voice-trigger">
+              <SelectValue placeholder="Select a voice..." />
+            </SelectTrigger>
+            <SelectContent>
+              {voices.map((v) => (
+                <SelectItem 
+                  key={v.voice_id} 
+                  value={v.voice_id}
+                  data-testid={`select-voice-${v.voice_id}`}
+                >
+                  {v.name} {v.category ? `(${v.category})` : ""}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+      </CardContent>
+    </Card>
   );
 }
