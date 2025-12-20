@@ -4,7 +4,6 @@ import { createServer } from "http";
 import cors from "cors";
 import fs from "fs";
 import path from "path";
-import { setupVite } from "./vite";
 import { registerRoutes } from "./routes";
 
 // ==================== SERVER BASE ====================
@@ -174,9 +173,17 @@ const PORT = parseInt(process.env.PORT || "5000", 10);
   // Register all API routes first
   await registerRoutes(httpServer, app);
   
-  // Setup Vite for frontend (must be after routes)
+  // Setup Vite for frontend in development, static serving in production
   if (process.env.NODE_ENV === "development") {
+    const { setupVite } = await import("./vite");
     await setupVite(httpServer, app);
+  } else {
+    // Production: serve static files from dist/public
+    const distPath = path.resolve(process.cwd(), "dist", "public");
+    app.use(express.static(distPath));
+    app.get("*", (_req, res) => {
+      res.sendFile(path.join(distPath, "index.html"));
+    });
   }
   
   httpServer.listen(

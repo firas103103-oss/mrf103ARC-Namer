@@ -45,6 +45,17 @@ async function buildAll() {
     ...Object.keys(pkg.devDependencies || {}),
   ];
   const externals = allDeps.filter((dep) => !allowlist.includes(dep));
+  
+  // Always exclude Vite and related dev-only dependencies from server bundle
+  const viteExternals = [
+    "vite",
+    "@vitejs/plugin-react",
+    "@replit/vite-plugin-runtime-error-modal",
+    "@replit/vite-plugin-cartographer",
+    "@replit/vite-plugin-dev-banner",
+    "./vite",
+    "./vite.js",
+  ];
 
   await esbuild({
     entryPoints: ["server/index.ts"],
@@ -57,7 +68,7 @@ async function buildAll() {
       "import.meta.url": "undefined",
     },
     minify: true,
-    external: externals,
+    external: [...externals, ...viteExternals],
     logLevel: "info",
   });
 }
