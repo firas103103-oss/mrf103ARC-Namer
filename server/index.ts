@@ -2,34 +2,17 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { createServer } from "http";
 import cors from "cors";
-import { registerRoutes } from "./routes";
-import { setupVite } from "./vite";
+import fs from "fs";
+import path from "path";
 
 // ==================== SERVER BASE ====================
 const app = express();
 const httpServer = createServer(app);
-
-// enable CORS for all origins (safe default)
 app.use(cors());
+app.use(express.json());
 
-declare module "http" {
-  interface IncomingMessage {
-    rawBody: unknown;
-  }
-}
-
-// JSON parsing middleware (preserve raw body)
-app.use(
-  express.json({
-    verify: (req, _res, buf) => {
-      req.rawBody = buf;
-    },
-  }),
-);
-app.use(express.urlencoded({ extended: false }));
-
-// ==================== LOGGING FUNCTION ====================
-export function log(message: string, source = "express") {
+// ==================== LOGGER ====================
+function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
     hour: "numeric",
     minute: "2-digit",
@@ -39,152 +22,137 @@ export function log(message: string, source = "express") {
   console.log(`${formattedTime} [${source}] ${message}`);
 }
 
-// ==================== SECURITY MONITOR ====================
+// ==================== VOICE MAP LOADING ====================
+const voiceMapPath = path.join(process.cwd(), "server", "config", "voiceMap.json");
+let voiceMap: Record<string, string> = {};
+try {
+  const jsonData = fs.readFileSync(voiceMapPath, "utf-8");
+  voiceMap = JSON.parse(jsonData);
+  log("🎙️ VoiceMap loaded successfully", "init");
+} catch (err: any) {
+  log("⚠️ Could not load voiceMap.json, using default voice", "init");
+  voiceMap = { default: "pNInz6obpgDQGcFmaJgB" };
+}
+
+// ==================== SECURITY PLACEHOLDER ====================
 let unauthorizedAttempts = 0;
 let lastUnauthorizedPath = "";
-
-// Reset and report every 24 hours
-setInterval(() => {
-  if (unauthorizedAttempts > 0) {
-    log(
-      `🧱 Security report: ${unauthorizedAttempts} unauthorized attempt(s) today (latest: ${lastUnauthorizedPath})`,
-      "security",
-    );
-    unauthorizedAttempts = 0;
-    lastUnauthorizedPath = "";
-  }
-}, 24 * 60 * 60 * 1000); // 24 hours
-
-// ==================== SECURITY MIDDLEWARE ====================
-// Routes that bypass X-ARC-SECRET check
-// These are paths RELATIVE to the /api mount point
-const authBypassPaths = [
-  // Replit Auth routes
-  "/login", "/logout", "/callback", "/auth/user",
-  // Virtual Office routes (public-facing, authenticated via session)
-  "/agents", "/conversations", "/chat", "/health"
-];
-
-// Protect all /api routes using ARC_BACKEND_SECRET (except bypassed routes)
-app.use("/api", (req: Request, res: Response, next: NextFunction) => {
-  // Skip X-ARC-SECRET check for bypassed routes
-  // req.path is relative to the mount point (/api), so check against paths without /api prefix
-  // Use startsWith to handle dynamic paths like /conversations/:id/messages
-  if (authBypassPaths.some(bypassPath => req.path === bypassPath || req.path.startsWith(bypassPath + "/") || req.path.startsWith(bypassPath + "?"))) {
-    return next();
-  }
-
-  const clientSecret = req.headers["x-arc-secret"];
-  const serverSecret = process.env.ARC_BACKEND_SECRET;
-
-  if (!serverSecret) {
-    log("⚠️ ARC_BACKEND_SECRET not configured in environment!", "security");
-    return res.status(500).json({ error: "Server misconfigured: missing ARC_BACKEND_SECRET" });
-  }
-
-  if (!clientSecret || clientSecret !== serverSecret) {
-    unauthorizedAttempts += 1;
-    lastUnauthorizedPath = req.path;
-    log(`⛔ Unauthorized attempt #${unauthorizedAttempts} → ${req.path}`, "security");
-    return res.status(401).json({ error: "Unauthorized: invalid ARC secret" });
-  }
-
-  next();
-});
-
-// ==================== REQUEST LOGGER ====================
-app.use((req, res, next) => {
-  const start = Date.now();
-  const path = req.path;
-  let capturedJsonResponse: Record<string, any> | undefined = undefined;
-
-  const originalResJson = res.json;
-  res.json = function (bodyJson, ...args) {
-    capturedJsonResponse = bodyJson;
-    return originalResJson.apply(res, [bodyJson, ...args]);
-  };
-
-  res.on("finish", () => {
-    const duration = Date.now() - start;
-    if (path.startsWith("/api")) {
-      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-      if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
-      }
-      log(logLine);
-    }
-  });
-
-  next();
-});
 
 // ==================== HEALTH CHECK ====================
 app.get("/ping", (_req: Request, res: Response) => {
   res.json({ status: "alive", message: "✅ ARC Bridge Server is running" });
 });
 
-// ==================== ARC BRIDGE ENDPOINT ====================
+// ==================== ARC VOICE + GPT BRAIN ENDPOINT ====================
 app.post("/api/call_mrf_brain", async (req: Request, res: Response) => {
   try {
     const { from, free_text } = req.body;
-    log(`Incoming ARC call from ${from} :: ${free_text}`, "bridge");
+    log(`Incoming ARC voice-call from ${from} :: ${free_text}`, "bridge");
 
-    // STEP 1 — process locally
-    const processedResponse = {
-      agent_id: "arc-core",
-      raw_answer: `Message received from ${from} :: ${free_text}`,
-      timestamp: new Date().toISOString(),
-    };
-
-    // STEP 2 — optionally forward to Supabase if configured
+    const OPENAI_KEY = process.env.OPENAI_API_KEY;
+    const ELEVEN_KEY = process.env.ELEVENLABS_API_KEY;
     const SUPABASE_URL = process.env.SUPABASE_URL;
     const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
+    if (!OPENAI_KEY) throw new Error("Missing OPENAI_API_KEY");
+    if (!ELEVEN_KEY) throw new Error("Missing ELEVENLABS_API_KEY");
+
+    // 1️⃣ Step 1 – Generate response text using GPT
+    const gptRes = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${OPENAI_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages: [
+          {
+            role: "system",
+            content:
+              "You are Mr.F Brain — the executive AI agent of ARC Virtual Office. Respond in concise, intelligent Arabic.",
+          },
+          { role: "user", content: free_text },
+        ],
+      }),
+    });
+
+    const gptData = await gptRes.json();
+    const answer =
+      gptData.choices?.[0]?.message?.content || "لم أتمكن من فهم الطلب.";
+
+    // 2️⃣ Step 2 – Select Voice based on agent
+    const agentName = from || "default";
+    const VOICE_ID =
+      voiceMap[agentName] || process.env.MRF_VOICE_ID || voiceMap["default"];
+
+    // 3️⃣ Step 3 – Generate voice using ElevenLabs
+    let audioBuffer: Buffer | null = null;
+    try {
+      const voiceResponse = await fetch(
+        `https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`,
+        {
+          method: "POST",
+          headers: {
+            "xi-api-key": ELEVEN_KEY,
+            Accept: "audio/mpeg",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            text: answer,
+            voice_settings: { stability: 0.7, similarity_boost: 0.8 },
+          }),
+        }
+      );
+
+      if (voiceResponse.ok) {
+        audioBuffer = Buffer.from(await voiceResponse.arrayBuffer());
+        log(`🎧 Voice synthesis complete for ${agentName}`, "voice");
+      } else {
+        log(`⚠️ ElevenLabs error: ${voiceResponse.status}`, "voice");
+      }
+    } catch (err: any) {
+      log(`❌ ElevenLabs connection failed: ${err.message}`, "voice");
+    }
+
+    // 4️⃣ Step 4 – Log to Supabase (optional)
     if (SUPABASE_URL && SUPABASE_KEY) {
       try {
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 8000); // 8s timeout
-
-        const supabaseRes = await fetch(`${SUPABASE_URL}/rest/v1/arc_logs`, {
+        await fetch(`${SUPABASE_URL}/rest/v1/arc_logs`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "apikey": SUPABASE_KEY,
-            "Authorization": `Bearer ${SUPABASE_KEY}`,
+            apikey: SUPABASE_KEY,
+            Authorization: `Bearer ${SUPABASE_KEY}`,
           },
           body: JSON.stringify({
             from,
             free_text,
-            status: "received",
+            gpt_response: answer,
+            status: "completed",
             created_at: new Date().toISOString(),
           }),
-          signal: controller.signal,
         });
-
-        clearTimeout(timeout);
-
-        if (supabaseRes.ok) {
-          log("✅ Message logged in Supabase", "bridge");
-        } else {
-          log(`⚠️ Supabase logging failed: ${supabaseRes.status}`, "bridge");
-        }
-      } catch (err: any) {
-        log(`❌ Supabase connection error: ${err.message}`, "bridge");
+      } catch (e: any) {
+        log(`⚠️ Failed to log to Supabase: ${e.message}`, "supabase");
       }
-    } else {
-      log("⚠️ Supabase env vars not set, skipping logging", "env");
     }
 
-    // Respond back to caller
+    // 5️⃣ Step 5 – Respond with text + voice
+    res.setHeader("Content-Type", "application/json");
     res.json({
       status: "ok",
-      agent_id: processedResponse.agent_id,
-      raw_answer: processedResponse.raw_answer,
-      time: processedResponse.timestamp,
+      from,
+      reply: answer,
+      voice: audioBuffer
+        ? `data:audio/mpeg;base64,${audioBuffer.toString("base64")}`
+        : null,
+      timestamp: new Date().toISOString(),
     });
 
+    log(`✅ Voice+Brain response sent to ${from}`, "bridge");
   } catch (err: any) {
-    console.error("Error handling ARC call:", err);
+    console.error("ARC Voice Brain Error:", err);
     res.status(500).json({ status: "error", message: err.message });
   }
 });
@@ -198,41 +166,14 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
 });
 
 // ==================== START SERVER ====================
-async function startServer() {
-  // Register routes first
-  await registerRoutes(httpServer, app);
-
-  // Setup Vite for development or static files for production
-  if (process.env.NODE_ENV === "production") {
-    app.use(express.static("dist/public"));
-    app.get("*", (_req, res) => {
-      res.sendFile("index.html", { root: "dist/public" }, (err) => {
-        if (err) {
-          log(`❌ Error serving index.html: ${err.message}`, "static");
-          res.status(200).json({ status: "ok", message: "ARC Bridge active (no frontend found)" });
-        }
-      });
-    });
-    log("Production static serving enabled", "vite");
-  } else {
-    await setupVite(httpServer, app);
-    log("Development Vite server enabled", "vite");
+const PORT = parseInt(process.env.PORT || "5000", 10);
+httpServer.listen(
+  {
+    port: PORT,
+    host: "0.0.0.0",
+    reusePort: true,
+  },
+  () => {
+    log(`✅ ARC Bridge Server running on port ${PORT}`);
   }
-
-  const port = parseInt(process.env.PORT || "5000", 10);
-  httpServer.listen(
-    {
-      port,
-      host: "0.0.0.0",
-      reusePort: true,
-    },
-    () => {
-      log(`✅ ARC Bridge Server running on port ${port}`);
-    },
-  );
-}
-
-startServer().catch((err) => {
-  log(`❌ Failed to start server: ${err.message}`, "error");
-  process.exit(1);
-});
+);

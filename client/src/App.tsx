@@ -52,3 +52,4 @@ function App() {
 }
 
 export default App;
+import SelfCheck from "./pages/SelfCheck";

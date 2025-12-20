@@ -1,0 +1,60 @@
+{
+  "name": "ARC_Executive_Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "arc_webhook",
+        "options": {
+          "responseData": {
+            "responseBody": "{\"status\":\"received\",\"message\":\"ARC Executive Webhook received successfully ✅\"}"
+          }
+        }
+      },
+      "id": "ARC_WEBHOOK",
+      "name": "ARC Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [400, 300],
+      "webhookId": "arc_webhook_mrf"
+    },
+    {
+      "parameters": {
+        "chatId": "YOUR_TELEGRAM_CHAT_ID",
+        "text": "📡 *ARC Executive Alert*\n\n👤 Agent: {{$json[\"from\"] || \"Unknown\"}}\n💬 Message: {{$json[\"free_text\"] || \"(no text)\"}}\n\n🕓 Received at: {{$json[\"timestamp\"] || new Date().toISOString()}}",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "SEND_TELEGRAM",
+      "name": "Send Telegram Alert",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [700, 300],
+      "credentials": {
+        "telegramApi": {
+          "id": "YOUR_TELEGRAM_CREDENTIAL_ID",
+          "name": "MrF_Telegram_Bot"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "ARC Webhook": {
+      "main": [
+        [
+          {
+            "node": "Send Telegram Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveExecutionProgress": true,
+    "executionOrder": "v1"
+  },
+  "active": true,
+  "id": "ARC_EXECUTIVE_BRIDGE"
+}
