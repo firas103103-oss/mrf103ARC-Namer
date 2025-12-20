@@ -16,14 +16,14 @@ export default function ARCCommandMetrics() {
   }, []);
 
   const fetchMetrics = async () => {
-    const today = new Date().toISOString().split("T")[0];
+    if (!supabase) return;
 
-    const { data: commands } = await supabase
+    const result = await supabase
       .from("arc_command_log")
       .select("*")
-      .gte("created_at", `${today}T00:00:00Z`)
-      .lte("created_at", `${today}T23:59:59Z`);
+      .limit(100);
 
+    const commands = result?.data;
     if (!commands) return;
 
     const total = commands.length;

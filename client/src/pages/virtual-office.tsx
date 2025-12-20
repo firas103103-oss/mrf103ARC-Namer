@@ -82,7 +82,7 @@ export default function VirtualOffice() {
     const { data, count } = await supabase
       .from("arc_command_log")
       .select("*", { count: "exact" })
-      .order("created_at", { ascending: false })
+      .order("id", { ascending: false })
       .range(offset, offset + limit - 1);
     
     if (data) {
@@ -106,7 +106,7 @@ export default function VirtualOffice() {
     const { data, count } = await supabase
       .from("agent_events")
       .select("*", { count: "exact" })
-      .order("created_at", { ascending: false })
+      .order("id", { ascending: false })
       .range(offset, offset + limit - 1);
     
     if (data) {

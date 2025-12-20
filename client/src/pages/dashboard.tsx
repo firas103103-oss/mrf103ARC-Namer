@@ -56,23 +56,24 @@ export default function Dashboard() {
         supabase
           .from("arc_command_log")
           .select("*")
-          .order("created_at", { ascending: false })
+          .order("id", { ascending: false })
           .limit(10),
         supabase
           .from("agent_events")
           .select("*")
-          .order("created_at", { ascending: false })
+          .order("id", { ascending: false })
           .limit(10),
         supabase
           .from("arc_feedback")
           .select("*")
-          .order("created_at", { ascending: false })
+          .order("id", { ascending: false })
           .limit(10),
       ]);
 
-      if (cmdResult.error) throw cmdResult.error;
-      if (evtResult.error) throw evtResult.error;
-      if (fbResult.error) throw fbResult.error;
+      // Handle errors gracefully - tables may not exist yet
+      if (cmdResult.error) console.warn("arc_command_log query failed:", cmdResult.error);
+      if (evtResult.error) console.warn("agent_events query failed:", evtResult.error);
+      if (fbResult.error) console.warn("arc_feedback query failed:", fbResult.error);
 
       setCommands(cmdResult.data || []);
       setEvents(evtResult.data || []);
