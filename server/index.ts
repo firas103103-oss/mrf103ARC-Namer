@@ -12,7 +12,7 @@ app.use(cors());
 app.use(express.json());
 
 // ==================== LOGGER ====================
-function log(message: string, source = "express") {
+export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
     hour: "numeric",
     minute: "2-digit",

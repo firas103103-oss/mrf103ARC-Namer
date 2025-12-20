@@ -97,7 +97,7 @@
 
         let conversationId = parsed.conversationId;
         if (!conversationId) {
-          const conv = await storage.createConversation({ title: parsed.message }, userId);
+          const conv = await storage.createConversation({ title: parsed.message, activeAgents: parsed.activeAgents }, userId);
           conversationId = conv.id;
         }
 
