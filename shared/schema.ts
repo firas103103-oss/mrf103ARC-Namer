@@ -455,3 +455,138 @@ export const highPriorityNotifications = pgTable("high_priority_notifications", 
   context: jsonb("context").default({}),
   receivedAt: timestamp("received_at").defaultNow(),
 });
+
+// ============================================
+// X Bio Sentinel - Smell Profiles Table
+// ============================================
+export const smellProfiles = pgTable("smell_profiles", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: varchar("name", { length: 255 }).notNull(),
+  category: varchar("category", { length: 100 }),
+  subcategory: varchar("subcategory", { length: 100 }),
+  description: text("description"),
+  featureVector: jsonb("feature_vector"), // 128-dimensional vector stored as JSON array
+  baselineGas: integer("baseline_gas"),
+  peakGas: integer("peak_gas"),
+  deltaGas: integer("delta_gas"),
+  avgTemperature: integer("avg_temperature"),
+  avgHumidity: integer("avg_humidity"),
+  samplesCount: integer("samples_count").default(1),
+  confidence: integer("confidence"),
+  tags: text("tags").array(),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export type SmellProfile = typeof smellProfiles.$inferSelect;
+export type InsertSmellProfile = typeof smellProfiles.$inferInsert;
+
+// ============================================
+// X Bio Sentinel - Sensor Readings Table
+// ============================================
+export const sensorReadings = pgTable("sensor_readings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  deviceId: varchar("device_id", { length: 100 }).notNull(),
+  gasResistance: integer("gas_resistance"),
+  temperature: integer("temperature"),
+  humidity: integer("humidity"),
+  pressure: integer("pressure"),
+  iaqScore: integer("iaq_score"),
+  co2Equivalent: integer("co2_equivalent"),
+  vocEquivalent: integer("voc_equivalent"),
+  heaterTemperature: integer("heater_temperature"),
+  mode: varchar("mode", { length: 50 }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export type SensorReading = typeof sensorReadings.$inferSelect;
+export type InsertSensorReading = typeof sensorReadings.$inferInsert;
+
+// ============================================
+// X Bio Sentinel - Smell Captures Table
+// ============================================
+export const smellCaptures = pgTable("smell_captures", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  deviceId: varchar("device_id", { length: 100 }).notNull(),
+  profileId: varchar("profile_id").references(() => smellProfiles.id),
+  durationMs: integer("duration_ms"),
+  samplesCount: integer("samples_count"),
+  rawData: jsonb("raw_data"),
+  featureVector: jsonb("feature_vector"),
+  baselineGas: integer("baseline_gas"),
+  peakGas: integer("peak_gas"),
+  heaterProfile: varchar("heater_profile", { length: 50 }),
+  status: varchar("status", { length: 50 }).default("pending"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export type SmellCapture = typeof smellCaptures.$inferSelect;
+export type InsertSmellCapture = typeof smellCaptures.$inferInsert;
+
+// ============================================
+// X Bio Sentinel - Zod Schemas
+// ============================================
+export const smellProfileSchema = z.object({
+  name: z.string().min(1),
+  category: z.string().optional(),
+  subcategory: z.string().optional(),
+  description: z.string().optional(),
+  featureVector: z.array(z.number()).optional(),
+  baselineGas: z.number().optional(),
+  peakGas: z.number().optional(),
+  deltaGas: z.number().optional(),
+  tags: z.array(z.string()).optional(),
+});
+
+export const sensorReadingSchema = z.object({
+  deviceId: z.string(),
+  gasResistance: z.number(),
+  temperature: z.number(),
+  humidity: z.number(),
+  pressure: z.number().optional(),
+  iaqScore: z.number().optional(),
+  co2Equivalent: z.number().optional(),
+  vocEquivalent: z.number().optional(),
+  heaterTemperature: z.number().optional(),
+  mode: z.string().optional(),
+});
+
+export const smellCaptureSchema = z.object({
+  captureId: z.string(),
+  deviceId: z.string(),
+  durationMs: z.number(),
+  samplesCount: z.number(),
+  gasReadings: z.array(z.number()),
+  temperatureReadings: z.array(z.number()),
+  humidityReadings: z.array(z.number()),
+  heaterProfile: z.string(),
+  baselineGas: z.number(),
+  peakGas: z.number(),
+  deltaGas: z.number(),
+  featureVector: z.array(z.number()),
+});
+
+export const bioSentinelCommandSchema = z.object({
+  type: z.enum(["set_mode", "set_heater_profile", "start_calibration", "start_capture", "stop", "request_status", "restart"]),
+  payload: z.record(z.unknown()),
+});
+
+export const bioSentinelChatSchema = z.object({
+  message: z.string(),
+  context: z.object({
+    recentReadings: z.array(sensorReadingSchema).optional(),
+    currentProfile: z.string().optional(),
+  }).optional(),
+});
+
+// Smell categories for classification
+export const SMELL_CATEGORIES = {
+  human: ["Body odor", "Breath", "Skin", "Sweat"],
+  food: ["Fruits", "Vegetables", "Meat", "Dairy", "Beverages", "Spices"],
+  chemical: ["Solvents", "Alcohols", "Acids", "Gases", "Fuels"],
+  environmental: ["Smoke", "Mold", "Plants", "Soil", "Water"],
+  medical: ["Infections", "Metabolic", "Medications"],
+  industrial: ["Manufacturing", "Automotive", "Construction"],
+  household: ["Cleaning", "Cooking", "Personal care"],
+} as const;

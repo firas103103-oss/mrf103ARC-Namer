@@ -21,6 +21,7 @@ import AgentVoicesPage from "@/pages/VirtualOffice";
 import InvestigationLounge from "@/pages/InvestigationLounge";
 import QuantumWarRoom from "@/pages/QuantumWarRoom";
 import TemporalAnomalyLab from "@/pages/TemporalAnomalyLab";
+import BioSentinel from "@/pages/BioSentinel";
 import { Shield, Activity, Lock } from "lucide-react";
 
 function CommandLogsPage() {
@@ -119,6 +120,7 @@ function AuthenticatedLayout() {
               <Route path="/investigation-lounge" component={InvestigationLounge} />
               <Route path="/quantum-warroom" component={QuantumWarRoom} />
               <Route path="/temporal-anomaly-lab" component={TemporalAnomalyLab} />
+              <Route path="/bio-sentinel" component={BioSentinel} />
               <Route component={NotFound} />
             </Switch>
           </main>

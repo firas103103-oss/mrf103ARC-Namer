@@ -180,3 +180,37 @@ Preferred communication style: Simple, everyday language.
   }
   ```
 - Response: `{ "status": "ok", "id": "<uuid>", "stored": "supabase" }`
+
+## X Bio Sentinel (Electronic Nose)
+
+### Overview
+X Bio Sentinel is an integrated ESP32-S3 N16R8 + Waveshare BME688 sensor system for AI-powered smell identification. Features real-time monitoring dashboard, smell profile storage with vector embeddings, AI chat analysis, and WebSocket communication with hardware devices.
+
+### Hardware Requirements
+- **MCU**: ESP32-S3 N16R8 (16MB Flash, 8MB PSRAM)
+- **Sensor**: Waveshare BME688 (Temperature, Humidity, Pressure, Gas Resistance, VOC, CO2 equivalent)
+- **Communication**: WiFi for WebSocket/HTTP connectivity
+
+### Bio Sentinel Endpoints (Require Authentication)
+
+**GET /api/bio-sentinel/profiles** - Get all smell profiles
+**POST /api/bio-sentinel/profiles** - Create a new smell profile
+**GET /api/bio-sentinel/profiles/:id** - Get single profile
+**DELETE /api/bio-sentinel/profiles/:id** - Delete a profile
+**POST /api/bio-sentinel/chat** - AI-powered smell analysis chat
+**GET /api/bio-sentinel/export** - Export profiles as JSON
+**POST /api/bio-sentinel/import** - Import profiles from JSON
+**POST /api/bio-sentinel/readings** - HTTP fallback for sensor readings
+
+### WebSocket Endpoint
+
+**WS /ws/bio-sentinel** - Real-time bidirectional communication
+- ESP32 sends: `sensor_reading`, `device_status`, `capture_complete`, `calibration_complete`
+- Dashboard sends: `set_mode`, `start_calibration`, `start_capture`, `stop`, `restart`
+
+### Frontend Routes
+- `/bio-sentinel` - Sensor dashboard with real-time monitoring, control panel, smell capture workflow, AI chat
+
+### Documentation
+- `docs/x-bio-sentinel-spec.md` - Complete integration specification
+- `docs/esp32-firmware-prompt.md` - PlatformIO firmware generation prompt for AI

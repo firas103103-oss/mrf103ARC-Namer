@@ -12,6 +12,7 @@ import {
   Search,
   Crosshair,
   Clock,
+  Zap,
 } from "lucide-react";
 import {
   Sidebar,
@@ -102,6 +103,15 @@ const intelligenceItems = [
     url: "/metrics",
     icon: BarChart3,
     testId: "link-metrics",
+  },
+];
+
+const bioSentinelItems = [
+  {
+    title: "X Bio Sentinel",
+    url: "/bio-sentinel",
+    icon: Zap,
+    testId: "link-bio-sentinel",
   },
 ];
 
@@ -209,6 +219,30 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {intelligenceItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={location === item.url}
+                    data-testid={item.testId}
+                  >
+                    <Link href={item.url}>
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel data-testid="label-bio-sentinel">
+            Bio Sentinel
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {bioSentinelItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     asChild
