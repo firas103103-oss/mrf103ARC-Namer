@@ -24,15 +24,26 @@ export function log(message: string, source = "express") {
 }
 
 // ==================== VOICE MAP LOADING ====================
-const voiceMapPath = path.join(process.cwd(), "server", "config", "voiceMap.json");
-let voiceMap: Record<string, string> = {};
+const DEFAULT_VOICE_MAP: Record<string, string> = {
+  "Mr.F": "HRaipzPqzrU15BUS5ypU",
+  "L0-Comms": "0hJmISqttjKhoHxPrKoy",
+  "L0-Ops": "CxlDiOFUbSOiMn57bk3w",
+  "L0-Intel": "rFDdsCQRZCUL8cPOWtnP",
+  "Dr. Maya Quest": "PB6BdkFkZLbI39GHdnbQ",
+  "Jordan Spark": "jAAHNNqlbAX9iWjJPEtE",
+  "default": "pNInz6obpgDQGcFmaJgB"
+};
+
+let voiceMap: Record<string, string> = DEFAULT_VOICE_MAP;
 try {
-  const jsonData = fs.readFileSync(voiceMapPath, "utf-8");
-  voiceMap = JSON.parse(jsonData);
+  const voiceMapPath = path.join(process.cwd(), "server", "config", "voiceMap.json");
+  if (fs.existsSync(voiceMapPath)) {
+    const jsonData = fs.readFileSync(voiceMapPath, "utf-8");
+    voiceMap = JSON.parse(jsonData);
+  }
   log("🎙️ VoiceMap loaded successfully", "init");
 } catch (err: any) {
-  log("⚠️ Could not load voiceMap.json, using default voice", "init");
-  voiceMap = { default: "pNInz6obpgDQGcFmaJgB" };
+  log("⚠️ Could not load voiceMap.json, using built-in voice map", "init");
 }
 
 // ==================== SECURITY PLACEHOLDER ====================
