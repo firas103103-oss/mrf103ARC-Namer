@@ -11,6 +11,7 @@ import { useAuth } from "@/hooks/useAuth";
 import CommandLogsView from "@/pages/virtual-office";
 import Landing from "@/pages/landing";
 import Dashboard from "@/pages/dashboard";
+import Home from "@/pages/Home";
 import SelfCheck from "@/pages/SelfCheck";
 import NotFound from "@/pages/not-found";
 import ARCCommandMetrics from "@/components/ARCCommandMetrics";
@@ -115,7 +116,8 @@ function AuthenticatedLayout() {
           </header>
           <main className="flex-1 overflow-auto">
             <Switch>
-              <Route path="/" component={Dashboard} />
+              <Route path="/" component={Home} />
+              <Route path="/home" component={Home} />
               <Route path="/dashboard" component={Dashboard} />
               <Route path="/command-logs" component={CommandLogsPage} />
               <Route path="/system-monitor" component={SystemMonitorPage} />

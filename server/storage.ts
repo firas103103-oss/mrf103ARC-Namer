@@ -19,6 +19,10 @@ import type {
   UpsertUser,
   AgentType,
   AnalyticsData,
+  SmellProfile,
+  InsertSmellProfile,
+  SensorReading,
+  InsertSensorReading,
 } from "@shared/schema";
 import {
   users,
@@ -30,6 +34,8 @@ import {
   governanceNotifications,
   ruleBroadcasts,
   highPriorityNotifications,
+  smellProfiles,
+  sensorReadings,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, asc, sql, count, gte } from "drizzle-orm";
@@ -78,6 +84,16 @@ export interface IStorage {
 
   // Analytics
   getAnalytics(userId: string): Promise<AnalyticsData>;
+
+  // Bio Sentinel - Smell Profiles
+  createSmellProfile(profile: InsertSmellProfile): Promise<SmellProfile>;
+  getSmellProfiles(): Promise<SmellProfile[]>;
+  getSmellProfile(id: string): Promise<SmellProfile | undefined>;
+  deleteSmellProfile(id: string): Promise<void>;
+
+  // Bio Sentinel - Sensor Readings
+  createSensorReading(reading: InsertSensorReading): Promise<SensorReading>;
+  getSensorReadings(deviceId?: string, limit?: number): Promise<SensorReading[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -550,6 +566,53 @@ export class DatabaseStorage implements IStorage {
       dailyActivity,
       recentConversations,
     };
+  }
+
+  // Bio Sentinel - Smell Profiles
+  async createSmellProfile(profile: InsertSmellProfile): Promise<SmellProfile> {
+    const [stored] = await db
+      .insert(smellProfiles)
+      .values(profile)
+      .returning();
+    return stored;
+  }
+
+  async getSmellProfiles(): Promise<SmellProfile[]> {
+    return await db.select().from(smellProfiles).orderBy(desc(smellProfiles.createdAt));
+  }
+
+  async getSmellProfile(id: string): Promise<SmellProfile | undefined> {
+    const [profile] = await db.select().from(smellProfiles).where(eq(smellProfiles.id, id));
+    return profile;
+  }
+
+  async deleteSmellProfile(id: string): Promise<void> {
+    await db.delete(smellProfiles).where(eq(smellProfiles.id, id));
+  }
+
+  // Bio Sentinel - Sensor Readings
+  async createSensorReading(reading: InsertSensorReading): Promise<SensorReading> {
+    const [stored] = await db
+      .insert(sensorReadings)
+      .values(reading)
+      .returning();
+    return stored;
+  }
+
+  async getSensorReadings(deviceId?: string, limit: number = 100): Promise<SensorReading[]> {
+    if (deviceId) {
+      return await db
+        .select()
+        .from(sensorReadings)
+        .where(eq(sensorReadings.deviceId, deviceId))
+        .orderBy(desc(sensorReadings.createdAt))
+        .limit(limit);
+    }
+    return await db
+      .select()
+      .from(sensorReadings)
+      .orderBy(desc(sensorReadings.createdAt))
+      .limit(limit);
   }
 }
 

@@ -1,6 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { useTranslation } from "react-i18next";
 import {
+  Home,
   LayoutDashboard,
   Terminal,
   Activity,
@@ -41,7 +42,8 @@ export function AppSidebar() {
   const { t } = useTranslation();
 
   const operationsItems = [
-    { titleKey: "nav.dashboard", url: "/", icon: LayoutDashboard, testId: "link-dashboard" },
+    { titleKey: "nav.home", url: "/", icon: Home, testId: "link-home" },
+    { titleKey: "nav.dashboard", url: "/dashboard", icon: LayoutDashboard, testId: "link-dashboard" },
     { titleKey: "nav.commandLogs", url: "/command-logs", icon: Terminal, testId: "link-command-logs" },
     { titleKey: "nav.systemMonitor", url: "/system-monitor", icon: Activity, testId: "link-system-monitor" },
     { titleKey: "nav.teamCommand", url: "/team-command", icon: Target, testId: "link-team-command" },

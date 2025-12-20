@@ -467,25 +467,23 @@
 
     // ==================== X BIO SENTINEL ROUTES ====================
 
-    // In-memory storage for smell profiles (will be replaced with DB)
-    const smellProfiles: SmellProfile[] = [];
     const bioSentinelClients: Set<WebSocket> = new Set();
 
-    // GET smell profiles
+    // GET smell profiles from database
     app.get("/api/bio-sentinel/profiles", isAuthenticated, async (_req, res) => {
       try {
-        sendSuccess(res, smellProfiles);
+        const profiles = await storage.getSmellProfiles();
+        sendSuccess(res, profiles);
       } catch (e: any) {
         sendError(res, 500, e.message);
       }
     });
 
-    // POST create smell profile
+    // POST create smell profile in database
     app.post("/api/bio-sentinel/profiles", isAuthenticated, async (req, res) => {
       try {
         const parsed = smellProfileSchema.parse(req.body);
-        const newProfile: SmellProfile = {
-          id: `prof-${Date.now()}`,
+        const newProfile = await storage.createSmellProfile({
           name: parsed.name,
           category: parsed.category || null,
           subcategory: parsed.subcategory || null,
@@ -494,30 +492,23 @@
           notes: parsed.notes || null,
           rawSignature: parsed.rawSignature || null,
           featureVector: parsed.featureVector || null,
-          embeddingText: null,
           baselineGas: parsed.baselineGas || null,
           peakGas: parsed.peakGas || null,
           deltaGas: parsed.deltaGas || null,
-          avgTemperature: null,
-          avgHumidity: null,
+          tags: parsed.tags || null,
           samplesCount: 1,
           confidence: 80,
-          tags: parsed.tags || null,
-          metadata: null,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        };
-        smellProfiles.push(newProfile);
+        });
         sendSuccess(res, newProfile);
       } catch (e: any) {
         sendError(res, 400, e.message);
       }
     });
 
-    // GET single profile
+    // GET single profile from database
     app.get("/api/bio-sentinel/profiles/:id", isAuthenticated, async (req, res) => {
       try {
-        const profile = smellProfiles.find((p) => p.id === req.params.id);
+        const profile = await storage.getSmellProfile(req.params.id);
         if (!profile) return sendError(res, 404, "Profile not found");
         sendSuccess(res, profile);
       } catch (e: any) {
@@ -525,13 +516,49 @@
       }
     });
 
-    // DELETE profile
+    // DELETE profile from database
     app.delete("/api/bio-sentinel/profiles/:id", isAuthenticated, async (req, res) => {
       try {
-        const idx = smellProfiles.findIndex((p) => p.id === req.params.id);
-        if (idx === -1) return sendError(res, 404, "Profile not found");
-        smellProfiles.splice(idx, 1);
+        const profile = await storage.getSmellProfile(req.params.id);
+        if (!profile) return sendError(res, 404, "Profile not found");
+        await storage.deleteSmellProfile(req.params.id);
         sendSuccess(res);
+      } catch (e: any) {
+        sendError(res, 500, e.message);
+      }
+    });
+
+    // POST sensor readings to database
+    app.post("/api/bio-sentinel/readings", isAuthenticated, async (req, res) => {
+      try {
+        const { deviceId, gasResistance, temperature, humidity, pressure, iaqScore, co2Equivalent, vocEquivalent, heaterTemperature, mode } = req.body;
+        if (!deviceId) return sendError(res, 400, "deviceId is required");
+        
+        const reading = await storage.createSensorReading({
+          deviceId,
+          gasResistance: gasResistance || null,
+          temperature: temperature || null,
+          humidity: humidity || null,
+          pressure: pressure || null,
+          iaqScore: iaqScore || null,
+          co2Equivalent: co2Equivalent || null,
+          vocEquivalent: vocEquivalent || null,
+          heaterTemperature: heaterTemperature || null,
+          mode: mode || null,
+        });
+        sendSuccess(res, reading);
+      } catch (e: any) {
+        sendError(res, 500, e.message);
+      }
+    });
+
+    // GET sensor readings from database
+    app.get("/api/bio-sentinel/readings", isAuthenticated, async (req, res) => {
+      try {
+        const deviceId = req.query.deviceId as string | undefined;
+        const limit = parseInt(req.query.limit as string) || 100;
+        const readings = await storage.getSensorReadings(deviceId, limit);
+        sendSuccess(res, readings);
       } catch (e: any) {
         sendError(res, 500, e.message);
       }
@@ -584,27 +611,28 @@ Provide helpful, accurate analysis. If you can't identify a specific smell, expl
       }
     });
 
-    // Export profiles
+    // Export profiles from database
     app.get("/api/bio-sentinel/export", isAuthenticated, async (_req, res) => {
       try {
+        const profiles = await storage.getSmellProfiles();
         res.setHeader("Content-Type", "application/json");
         res.setHeader("Content-Disposition", "attachment; filename=smell-profiles.json");
-        res.json(smellProfiles);
+        res.json(profiles);
       } catch (e: any) {
         sendError(res, 500, e.message);
       }
     });
 
-    // Import profiles
+    // Import profiles to database
     app.post("/api/bio-sentinel/import", isAuthenticated, async (req, res) => {
       try {
         const profiles = req.body;
         if (!Array.isArray(profiles)) return sendError(res, 400, "Expected array of profiles");
         
+        let importedCount = 0;
         for (const p of profiles) {
           const parsed = smellProfileSchema.parse(p);
-          const newProfile: SmellProfile = {
-            id: `prof-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+          await storage.createSmellProfile({
             name: parsed.name,
             category: parsed.category || null,
             subcategory: parsed.subcategory || null,
@@ -613,22 +641,16 @@ Provide helpful, accurate analysis. If you can't identify a specific smell, expl
             notes: parsed.notes || null,
             rawSignature: parsed.rawSignature || null,
             featureVector: parsed.featureVector || null,
-            embeddingText: null,
             baselineGas: parsed.baselineGas || null,
             peakGas: parsed.peakGas || null,
             deltaGas: parsed.deltaGas || null,
-            avgTemperature: null,
-            avgHumidity: null,
+            tags: parsed.tags || null,
             samplesCount: 1,
             confidence: 80,
-            tags: parsed.tags || null,
-            metadata: null,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          };
-          smellProfiles.push(newProfile);
+          });
+          importedCount++;
         }
-        sendSuccess(res, { imported: profiles.length });
+        sendSuccess(res, { imported: importedCount });
       } catch (e: any) {
         sendError(res, 400, e.message);
       }

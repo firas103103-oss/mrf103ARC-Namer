@@ -35,6 +35,7 @@ const resources = {
         commandCenter: 'Command Center',
       },
       nav: {
+        home: 'Home',
         dashboard: 'Dashboard',
         commandLogs: 'Command Logs',
         systemMonitor: 'System Monitor',
@@ -214,6 +215,7 @@ const resources = {
         commandCenter: 'مركز القيادة',
       },
       nav: {
+        home: 'الرئيسية',
         dashboard: 'لوحة التحكم',
         commandLogs: 'سجلات الأوامر',
         systemMonitor: 'مراقبة النظام',
