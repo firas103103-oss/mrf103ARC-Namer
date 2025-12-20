@@ -1,54 +1,53 @@
-@import url('https://fonts.googleapis.com/css2?family=Oxanium:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Public+Sans:wght@400;500;600&family=Roboto+Mono:wght@400;500&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* DARK THEME - Deep Navy Command Center */
 :root {
-  --button-outline: rgba(61, 214, 180, 0.15);
-  --badge-outline: rgba(59, 167, 255, 0.1);
+  --button-outline: rgba(0, 102, 204, 0.15);
+  --badge-outline: rgba(0, 102, 204, 0.1);
   --opaque-button-border-intensity: 8;
-  --elevate-1: rgba(61, 214, 180, 0.06);
-  --elevate-2: rgba(59, 167, 255, 0.1);
-  --background: 222 47% 6%;
-  --foreground: 210 20% 90%;
-  --border: 220 30% 18%;
-  --card: 222 40% 10%;
-  --card-foreground: 210 25% 88%;
-  --card-border: 220 25% 16%;
-  --sidebar: 222 45% 8%;
-  --sidebar-foreground: 210 20% 85%;
-  --sidebar-border: 220 30% 14%;
-  --sidebar-primary: 168 65% 46%;
-  --sidebar-primary-foreground: 222 47% 8%;
-  --sidebar-accent: 222 35% 18%;
-  --sidebar-accent-foreground: 168 50% 70%;
-  --sidebar-ring: 207 90% 54%;
-  --popover: 222 42% 9%;
-  --popover-foreground: 210 20% 88%;
-  --popover-border: 220 28% 17%;
-  --primary: 168 65% 46%;
-  --primary-foreground: 222 47% 8%;
-  --secondary: 207 90% 54%;
+  --elevate-1: rgba(0, 102, 204, 0.08);
+  --elevate-2: rgba(0, 102, 204, 0.15);
+  --background: 220 50% 7%;
+  --foreground: 210 25% 95%;
+  --border: 218 35% 18%;
+  --card: 220 45% 10%;
+  --card-foreground: 210 20% 92%;
+  --card-border: 218 30% 16%;
+  --sidebar: 220 48% 8%;
+  --sidebar-foreground: 210 25% 88%;
+  --sidebar-border: 218 35% 14%;
+  --sidebar-primary: 210 100% 45%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 220 40% 16%;
+  --sidebar-accent-foreground: 210 80% 65%;
+  --sidebar-ring: 210 100% 45%;
+  --popover: 220 46% 9%;
+  --popover-foreground: 210 20% 92%;
+  --popover-border: 218 30% 17%;
+  --primary: 210 100% 45%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 160 84% 39%;
   --secondary-foreground: 0 0% 100%;
-  --muted: 222 30% 16%;
-  --muted-foreground: 215 20% 60%;
-  --accent: 207 90% 54%;
-  --accent-foreground: 222 47% 8%;
+  --muted: 220 35% 14%;
+  --muted-foreground: 215 25% 55%;
+  --accent: 210 100% 45%;
+  --accent-foreground: 0 0% 100%;
   --destructive: 0 72% 51%;
   --destructive-foreground: 0 0% 100%;
-  --input: 222 35% 20%;
-  --ring: 168 65% 46%;
-  --chart-1: 168 65% 46%;
-  --chart-2: 207 90% 54%;
-  --chart-3: 280 65% 60%;
+  --input: 220 40% 16%;
+  --ring: 210 100% 45%;
+  --chart-1: 210 100% 45%;
+  --chart-2: 160 84% 39%;
+  --chart-3: 38 92% 50%;
   --chart-4: 38 92% 50%;
   --chart-5: 350 80% 55%;
   --font-sans: 'Inter', 'Geist', sans-serif;
-  --font-serif: 'IBM Plex Sans', sans-serif;
-  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
-  --radius: 0.5rem;
+  --font-serif: 'Public Sans', sans-serif;
+  --font-mono: 'Roboto Mono', 'Fira Code', monospace;
+  --radius: 0.375rem;
   --shadow-2xs: 0px 1px 2px 0px rgba(0, 0, 0, 0.3);
   --shadow-xs: 0px 1px 3px 0px rgba(0, 0, 0, 0.35);
   --shadow-sm: 0px 2px 4px 0px rgba(0, 0, 0, 0.4);
@@ -70,43 +69,43 @@
 }
 
 .dark {
-  --button-outline: rgba(61, 214, 180, 0.15);
-  --badge-outline: rgba(59, 167, 255, 0.1);
+  --button-outline: rgba(0, 102, 204, 0.15);
+  --badge-outline: rgba(0, 102, 204, 0.1);
   --opaque-button-border-intensity: 8;
-  --elevate-1: rgba(61, 214, 180, 0.06);
-  --elevate-2: rgba(59, 167, 255, 0.1);
-  --background: 222 47% 5%;
-  --foreground: 210 20% 90%;
-  --border: 220 30% 16%;
-  --card: 222 40% 9%;
-  --card-foreground: 210 25% 88%;
-  --card-border: 220 25% 14%;
-  --sidebar: 222 45% 7%;
-  --sidebar-foreground: 210 20% 85%;
-  --sidebar-border: 220 30% 12%;
-  --sidebar-primary: 168 65% 46%;
-  --sidebar-primary-foreground: 222 47% 8%;
-  --sidebar-accent: 222 35% 16%;
-  --sidebar-accent-foreground: 168 50% 70%;
-  --sidebar-ring: 207 90% 54%;
-  --popover: 222 42% 8%;
-  --popover-foreground: 210 20% 88%;
-  --popover-border: 220 28% 15%;
-  --primary: 168 65% 46%;
-  --primary-foreground: 222 47% 8%;
-  --secondary: 207 90% 54%;
+  --elevate-1: rgba(0, 102, 204, 0.08);
+  --elevate-2: rgba(0, 102, 204, 0.15);
+  --background: 220 50% 6%;
+  --foreground: 210 25% 95%;
+  --border: 218 35% 16%;
+  --card: 220 45% 9%;
+  --card-foreground: 210 20% 92%;
+  --card-border: 218 30% 14%;
+  --sidebar: 220 48% 7%;
+  --sidebar-foreground: 210 25% 88%;
+  --sidebar-border: 218 35% 12%;
+  --sidebar-primary: 210 100% 45%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 220 40% 14%;
+  --sidebar-accent-foreground: 210 80% 65%;
+  --sidebar-ring: 210 100% 45%;
+  --popover: 220 46% 8%;
+  --popover-foreground: 210 20% 92%;
+  --popover-border: 218 30% 15%;
+  --primary: 210 100% 45%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 160 84% 39%;
   --secondary-foreground: 0 0% 100%;
-  --muted: 222 30% 14%;
-  --muted-foreground: 215 20% 60%;
-  --accent: 207 90% 54%;
-  --accent-foreground: 222 47% 8%;
+  --muted: 220 35% 12%;
+  --muted-foreground: 215 25% 55%;
+  --accent: 210 100% 45%;
+  --accent-foreground: 0 0% 100%;
   --destructive: 0 72% 51%;
   --destructive-foreground: 0 0% 100%;
-  --input: 222 35% 18%;
-  --ring: 168 65% 46%;
-  --chart-1: 168 65% 46%;
-  --chart-2: 207 90% 54%;
-  --chart-3: 280 65% 60%;
+  --input: 220 40% 14%;
+  --ring: 210 100% 45%;
+  --chart-1: 210 100% 45%;
+  --chart-2: 160 84% 39%;
+  --chart-3: 38 92% 50%;
   --chart-4: 38 92% 50%;
   --chart-5: 350 80% 55%;
   --shadow-2xs: 0px 1px 2px 0px rgba(0, 0, 0, 0.4);
@@ -134,12 +133,13 @@
 
   body {
     @apply font-sans antialiased bg-background text-foreground;
-    background: linear-gradient(180deg, hsl(222deg 47% 8%) 0%, hsl(222deg 47% 5%) 100%);
+    background: 
+      radial-gradient(ellipse at 50% 0%, hsl(220deg 50% 12%) 0%, transparent 50%),
+      linear-gradient(180deg, hsl(220deg 50% 7%) 0%, hsl(220deg 50% 5%) 100%);
     min-height: 100vh;
   }
 }
 
-/* Glow effects for hacker aesthetic */
 @layer utilities {
   input[type="search"]::-webkit-search-cancel-button {
     @apply hidden;
@@ -166,7 +166,7 @@
 
   .toggle-elevate.toggle-elevated::before {
     background-color: var(--elevate-2);
-    box-shadow: 0 0 15px hsl(168deg 65% 46% / 0.3);
+    box-shadow: 0 0 15px hsl(210deg 100% 45% / 0.3);
   }
 
   .border.toggle-elevate::before {
@@ -211,16 +211,14 @@
     inset: -1px;
   }
 
-  /* Subtle glow effects */
-  .glow-teal {
-    box-shadow: 0 0 10px hsl(168deg 65% 46% / 0.4);
-  }
-
   .glow-blue {
-    box-shadow: 0 0 10px hsl(207deg 90% 54% / 0.4);
+    box-shadow: 0 0 12px hsl(210deg 100% 45% / 0.4);
   }
 
-  /* Command center animations */
+  .glow-green {
+    box-shadow: 0 0 12px hsl(160deg 84% 39% / 0.4);
+  }
+
   @keyframes fadeSlideUp {
     from {
       opacity: 0;
@@ -234,10 +232,10 @@
 
   @keyframes pulseGlow {
     0%, 100% {
-      box-shadow: 0 0 5px hsl(168deg 65% 46% / 0.2);
+      box-shadow: 0 0 5px hsl(210deg 100% 45% / 0.2);
     }
     50% {
-      box-shadow: 0 0 12px hsl(168deg 65% 46% / 0.4);
+      box-shadow: 0 0 15px hsl(210deg 100% 45% / 0.4);
     }
   }
 
@@ -247,6 +245,15 @@
     }
     100% {
       background-position: 200% 0;
+    }
+  }
+
+  @keyframes scanline {
+    0% {
+      transform: translateY(-100%);
+    }
+    100% {
+      transform: translateY(100%);
     }
   }
 
@@ -269,65 +276,82 @@
     animation: shimmer 1.5s infinite;
   }
 
-  /* Subtle grid background pattern */
   .bg-grid-pattern {
     background-image: 
-      linear-gradient(to right, hsl(168deg 65% 46% / 0.02) 1px, transparent 1px),
-      linear-gradient(to bottom, hsl(168deg 65% 46% / 0.02) 1px, transparent 1px);
-    background-size: 24px 24px;
+      linear-gradient(to right, hsl(210deg 100% 45% / 0.03) 1px, transparent 1px),
+      linear-gradient(to bottom, hsl(210deg 100% 45% / 0.03) 1px, transparent 1px);
+    background-size: 32px 32px;
   }
 
-  /* Agent card selected glow - no hover transform to avoid layout shifts */
+  .bg-circuit-pattern {
+    background-image: 
+      radial-gradient(circle at 25% 25%, hsl(210deg 100% 45% / 0.05) 2px, transparent 2px),
+      radial-gradient(circle at 75% 75%, hsl(210deg 100% 45% / 0.03) 1px, transparent 1px);
+    background-size: 48px 48px;
+  }
+
   .agent-card-glow {
     transition: box-shadow 0.2s ease;
   }
 
   .agent-card-glow.selected {
-    box-shadow: 0 0 20px hsl(168deg 65% 46% / 0.2);
+    box-shadow: 0 0 20px hsl(210deg 100% 45% / 0.25);
   }
 
-  /* Message bubble styles */
   .message-user {
     background: hsl(var(--primary));
   }
 
   .message-assistant {
     background: hsl(var(--muted));
-    border-left: 2px solid hsl(140deg 100% 45% / 0.5);
+    border-left: 2px solid hsl(160deg 84% 39% / 0.5);
   }
 
-  /* Status indicator pulse */
   .status-active::before {
     content: '';
     position: absolute;
     inset: -2px;
     border-radius: 50%;
-    background: hsl(168deg 65% 46% / 0.3);
+    background: hsl(160deg 84% 39% / 0.3);
     animation: pulseGlow 2s ease-in-out infinite;
     z-index: -1;
   }
 
-  /* Typography classes for enterprise look */
   .font-display {
-    font-family: 'Oxanium', sans-serif;
-    letter-spacing: 0.02em;
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.01em;
   }
 
   .font-body {
-    font-family: 'IBM Plex Sans', sans-serif;
+    font-family: 'Public Sans', sans-serif;
   }
 
   .font-code {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'Roboto Mono', monospace;
   }
 
-  /* Header title styling */
   .enterprise-title {
     font-family: 'Inter', sans-serif;
-    font-weight: 600;
-    background: linear-gradient(135deg, hsl(168deg 65% 55%) 0%, hsl(207deg 90% 60%) 100%);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+
+  .text-gradient-blue {
+    background: linear-gradient(135deg, hsl(210deg 100% 55%) 0%, hsl(210deg 100% 40%) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+  }
+
+  .border-glow {
+    box-shadow: 
+      0 0 0 1px hsl(210deg 100% 45% / 0.2),
+      0 0 20px hsl(210deg 100% 45% / 0.1);
+  }
+
+  .command-bar {
+    background: linear-gradient(180deg, hsl(220deg 48% 10%) 0%, hsl(220deg 48% 8%) 100%);
+    border-bottom: 1px solid hsl(218deg 35% 18%);
   }
 }

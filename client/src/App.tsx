@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
+import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import CommandLogsView from "@/pages/virtual-office";
 import Landing from "@/pages/landing";
@@ -20,6 +21,7 @@ import AgentVoicesPage from "@/pages/VirtualOffice";
 import InvestigationLounge from "@/pages/InvestigationLounge";
 import QuantumWarRoom from "@/pages/QuantumWarRoom";
 import TemporalAnomalyLab from "@/pages/TemporalAnomalyLab";
+import { Shield, Activity, Lock } from "lucide-react";
 
 function CommandLogsPage() {
   return <CommandLogsView />;
@@ -84,9 +86,24 @@ function AuthenticatedLayout() {
       <div className="flex h-screen w-full">
         <AppSidebar />
         <div className="flex flex-col flex-1 overflow-hidden">
-          <header className="flex items-center gap-2 p-3 border-b border-border bg-card/50">
-            <SidebarTrigger data-testid="button-sidebar-toggle" />
-            <span className="text-sm text-muted-foreground">ARC Command Center</span>
+          <header className="command-bar flex items-center justify-between gap-4 px-4 h-14">
+            <div className="flex items-center gap-3">
+              <SidebarTrigger data-testid="button-sidebar-toggle" />
+              <div className="flex items-center gap-2">
+                <Shield className="h-5 w-5 text-primary" />
+                <span className="font-display text-sm text-foreground hidden sm:inline">ARC Command Center</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="bg-secondary/10 text-secondary border-secondary/30 text-[10px]" data-testid="badge-online-status">
+                <Activity className="w-3 h-3 mr-1" />
+                Online
+              </Badge>
+              <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 text-[10px]" data-testid="badge-secure-status">
+                <Lock className="w-3 h-3 mr-1" />
+                Secure
+              </Badge>
+            </div>
           </header>
           <main className="flex-1 overflow-auto">
             <Switch>
