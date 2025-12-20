@@ -1,10 +1,15 @@
-# ARC Backend API
+# ARC Intelligence Framework v2.0
 
 ## Overview
 
-This is a REST API backend for the **Mr.F Enterprise OS / ARC Virtual Office** orchestration system. The API serves as the bridge between n8n workflows and the ARC agent ecosystem, providing endpoints for ingesting agent events, handling CEO report reminders, generating executive summaries, managing governance notifications, broadcasting rule updates, and processing high-priority notifications.
+This is **ARC Intelligence Framework v2.0** - a complete enterprise intelligence operating system integrating:
+- **Mr.F Brain**: Executive AI orchestrator with voice capabilities
+- **Multi-Agent System**: 6 specialized AI agents (Mr.F, L0-Ops, L0-Comms, L0-Intel, Dr. Maya Quest, Jordan Spark)
+- **Voice Layer**: ElevenLabs text-to-speech integration with per-agent voice IDs
+- **Real-time Dashboard**: Supabase-powered monitoring of commands, events, and n8n callbacks
+- **n8n Automation**: Webhook integration for workflow automation
 
-The project uses a standard Express.js backend with TypeScript, Drizzle ORM for database operations, and includes a React frontend scaffold (currently minimal - just a 404 page). The primary focus is the backend API endpoints consumed programmatically by n8n workflows.
+The project uses Express.js backend with TypeScript, React frontend with Vite, Drizzle ORM for PostgreSQL, and integrates with Supabase, OpenAI, ElevenLabs, and n8n.
 
 ## User Preferences
 
@@ -116,6 +121,14 @@ Preferred communication style: Simple, everyday language.
 **POST /api/conversations** - Create new conversation
 **GET /api/conversations/:id/messages** - Get messages for a conversation
 **POST /api/chat** - Send chat message to selected agents
+**POST /api/tts** - Text-to-speech via ElevenLabs (requires auth)
+  - Request: `{ "text": "Hello", "voice": "voice_id" }`
+  - Response: `{ "audio": "<base64>", "status": "ok" }`
+
+### Brain State Endpoints
+
+**GET /api/arc/brain/state** - Get current brain manifest
+**GET /api/arc/brain/self-awareness** - Get self-awareness data
 
 ### ARC System Endpoints (n8n Integration)
 
