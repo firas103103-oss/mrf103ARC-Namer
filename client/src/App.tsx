@@ -7,6 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
 import VirtualOffice from "@/pages/virtual-office";
 import Landing from "@/pages/landing";
+import Dashboard from "@/pages/dashboard";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -25,6 +26,9 @@ function Router() {
     <Switch>
       <Route path="/">
         {isAuthenticated ? <VirtualOffice /> : <Landing />}
+      </Route>
+      <Route path="/dashboard">
+        {isAuthenticated ? <Dashboard /> : <Landing />}
       </Route>
       <Route component={NotFound} />
     </Switch>
