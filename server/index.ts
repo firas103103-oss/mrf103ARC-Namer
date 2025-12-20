@@ -4,6 +4,8 @@ import { createServer } from "http";
 import cors from "cors";
 import fs from "fs";
 import path from "path";
+import { setupVite } from "./vite";
+import { registerRoutes } from "./routes";
 
 // ==================== SERVER BASE ====================
 const app = express();
@@ -167,13 +169,24 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
 
 // ==================== START SERVER ====================
 const PORT = parseInt(process.env.PORT || "5000", 10);
-httpServer.listen(
-  {
-    port: PORT,
-    host: "0.0.0.0",
-    reusePort: true,
-  },
-  () => {
-    log(`✅ ARC Bridge Server running on port ${PORT}`);
+
+(async () => {
+  // Register all API routes first
+  await registerRoutes(httpServer, app);
+  
+  // Setup Vite for frontend (must be after routes)
+  if (process.env.NODE_ENV === "development") {
+    await setupVite(httpServer, app);
   }
-);
+  
+  httpServer.listen(
+    {
+      port: PORT,
+      host: "0.0.0.0",
+      reusePort: true,
+    },
+    () => {
+      log(`✅ ARC Bridge Server running on port ${PORT}`);
+    }
+  );
+})();
