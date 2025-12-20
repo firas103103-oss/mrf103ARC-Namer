@@ -38,7 +38,17 @@ import {
   XCircle,
   Loader2,
 } from "lucide-react";
-import { SMELL_CATEGORIES, type SmellProfile } from "@shared/schema";
+import { 
+  SMELL_CATEGORIES, 
+  type SmellProfile,
+  type WsDeviceStatus,
+  type WsSensorReading,
+  type WsCaptureComplete,
+  type WsCalibrationComplete,
+} from "@shared/schema";
+
+// Connection state enum for proper state management
+type ConnectionState = "disconnected" | "connecting" | "connected" | "error" | "reconnecting";
 
 interface SensorReading {
   gasResistance: number;
@@ -46,20 +56,24 @@ interface SensorReading {
   humidity: number;
   pressure: number;
   iaqScore: number;
+  iaqAccuracy: number;
   co2Equivalent: number;
   vocEquivalent: number;
   heaterTemperature: number;
-  heaterStable: boolean;
+  heaterDuration: number;
+  mode: string;
   timestamp: number;
 }
 
 interface DeviceStatus {
-  connected: boolean;
-  mode: "idle" | "monitoring" | "profiling" | "calibration" | "discovery";
+  connectionState: ConnectionState;
+  mode: "idle" | "monitoring" | "calibrating" | "capturing" | "error";
   deviceId: string;
   firmwareVersion: string;
   uptime: number;
   wifiRssi: number;
+  freeHeap: number;
+  heaterProfile: string;
   lastCalibration: number | null;
   errors: string[];
 }
@@ -107,13 +121,17 @@ export default function BioSentinel() {
 
   const [currentReading, setCurrentReading] = useState<SensorReading | null>(null);
   const [readingsHistory, setReadingsHistory] = useState<SensorReading[]>([]);
+  const [connectionState, setConnectionState] = useState<ConnectionState>("disconnected");
+  const [reconnectAttempts, setReconnectAttempts] = useState(0);
   const [deviceStatus, setDeviceStatus] = useState<DeviceStatus>({
-    connected: false,
+    connectionState: "disconnected",
     mode: "idle",
     deviceId: "xbs-esp32-001",
     firmwareVersion: "1.0.0",
     uptime: 0,
     wifiRssi: -50,
+    freeHeap: 0,
+    heaterProfile: "standard",
     lastCalibration: null,
     errors: [],
   });
@@ -144,12 +162,22 @@ export default function BioSentinel() {
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const wsUrl = `${protocol}//${window.location.host}/ws/bio-sentinel`;
 
+    // Set connecting state
+    const isReconnect = reconnectAttempts > 0;
+    setConnectionState(isReconnect ? "reconnecting" : "connecting");
+    setDeviceStatus((prev) => ({ ...prev, connectionState: isReconnect ? "reconnecting" : "connecting" }));
+
     try {
       const ws = new WebSocket(wsUrl);
 
       ws.onopen = () => {
-        setDeviceStatus((prev) => ({ ...prev, connected: true }));
-        toast({ title: "Connected", description: "Bio Sentinel device connected" });
+        setConnectionState("connected");
+        setReconnectAttempts(0);
+        setDeviceStatus((prev) => ({ ...prev, connectionState: "connected" }));
+        toast({ 
+          title: isReconnect ? "Reconnected" : "Connected", 
+          description: "Bio Sentinel device connected" 
+        });
       };
 
       ws.onmessage = (event) => {
@@ -161,21 +189,41 @@ export default function BioSentinel() {
         }
       };
 
-      ws.onclose = () => {
-        setDeviceStatus((prev) => ({ ...prev, connected: false }));
-        reconnectTimeoutRef.current = setTimeout(connectWebSocket, 5000);
+      ws.onclose = (event) => {
+        setConnectionState("disconnected");
+        setDeviceStatus((prev) => ({ ...prev, connectionState: "disconnected" }));
+        
+        // Clear any existing reconnect timer
+        if (reconnectTimeoutRef.current) {
+          clearTimeout(reconnectTimeoutRef.current);
+        }
+        
+        // Exponential backoff for reconnection (max 30 seconds)
+        const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000);
+        setReconnectAttempts((prev) => prev + 1);
+        
+        console.log(`[Bio Sentinel] Connection closed (code: ${event.code}). Reconnecting in ${delay}ms...`);
+        reconnectTimeoutRef.current = setTimeout(connectWebSocket, delay);
       };
 
-      ws.onerror = () => {
+      ws.onerror = (error) => {
+        console.error("[Bio Sentinel] WebSocket error:", error);
+        setConnectionState("error");
+        setDeviceStatus((prev) => ({ ...prev, connectionState: "error" }));
         ws.close();
       };
 
       wsRef.current = ws;
     } catch (e) {
       console.error("WebSocket connection failed:", e);
-      reconnectTimeoutRef.current = setTimeout(connectWebSocket, 5000);
+      setConnectionState("error");
+      setDeviceStatus((prev) => ({ ...prev, connectionState: "error" }));
+      
+      const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000);
+      setReconnectAttempts((prev) => prev + 1);
+      reconnectTimeoutRef.current = setTimeout(connectWebSocket, delay);
     }
-  }, [toast]);
+  }, [toast, reconnectAttempts]);
 
   const handleWebSocketMessage = useCallback((data: any) => {
     switch (data.type) {
@@ -184,12 +232,14 @@ export default function BioSentinel() {
           gasResistance: data.payload.gas_resistance,
           temperature: data.payload.temperature,
           humidity: data.payload.humidity,
-          pressure: data.payload.pressure,
-          iaqScore: data.payload.iaq_score,
-          co2Equivalent: data.payload.co2_equivalent,
-          vocEquivalent: data.payload.voc_equivalent,
-          heaterTemperature: data.payload.heater_temperature,
-          heaterStable: data.payload.heater_stable,
+          pressure: data.payload.pressure || 0,
+          iaqScore: data.payload.iaq_score || 0,
+          iaqAccuracy: data.payload.iaq_accuracy || 0,
+          co2Equivalent: data.payload.co2_equivalent || 0,
+          vocEquivalent: data.payload.voc_equivalent || 0,
+          heaterTemperature: data.payload.heater_temp || 0,
+          heaterDuration: data.payload.heater_duration || 0,
+          mode: data.payload.mode || "idle",
           timestamp: data.timestamp,
         };
         setCurrentReading(reading);
@@ -202,6 +252,9 @@ export default function BioSentinel() {
           mode: data.payload.mode,
           uptime: data.payload.uptime_ms,
           wifiRssi: data.payload.wifi_rssi,
+          freeHeap: data.payload.free_heap || 0,
+          heaterProfile: data.payload.heater_profile || "standard",
+          firmwareVersion: data.payload.firmware_version || "1.0.0",
           lastCalibration: data.payload.last_calibration,
           errors: data.payload.errors || [],
         }));
@@ -211,18 +264,27 @@ export default function BioSentinel() {
         break;
 
       case "calibration_complete":
-        toast({
-          title: "Calibration Complete",
-          description: `Quality: ${data.payload.calibration_quality}`,
-        });
-        setDeviceStatus((prev) => ({
-          ...prev,
-          mode: "monitoring",
-          lastCalibration: Date.now(),
-        }));
+        if (data.payload.success) {
+          toast({
+            title: "Calibration Complete",
+            description: `Baseline: ${data.payload.baseline_gas} ohms`,
+          });
+          setDeviceStatus((prev) => ({
+            ...prev,
+            mode: "monitoring",
+            lastCalibration: Date.now(),
+          }));
+        } else {
+          toast({
+            title: "Calibration Failed",
+            description: data.payload.error || "Unknown error",
+            variant: "destructive",
+          });
+          setDeviceStatus((prev) => ({ ...prev, mode: "error" }));
+        }
         break;
 
-      case "smell_capture":
+      case "capture_complete":
         setCaptureState({
           active: false,
           captureId: data.payload.capture_id,
@@ -231,10 +293,29 @@ export default function BioSentinel() {
           totalSamples: data.payload.samples_count,
           startTime: null,
         });
-        toast({
-          title: "Capture Complete",
-          description: `Collected ${data.payload.samples_count} samples`,
-        });
+        if (data.payload.success) {
+          toast({
+            title: "Capture Complete",
+            description: `Collected ${data.payload.samples_count} samples`,
+          });
+        } else {
+          toast({
+            title: "Capture Failed",
+            description: data.payload.error || "Unknown error",
+            variant: "destructive",
+          });
+        }
+        break;
+
+      case "command_ack":
+        console.log(`[Bio Sentinel] Command ${data.payload.command} ${data.payload.status}`);
+        if (data.payload.status === "failed") {
+          toast({
+            title: "Command Failed",
+            description: data.payload.error || `Failed to execute: ${data.payload.command}`,
+            variant: "destructive",
+          });
+        }
         break;
 
       case "error":
@@ -265,16 +346,17 @@ export default function BioSentinel() {
   };
 
   const handleStartCalibration = () => {
-    sendCommand("start_calibration", { type: "clean_air" });
-    setDeviceStatus((prev) => ({ ...prev, mode: "calibration" }));
+    sendCommand("start_calibration", { duration_seconds: 60 });
+    setDeviceStatus((prev) => ({ ...prev, mode: "calibrating" }));
   };
 
   const handleStartCapture = () => {
     const captureId = `cap-${Date.now()}`;
     sendCommand("start_capture", {
       capture_id: captureId,
-      duration_ms: 30000,
-      sample_interval_ms: 1000,
+      duration_seconds: 30,
+      label: newProfileName || "Unnamed capture",
+      profile_id: selectedProfileForMatch?.id || null,
       heater_profile: selectedHeaterProfile,
     });
     setCaptureState({
@@ -285,7 +367,7 @@ export default function BioSentinel() {
       totalSamples: 30,
       startTime: Date.now(),
     });
-    setDeviceStatus((prev) => ({ ...prev, mode: "profiling" }));
+    setDeviceStatus((prev) => ({ ...prev, mode: "capturing" }));
   };
 
   const handleStopCapture = () => {
@@ -411,11 +493,11 @@ export default function BioSentinel() {
         <div className="flex items-center gap-2">
           <Badge
             variant="outline"
-            className={deviceStatus.connected ? "bg-secondary/10 text-secondary border-secondary/30" : "bg-destructive/10 text-destructive border-destructive/30"}
+            className={connectionState === "connected" ? "bg-secondary/10 text-secondary border-secondary/30" : connectionState === "connecting" || connectionState === "reconnecting" ? "bg-yellow-500/10 text-yellow-600 border-yellow-500/30" : "bg-destructive/10 text-destructive border-destructive/30"}
             data-testid="badge-connection-status"
           >
-            {deviceStatus.connected ? <Wifi className="w-3 h-3 mr-1" /> : <WifiOff className="w-3 h-3 mr-1" />}
-            {deviceStatus.connected ? "Connected" : "Disconnected"}
+            {connectionState === "connected" ? <Wifi className="w-3 h-3 mr-1" /> : connectionState === "connecting" || connectionState === "reconnecting" ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <WifiOff className="w-3 h-3 mr-1" />}
+            {connectionState === "connected" ? "Connected" : connectionState === "connecting" ? "Connecting" : connectionState === "reconnecting" ? `Reconnecting (${reconnectAttempts})` : connectionState === "error" ? "Error" : "Disconnected"}
           </Badge>
           <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30" data-testid="badge-device-mode">
             {deviceStatus.mode.charAt(0).toUpperCase() + deviceStatus.mode.slice(1)}
@@ -524,9 +606,9 @@ export default function BioSentinel() {
                   <span className="text-xl font-mono font-semibold" data-testid="text-heater-value">
                     {currentReading ? currentReading.heaterTemperature : "--"}C
                   </span>
-                  {currentReading?.heaterStable && (
+                  {currentReading && currentReading.heaterDuration > 0 && (
                     <Badge variant="outline" className="bg-secondary/10 text-secondary border-secondary/30 text-[10px]">
-                      Stable
+                      {currentReading.heaterDuration}ms
                     </Badge>
                   )}
                 </div>
@@ -560,13 +642,13 @@ export default function BioSentinel() {
                   Monitor
                 </Button>
                 <Button
-                  variant={deviceStatus.mode === "discovery" ? "default" : "outline"}
-                  onClick={() => handleSetMode("discovery")}
+                  variant={deviceStatus.mode === "capturing" ? "default" : "outline"}
+                  onClick={() => handleSetMode("capturing")}
                   disabled={captureState.active}
-                  data-testid="button-mode-discovery"
+                  data-testid="button-mode-capturing"
                 >
                   <Search className="h-4 w-4 mr-2" />
-                  Discovery
+                  Capture Mode
                 </Button>
                 <Button variant="outline" onClick={handleStartCalibration} disabled={captureState.active} data-testid="button-calibrate">
                   <RotateCcw className="h-4 w-4 mr-2" />

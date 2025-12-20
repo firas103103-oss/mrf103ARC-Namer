@@ -24,6 +24,10 @@
     supabaseAgentEventSchema,
     smellProfileSchema,
     bioSentinelChatSchema,
+    wsEsp32MessageSchema,
+    wsServerCommandSchema,
+    wsCommandAckSchema,
+    wsSensorReadingSchema,
     VIRTUAL_AGENTS,
     SMELL_CATEGORIES,
     type ExecutiveSummaryResponse,
@@ -32,6 +36,12 @@
     type AgentType,
     type ChatMessage,
     type SmellProfile,
+    type WsEsp32Message,
+    type WsServerCommand,
+    type WsDeviceStatus,
+    type WsSensorReading,
+    type WsCaptureComplete,
+    type WsCalibrationComplete,
   } from "@shared/schema";
   import { WebSocketServer, WebSocket } from "ws";
   import { ZodError } from "zod";
@@ -436,7 +446,11 @@
           category: parsed.category || null,
           subcategory: parsed.subcategory || null,
           description: parsed.description || null,
+          label: parsed.label || null,
+          notes: parsed.notes || null,
+          rawSignature: parsed.rawSignature || null,
           featureVector: parsed.featureVector || null,
+          embeddingText: null,
           baselineGas: parsed.baselineGas || null,
           peakGas: parsed.peakGas || null,
           deltaGas: parsed.deltaGas || null,
@@ -551,7 +565,11 @@ Provide helpful, accurate analysis. If you can't identify a specific smell, expl
             category: parsed.category || null,
             subcategory: parsed.subcategory || null,
             description: parsed.description || null,
+            label: parsed.label || null,
+            notes: parsed.notes || null,
+            rawSignature: parsed.rawSignature || null,
             featureVector: parsed.featureVector || null,
+            embeddingText: null,
             baselineGas: parsed.baselineGas || null,
             peakGas: parsed.peakGas || null,
             deltaGas: parsed.deltaGas || null,
@@ -574,6 +592,11 @@ Provide helpful, accurate analysis. If you can't identify a specific smell, expl
 
     // ==================== BIO SENTINEL WEBSOCKET ====================
     const wss = new WebSocketServer({ noServer: true });
+    
+    // Track ESP32 devices separately from dashboard clients
+    const esp32Devices: Map<string, WebSocket> = new Map();
+    let latestSensorReading: WsSensorReading | null = null;
+    let latestDeviceStatus: WsDeviceStatus | null = null;
 
     httpServer.on("upgrade", (request, socket, head) => {
       const url = new URL(request.url || "", `http://${request.headers.host}`);
@@ -587,12 +610,89 @@ Provide helpful, accurate analysis. If you can't identify a specific smell, expl
       }
     });
 
+    // Send typed command acknowledgment
+    const sendCommandAck = (ws: WebSocket, command: string, status: "received" | "executing" | "completed" | "failed", error?: string) => {
+      const ack = {
+        type: "command_ack" as const,
+        timestamp: Date.now(),
+        payload: { command, status, ...(error && { error }) },
+      };
+      ws.send(JSON.stringify(ack));
+    };
+
+    // Handle incoming ESP32 messages with validation
+    const handleEsp32Message = (message: WsEsp32Message) => {
+      switch (message.type) {
+        case "sensor_reading":
+          latestSensorReading = message;
+          console.log(`[Bio Sentinel] Sensor reading from ${message.payload.device_id}: gas=${message.payload.gas_resistance}, temp=${message.payload.temperature}°C`);
+          break;
+        case "device_status":
+          latestDeviceStatus = message;
+          const deviceId = `esp32-${message.timestamp}`;
+          console.log(`[Bio Sentinel] Device status: mode=${message.payload.mode}, healthy=${message.payload.sensor_healthy}`);
+          break;
+        case "capture_complete":
+          console.log(`[Bio Sentinel] Capture complete: ${message.payload.capture_id}, samples=${message.payload.samples_count}, success=${message.payload.success}`);
+          break;
+        case "calibration_complete":
+          console.log(`[Bio Sentinel] Calibration complete: success=${message.payload.success}, baseline=${message.payload.baseline_gas}`);
+          break;
+      }
+      // Broadcast to all dashboard clients
+      broadcastToBioSentinel(message);
+    };
+
+    // Handle dashboard commands with validation
+    const handleDashboardCommand = (ws: WebSocket, command: WsServerCommand) => {
+      console.log(`[Bio Sentinel] Command: ${command.type}`);
+      
+      // Validate and forward to ESP32 devices
+      switch (command.type) {
+        case "set_mode":
+          console.log(`[Bio Sentinel] Setting mode to: ${command.payload.mode}`);
+          break;
+        case "set_heater_profile":
+          console.log(`[Bio Sentinel] Setting heater profile: ${command.payload.profile}`);
+          break;
+        case "start_calibration":
+          console.log(`[Bio Sentinel] Starting calibration, duration: ${command.payload.duration_seconds || 60}s`);
+          break;
+        case "start_capture":
+          console.log(`[Bio Sentinel] Starting capture: ${command.payload.capture_id}, duration: ${command.payload.duration_seconds}s`);
+          break;
+        case "stop":
+          console.log(`[Bio Sentinel] Stopping current operation`);
+          break;
+        case "request_status":
+          console.log(`[Bio Sentinel] Status requested`);
+          // Send cached status if available
+          if (latestDeviceStatus) {
+            ws.send(JSON.stringify(latestDeviceStatus));
+          }
+          break;
+        case "restart":
+          console.log(`[Bio Sentinel] Restart requested: ${command.payload?.reason || 'no reason'}`);
+          break;
+      }
+      
+      // Forward to all ESP32 devices
+      esp32Devices.forEach((device) => {
+        if (device.readyState === WebSocket.OPEN) {
+          device.send(JSON.stringify(command));
+        }
+      });
+      
+      // Acknowledge command receipt
+      sendCommandAck(ws, command.type, "received");
+    };
+
     wss.on("connection", (ws: WebSocket) => {
       console.log("[Bio Sentinel] New WebSocket connection");
       bioSentinelClients.add(ws);
 
-      // Send initial status
-      ws.send(JSON.stringify({
+      // Send initial status (simulated for demo)
+      const initialStatus: WsDeviceStatus = {
         type: "device_status",
         timestamp: Date.now(),
         payload: {
@@ -601,35 +701,49 @@ Provide helpful, accurate analysis. If you can't identify a specific smell, expl
           wifi_rssi: -50,
           sensor_healthy: true,
           last_calibration: null,
+          heater_profile: "standard",
+          firmware_version: "1.0.0",
+          free_heap: 200000,
           errors: [],
         },
-      }));
+      };
+      ws.send(JSON.stringify(initialStatus));
 
       ws.on("message", (data) => {
         try {
-          const message = JSON.parse(data.toString());
-          console.log("[Bio Sentinel] Received:", message.type);
+          const rawMessage = JSON.parse(data.toString());
           
-          // Handle commands from dashboard
-          switch (message.type) {
-            case "set_mode":
-            case "set_heater_profile":
-            case "start_calibration":
-            case "start_capture":
-            case "stop":
-            case "request_status":
-            case "restart":
-              // Forward to all connected ESP32 devices (in real scenario)
-              // For now, echo back confirmation
-              ws.send(JSON.stringify({
-                type: "command_ack",
-                timestamp: Date.now(),
-                payload: { command: message.type, status: "received" },
-              }));
-              break;
+          // Try to parse as ESP32 message first
+          const esp32Result = wsEsp32MessageSchema.safeParse(rawMessage);
+          if (esp32Result.success) {
+            handleEsp32Message(esp32Result.data);
+            return;
           }
+          
+          // Try to parse as dashboard command
+          const commandResult = wsServerCommandSchema.safeParse(rawMessage);
+          if (commandResult.success) {
+            handleDashboardCommand(ws, commandResult.data);
+            return;
+          }
+          
+          // Unknown message type
+          console.warn("[Bio Sentinel] Unknown message format:", rawMessage.type || "no type");
+          ws.send(JSON.stringify({
+            type: "error",
+            timestamp: Date.now(),
+            payload: {
+              message: "Unknown message format",
+              received_type: rawMessage.type,
+            },
+          }));
         } catch (e) {
           console.error("[Bio Sentinel] Message parse error:", e);
+          ws.send(JSON.stringify({
+            type: "error",
+            timestamp: Date.now(),
+            payload: { message: "Invalid JSON" },
+          }));
         }
       });
 

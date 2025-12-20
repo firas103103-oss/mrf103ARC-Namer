@@ -549,6 +549,7 @@ export type InsertWorkflowSimulation = typeof workflowSimulations.$inferInsert;
 
 // ============================================
 // X Bio Sentinel - Smell Profiles Table
+// pgvector extension enabled for similarity search
 // ============================================
 export const smellProfiles = pgTable("smell_profiles", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -556,7 +557,11 @@ export const smellProfiles = pgTable("smell_profiles", {
   category: varchar("category", { length: 100 }),
   subcategory: varchar("subcategory", { length: 100 }),
   description: text("description"),
-  featureVector: jsonb("feature_vector"), // 128-dimensional vector stored as JSON array
+  label: varchar("label", { length: 255 }),
+  notes: text("notes"),
+  rawSignature: jsonb("raw_signature"),
+  featureVector: jsonb("feature_vector"),
+  embeddingText: text("embedding_text"),
   baselineGas: integer("baseline_gas"),
   peakGas: integer("peak_gas"),
   deltaGas: integer("delta_gas"),
@@ -623,6 +628,9 @@ export const smellProfileSchema = z.object({
   category: z.string().optional(),
   subcategory: z.string().optional(),
   description: z.string().optional(),
+  label: z.string().optional(),
+  notes: z.string().optional(),
+  rawSignature: z.record(z.unknown()).optional(),
   featureVector: z.array(z.number()).optional(),
   baselineGas: z.number().optional(),
   peakGas: z.number().optional(),
@@ -658,6 +666,180 @@ export const smellCaptureSchema = z.object({
   featureVector: z.array(z.number()),
 });
 
+// ============================================
+// X Bio Sentinel - WebSocket Message Schemas
+// ============================================
+
+// ESP32 → Server: Sensor reading event
+export const wsSensorReadingSchema = z.object({
+  type: z.literal("sensor_reading"),
+  timestamp: z.number(),
+  payload: z.object({
+    device_id: z.string(),
+    gas_resistance: z.number(),
+    temperature: z.number(),
+    humidity: z.number(),
+    pressure: z.number().optional(),
+    iaq_score: z.number().optional(),
+    iaq_accuracy: z.number().min(0).max(3).optional(),
+    co2_equivalent: z.number().optional(),
+    voc_equivalent: z.number().optional(),
+    heater_temp: z.number().optional(),
+    heater_duration: z.number().optional(),
+    mode: z.enum(["idle", "monitoring", "calibrating", "capturing"]).optional(),
+  }),
+});
+
+// ESP32 → Server: Device status event
+export const wsDeviceStatusSchema = z.object({
+  type: z.literal("device_status"),
+  timestamp: z.number(),
+  payload: z.object({
+    mode: z.enum(["idle", "monitoring", "calibrating", "capturing", "error"]),
+    uptime_ms: z.number(),
+    wifi_rssi: z.number(),
+    sensor_healthy: z.boolean(),
+    last_calibration: z.number().nullable(),
+    heater_profile: z.string().optional(),
+    firmware_version: z.string().optional(),
+    free_heap: z.number().optional(),
+    errors: z.array(z.string()),
+  }),
+});
+
+// ESP32 → Server: Capture complete event
+export const wsCaptureCompleteSchema = z.object({
+  type: z.literal("capture_complete"),
+  timestamp: z.number(),
+  payload: z.object({
+    capture_id: z.string(),
+    device_id: z.string(),
+    duration_ms: z.number(),
+    samples_count: z.number(),
+    gas_readings: z.array(z.number()),
+    temperature_readings: z.array(z.number()),
+    humidity_readings: z.array(z.number()),
+    baseline_gas: z.number(),
+    peak_gas: z.number(),
+    delta_gas: z.number(),
+    feature_vector: z.array(z.number()),
+    heater_profile: z.string(),
+    success: z.boolean(),
+    error: z.string().optional(),
+  }),
+});
+
+// ESP32 → Server: Calibration complete event
+export const wsCalibrationCompleteSchema = z.object({
+  type: z.literal("calibration_complete"),
+  timestamp: z.number(),
+  payload: z.object({
+    device_id: z.string(),
+    success: z.boolean(),
+    baseline_gas: z.number().optional(),
+    duration_ms: z.number(),
+    error: z.string().optional(),
+  }),
+});
+
+// Server → ESP32: Command acknowledgment
+export const wsCommandAckSchema = z.object({
+  type: z.literal("command_ack"),
+  timestamp: z.number(),
+  payload: z.object({
+    command: z.string(),
+    status: z.enum(["received", "executing", "completed", "failed"]),
+    error: z.string().optional(),
+  }),
+});
+
+// Union of all ESP32 → Server messages
+export const wsEsp32MessageSchema = z.discriminatedUnion("type", [
+  wsSensorReadingSchema,
+  wsDeviceStatusSchema,
+  wsCaptureCompleteSchema,
+  wsCalibrationCompleteSchema,
+]);
+
+// Server → ESP32: Set mode command
+export const wsSetModeCommandSchema = z.object({
+  type: z.literal("set_mode"),
+  payload: z.object({
+    mode: z.enum(["idle", "monitoring", "calibrating", "capturing"]),
+  }),
+});
+
+// Server → ESP32: Set heater profile command
+export const wsSetHeaterProfileCommandSchema = z.object({
+  type: z.literal("set_heater_profile"),
+  payload: z.object({
+    profile: z.enum(["low_power", "standard", "high_sensitivity", "custom"]),
+    custom_temp: z.number().optional(),
+    custom_duration: z.number().optional(),
+  }),
+});
+
+// Server → ESP32: Start calibration command
+export const wsStartCalibrationCommandSchema = z.object({
+  type: z.literal("start_calibration"),
+  payload: z.object({
+    duration_seconds: z.number().optional(),
+  }),
+});
+
+// Server → ESP32: Start capture command
+export const wsStartCaptureCommandSchema = z.object({
+  type: z.literal("start_capture"),
+  payload: z.object({
+    capture_id: z.string(),
+    duration_seconds: z.number(),
+    label: z.string().optional(),
+    profile_id: z.string().nullable().optional(),
+    heater_profile: z.string().optional(),
+  }),
+});
+
+// Server → ESP32: Stop command
+export const wsStopCommandSchema = z.object({
+  type: z.literal("stop"),
+  payload: z.object({}).optional(),
+});
+
+// Server → ESP32: Request status command
+export const wsRequestStatusCommandSchema = z.object({
+  type: z.literal("request_status"),
+  payload: z.object({}).optional(),
+});
+
+// Server → ESP32: Restart command
+export const wsRestartCommandSchema = z.object({
+  type: z.literal("restart"),
+  payload: z.object({
+    reason: z.string().optional(),
+  }),
+});
+
+// Union of all Server → ESP32 commands
+export const wsServerCommandSchema = z.discriminatedUnion("type", [
+  wsSetModeCommandSchema,
+  wsSetHeaterProfileCommandSchema,
+  wsStartCalibrationCommandSchema,
+  wsStartCaptureCommandSchema,
+  wsStopCommandSchema,
+  wsRequestStatusCommandSchema,
+  wsRestartCommandSchema,
+]);
+
+// Type exports for TypeScript usage
+export type WsSensorReading = z.infer<typeof wsSensorReadingSchema>;
+export type WsDeviceStatus = z.infer<typeof wsDeviceStatusSchema>;
+export type WsCaptureComplete = z.infer<typeof wsCaptureCompleteSchema>;
+export type WsCalibrationComplete = z.infer<typeof wsCalibrationCompleteSchema>;
+export type WsCommandAck = z.infer<typeof wsCommandAckSchema>;
+export type WsEsp32Message = z.infer<typeof wsEsp32MessageSchema>;
+export type WsServerCommand = z.infer<typeof wsServerCommandSchema>;
+
+// Legacy command schema (kept for compatibility)
 export const bioSentinelCommandSchema = z.object({
   type: z.enum(["set_mode", "set_heater_profile", "start_calibration", "start_capture", "stop", "request_status", "restart"]),
   payload: z.record(z.unknown()),

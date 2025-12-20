@@ -138,48 +138,56 @@ Normalize the vector to unit length (L2 normalization).
   "type": "sensor_reading",
   "timestamp": 1703001234567,
   "payload": {
+    "device_id": "xbs-esp32-001",
     "gas_resistance": 125000,
-    "gas_resistance_unit": "ohms",
     "temperature": 25.4,
-    "temperature_unit": "celsius",
     "humidity": 45.2,
-    "humidity_unit": "percent",
     "pressure": 1013.25,
-    "pressure_unit": "hPa",
     "iaq_score": 75,
     "iaq_accuracy": 3,
     "co2_equivalent": 650,
-    "co2_unit": "ppm",
     "voc_equivalent": 1.2,
-    "voc_unit": "ppm",
-    "heater_stable": true,
-    "heater_temperature": 320,
-    "heater_duration": 150
+    "heater_temp": 320,
+    "heater_duration": 150,
+    "mode": "monitoring"
   }
 }
 ```
 
-#### 3. Smell Capture Complete
+**Note:** All readings use standard units:
+- gas_resistance: ohms
+- temperature: Celsius
+- humidity: percentage (0-100)
+- pressure: hPa
+- iaq_score: 0-500 (BSEC scale)
+- iaq_accuracy: 0-3 (0=unreliable, 3=calibrated)
+- co2_equivalent/voc_equivalent: ppm
+
+#### 3. Capture Complete
 ```json
 {
-  "type": "smell_capture",
+  "type": "capture_complete",
   "timestamp": 1703001234567,
   "payload": {
     "capture_id": "cap-uuid-here",
+    "device_id": "xbs-esp32-001",
     "duration_ms": 30000,
     "samples_count": 30,
     "gas_readings": [125000, 128000, ...],
     "temperature_readings": [25.4, 25.5, ...],
     "humidity_readings": [45.2, 45.1, ...],
-    "heater_profile": "high_sensitivity",
     "baseline_gas": 150000,
     "peak_gas": 95000,
     "delta_gas": -55000,
     "feature_vector": [0.12, -0.45, 0.78, ...],
-    "vector_dimension": 128
+    "heater_profile": "high_sensitivity",
+    "success": true,
+    "error": null
   }
 }
 ```
+
+**Note:** On capture failure, set `success: false` and include an error message in `error` field.
 
 #### 4. Heater Status
 ```json
@@ -204,14 +212,16 @@ Normalize the vector to unit length (L2 normalization).
   "type": "calibration_complete",
   "timestamp": 1703001234567,
   "payload": {
+    "device_id": "xbs-esp32-001",
+    "success": true,
     "baseline_gas": 180000,
-    "ambient_temperature": 24.5,
-    "ambient_humidity": 42.0,
-    "calibration_quality": "good",
-    "recommended_action": null
+    "duration_ms": 60000,
+    "error": null
   }
 }
 ```
+
+**Note:** On calibration failure, set `success: false` and include error message.
 
 #### 6. Device Status (every 30s)
 ```json
@@ -221,14 +231,18 @@ Normalize the vector to unit length (L2 normalization).
   "payload": {
     "mode": "monitoring",
     "uptime_ms": 3600000,
-    "free_heap": 180000,
     "wifi_rssi": -45,
     "sensor_healthy": true,
     "last_calibration": 1703000000000,
+    "heater_profile": "high_sensitivity",
+    "firmware_version": "1.0.0",
+    "free_heap": 180000,
     "errors": []
   }
 }
 ```
+
+**Mode values:** `idle`, `monitoring`, `calibrating`, `capturing`, `error`
 
 #### 7. Error Report
 ```json
@@ -250,16 +264,27 @@ Normalize the vector to unit length (L2 normalization).
 ```json
 {"type": "set_mode", "payload": {"mode": "monitoring"}}
 ```
-Modes: `idle`, `monitoring`, `profiling`, `calibration`, `discovery`
+**Modes:** `idle`, `monitoring`, `calibrating`, `capturing`
 
 #### 2. Set Heater Profile
 ```json
-{"type": "set_heater_profile", "payload": {"profile": "high_sensitivity"}}
+{
+  "type": "set_heater_profile",
+  "payload": {
+    "profile": "high_sensitivity",
+    "custom_temp": null,
+    "custom_duration": null
+  }
+}
 ```
+**Profiles:** `low_power`, `standard`, `high_sensitivity`, `custom`
 
 #### 3. Start Calibration
 ```json
-{"type": "start_calibration", "payload": {"type": "clean_air"}}
+{
+  "type": "start_calibration",
+  "payload": {"duration_seconds": 60}
+}
 ```
 
 #### 4. Start Smell Capture
@@ -268,9 +293,9 @@ Modes: `idle`, `monitoring`, `profiling`, `calibration`, `discovery`
   "type": "start_capture",
   "payload": {
     "capture_id": "cap-uuid-here",
-    "duration_ms": 30000,
-    "sample_interval_ms": 1000,
-    "heater_profile": "high_sensitivity"
+    "duration_seconds": 30,
+    "label": "Coffee sample",
+    "profile_id": null
   }
 }
 ```
@@ -287,8 +312,23 @@ Modes: `idle`, `monitoring`, `profiling`, `calibration`, `discovery`
 
 #### 7. Restart Device
 ```json
-{"type": "restart", "payload": {"delay_ms": 1000}}
+{"type": "restart", "payload": {"reason": "User requested restart"}}
 ```
+
+#### 8. Command Acknowledgment (Server to Client)
+When the server receives a command, it sends back:
+```json
+{
+  "type": "command_ack",
+  "timestamp": 1703001234567,
+  "payload": {
+    "command": "set_mode",
+    "status": "received",
+    "error": null
+  }
+}
+```
+**Status values:** `received`, `executing`, `completed`, `failed`
 
 ---
 
