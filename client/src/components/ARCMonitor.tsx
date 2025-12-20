@@ -1,33 +1,35 @@
 import { useEffect, useState } from "react";
-import { supabase, isSupabaseConfigured } from "../lib/supabaseClient";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Activity, Server, Database, Clock, Brain } from "lucide-react";
 
-interface ReflexEvent {
+interface RecentEvent {
   id: string;
-  source: string;
-  event_type: string;
+  type: string;
+  agent_id: string;
   created_at: string;
 }
 
 export default function ARCMonitor() {
   const [status, setStatus] = useState({
     server: "Checking...",
-    supabase: "Checking...",
+    database: "Checking...",
     lastHeartbeat: "—",
   });
-  const [reflex, setReflex] = useState<ReflexEvent[]>([]);
+
+  const { data: events = [] } = useQuery<RecentEvent[]>({
+    queryKey: ["/api/dashboard/events"],
+    select: (data) => data.slice(0, 5),
+  });
 
   useEffect(() => {
     checkServerHealth();
-    checkSupabase();
-    loadReflex();
+    checkDatabase();
 
     const interval = setInterval(() => {
       checkServerHealth();
-      loadReflex();
     }, 60000);
 
     return () => clearInterval(interval);
@@ -45,35 +47,26 @@ export default function ARCMonitor() {
     }
   };
 
-  const checkSupabase = async () => {
-    if (!isSupabaseConfigured || !supabase) {
-      setStatus((s) => ({ ...s, supabase: "Not Configured" }));
-      return;
-    }
+  const checkDatabase = async () => {
     try {
-      const { error } = await supabase.from("arc_reflex_logs").select("*").limit(1);
-      if (error) throw error;
-      setStatus((s) => ({ ...s, supabase: "Connected" }));
+      const res = await fetch("/api/dashboard/metrics", { credentials: "include" });
+      if (res.ok) {
+        setStatus((s) => ({ ...s, database: "Connected" }));
+      } else if (res.status === 401) {
+        setStatus((s) => ({ ...s, database: "Auth Required" }));
+      } else {
+        setStatus((s) => ({ ...s, database: "Error" }));
+      }
     } catch {
-      setStatus((s) => ({ ...s, supabase: "Error" }));
+      setStatus((s) => ({ ...s, database: "Offline" }));
     }
-  };
-
-  const loadReflex = async () => {
-    if (!isSupabaseConfigured || !supabase) return;
-    const { data } = await supabase
-      .from("arc_reflex_logs")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(5);
-    if (data) setReflex(data);
   };
 
   const getStatusBadge = (status: string) => {
     if (status === "Active" || status === "Connected") {
       return <Badge variant="default" className="bg-primary text-primary-foreground">{status}</Badge>;
     }
-    if (status === "Checking..." || status === "Not Configured") {
+    if (status === "Checking..." || status === "Auth Required") {
       return <Badge variant="secondary">{status}</Badge>;
     }
     return <Badge variant="destructive">{status}</Badge>;
@@ -95,11 +88,11 @@ export default function ARCMonitor() {
             </span>
             {getStatusBadge(status.server)}
           </div>
-          <div className="flex items-center justify-between" data-testid="status-supabase">
+          <div className="flex items-center justify-between" data-testid="status-database">
             <span className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Database className="h-4 w-4" /> Supabase
+              <Database className="h-4 w-4" /> Database
             </span>
-            {getStatusBadge(status.supabase)}
+            {getStatusBadge(status.database)}
           </div>
           <div className="flex items-center justify-between" data-testid="status-heartbeat">
             <span className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -114,24 +107,21 @@ export default function ARCMonitor() {
         <div>
           <h3 className="flex items-center gap-2 text-sm font-medium mb-3">
             <Brain className="h-4 w-4 text-secondary" />
-            Recent Reflex Events
+            Recent Agent Events
           </h3>
-          {reflex.length === 0 ? (
-            <p className="text-muted-foreground text-sm">No reflex events yet.</p>
+          {events.length === 0 ? (
+            <p className="text-muted-foreground text-sm">No recent events yet.</p>
           ) : (
             <ul className="space-y-2">
-              {reflex.map((r) => (
+              {events.map((e) => (
                 <li 
-                  key={r.id} 
-                  className="text-sm p-2 rounded-md bg-muted"
-                  data-testid={`reflex-event-${r.id}`}
+                  key={e.id} 
+                  className="text-xs text-muted-foreground bg-muted/50 p-2 rounded"
+                  data-testid={`event-item-${e.id}`}
                 >
-                  <span className="text-primary font-medium">{r.event_type}</span>
-                  <span className="text-muted-foreground"> from </span>
-                  <span className="text-foreground">{r.source}</span>
-                  <p className="text-muted-foreground text-xs mt-1">
-                    {new Date(r.created_at).toLocaleString()}
-                  </p>
+                  <span className="font-medium text-foreground">{e.agent_id}</span>
+                  <span className="mx-1">-</span>
+                  <span>{e.type}</span>
                 </li>
               ))}
             </ul>

@@ -301,7 +301,7 @@ export type ApiResponse<T = ApiSuccessResponse> = T | ApiErrorResponse;
 // Supabase Integration Schemas (n8n Bridge)
 // ============================================
 
-// arc_feedback - n8n callback storage
+// arc_feedback - n8n callback storage (input validation)
 export const arcFeedbackSchema = z.object({
   command_id: z.string().optional(),
   source: z.string().optional(),
@@ -309,16 +309,16 @@ export const arcFeedbackSchema = z.object({
   data: z.record(z.unknown()).optional(),
 });
 
-export type ArcFeedback = z.infer<typeof arcFeedbackSchema>;
+export type ArcFeedbackInput = z.infer<typeof arcFeedbackSchema>;
 
-// arc_command_log - Mr.F Brain commands
+// arc_command_log - Mr.F Brain commands (input validation)
 export const arcCommandLogSchema = z.object({
   command: z.string(),
   payload: z.record(z.unknown()).optional(),
   status: z.string().default("pending"),
 });
 
-export type ArcCommandLog = z.infer<typeof arcCommandLogSchema>;
+export type ArcCommandLogInput = z.infer<typeof arcCommandLogSchema>;
 
 // agent_events (Supabase version) - event tracking
 export const supabaseAgentEventSchema = z.object({
@@ -455,6 +455,97 @@ export const highPriorityNotifications = pgTable("high_priority_notifications", 
   context: jsonb("context").default({}),
   receivedAt: timestamp("received_at").defaultNow(),
 });
+
+// ============================================
+// ARC Command Log Table
+// ============================================
+export const arcCommandLog = pgTable("arc_command_log", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  command: varchar("command", { length: 255 }).notNull(),
+  payload: jsonb("payload").default({}),
+  status: varchar("status", { length: 50 }).default("pending"),
+  durationMs: integer("duration_ms"),
+  source: varchar("source", { length: 100 }),
+  userId: varchar("user_id"),
+  createdAt: timestamp("created_at").defaultNow(),
+  completedAt: timestamp("completed_at"),
+});
+
+export type ArcCommandLog = typeof arcCommandLog.$inferSelect;
+export type InsertArcCommandLog = typeof arcCommandLog.$inferInsert;
+
+// ============================================
+// ARC Feedback Table
+// ============================================
+export const arcFeedback = pgTable("arc_feedback", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  commandId: varchar("command_id"),
+  source: varchar("source", { length: 100 }),
+  status: varchar("status", { length: 50 }),
+  data: jsonb("data").default({}),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export type ArcFeedback = typeof arcFeedback.$inferSelect;
+export type InsertArcFeedback = typeof arcFeedback.$inferInsert;
+
+// ============================================
+// Team Tasks Table (for Team Command Center)
+// ============================================
+export const teamTasks = pgTable("team_tasks", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: varchar("title", { length: 500 }).notNull(),
+  description: text("description"),
+  assignedAgent: varchar("assigned_agent", { length: 50 }),
+  priority: varchar("priority", { length: 20 }).default("medium"),
+  status: varchar("status", { length: 50 }).default("pending"),
+  dueDate: timestamp("due_date"),
+  createdBy: varchar("created_by"),
+  tags: text("tags").array(),
+  metadata: jsonb("metadata").default({}),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  completedAt: timestamp("completed_at"),
+});
+
+export type TeamTask = typeof teamTasks.$inferSelect;
+export type InsertTeamTask = typeof teamTasks.$inferInsert;
+
+// ============================================
+// Activity Feed Table
+// ============================================
+export const activityFeed = pgTable("activity_feed", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  type: varchar("type", { length: 50 }).notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description"),
+  agentId: varchar("agent_id", { length: 50 }),
+  userId: varchar("user_id"),
+  metadata: jsonb("metadata").default({}),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export type ActivityFeed = typeof activityFeed.$inferSelect;
+export type InsertActivityFeed = typeof activityFeed.$inferInsert;
+
+// ============================================
+// Workflow Simulations Table
+// ============================================
+export const workflowSimulations = pgTable("workflow_simulations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  steps: jsonb("steps").default([]),
+  status: varchar("status", { length: 50 }).default("draft"),
+  lastRunAt: timestamp("last_run_at"),
+  lastResult: jsonb("last_result"),
+  createdBy: varchar("created_by"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export type WorkflowSimulation = typeof workflowSimulations.$inferSelect;
+export type InsertWorkflowSimulation = typeof workflowSimulations.$inferInsert;
 
 // ============================================
 // X Bio Sentinel - Smell Profiles Table

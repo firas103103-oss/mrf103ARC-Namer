@@ -1,5 +1,4 @@
-import { useEffect, useState } from "react";
-import { supabase, isSupabaseConfigured } from "@/lib/supabaseClient";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -9,21 +8,27 @@ import { Brain, Activity, RefreshCw, AlertCircle, Zap } from "lucide-react";
 import { format } from "date-fns";
 import { TerminalHeartbeat, type LogEvent } from "@/components/TerminalHeartbeat";
 import { EventTimeline, type TimelineEvent } from "@/components/EventTimeline";
+import { queryClient } from "@/lib/queryClient";
 
 interface CommandLog {
   id: string;
   command: string;
   payload: Record<string, unknown>;
   status: string;
+  duration_ms: number | null;
+  source: string | null;
   created_at: string;
+  completed_at: string | null;
 }
 
 interface AgentEvent {
   id: string;
-  agent_name: string;
-  event_type: string;
+  event_id: string;
+  agent_id: string;
+  type: string;
   payload: Record<string, unknown>;
   created_at: string;
+  received_at: string;
 }
 
 interface ArcFeedback {
@@ -36,17 +41,25 @@ interface ArcFeedback {
 }
 
 export default function Dashboard() {
-  const [commands, setCommands] = useState<CommandLog[]>([]);
-  const [events, setEvents] = useState<AgentEvent[]>([]);
-  const [feedback, setFeedback] = useState<ArcFeedback[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-  const [terminalEvents, setTerminalEvents] = useState<LogEvent[]>([]);
-  const [timelineEvents, setTimelineEvents] = useState<TimelineEvent[]>([]);
+  const { data: commands = [], isLoading: cmdLoading, refetch: refetchCommands } = useQuery<CommandLog[]>({
+    queryKey: ["/api/dashboard/commands"],
+  });
+
+  const { data: events = [], isLoading: evtLoading, refetch: refetchEvents } = useQuery<AgentEvent[]>({
+    queryKey: ["/api/dashboard/events"],
+  });
+
+  const { data: feedback = [], isLoading: fbLoading, refetch: refetchFeedback } = useQuery<ArcFeedback[]>({
+    queryKey: ["/api/dashboard/feedback"],
+  });
+
+  const isLoading = cmdLoading || evtLoading || fbLoading;
 
   const convertToTerminalEvent = (data: CommandLog | AgentEvent | ArcFeedback, type: 'command' | 'event' | 'feedback'): LogEvent => {
-    const timestamp = new Date(data.created_at);
+    const timestampStr = type === 'event' 
+      ? (data as AgentEvent).received_at 
+      : (data as CommandLog | ArcFeedback).created_at;
+    const timestamp = new Date(timestampStr);
     
     if (type === 'command') {
       const cmd = data as CommandLog;
@@ -62,7 +75,7 @@ export default function Dashboard() {
       return {
         id: `evt-${evt.id}`,
         timestamp,
-        message: `${evt.agent_name}: ${evt.event_type}`,
+        message: `${evt.agent_id}: ${evt.type}`,
         severity: 'info',
         eventType: 'AGENT',
       };
@@ -79,7 +92,9 @@ export default function Dashboard() {
   };
 
   const convertToTimelineEvent = (data: CommandLog | AgentEvent | ArcFeedback, type: 'command' | 'event' | 'feedback'): TimelineEvent => {
-    const timestamp = data.created_at;
+    const timestamp = type === 'event'
+      ? (data as AgentEvent).received_at
+      : (data as CommandLog | ArcFeedback).created_at;
     
     if (type === 'command') {
       const cmd = data as CommandLog;
@@ -95,9 +110,9 @@ export default function Dashboard() {
       return {
         id: `evt-${evt.id}`,
         timestamp,
-        agentName: evt.agent_name,
-        eventType: evt.event_type === 'message' ? 'message' : 'action',
-        description: evt.event_type,
+        agentName: evt.agent_id,
+        eventType: evt.type === 'message' ? 'message' : 'action',
+        description: evt.type,
       };
     } else {
       const fb = data as ArcFeedback;
@@ -111,128 +126,23 @@ export default function Dashboard() {
     }
   };
 
-  const fetchData = async () => {
-    if (!supabase) {
-      setError("Supabase not configured");
-      setIsLoading(false);
-      return;
-    }
-
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      const [cmdResult, evtResult, fbResult] = await Promise.all([
-        supabase
-          .from("arc_command_log")
-          .select("*")
-          .order("id", { ascending: false })
-          .limit(10),
-        supabase
-          .from("agent_events")
-          .select("*")
-          .order("id", { ascending: false })
-          .limit(10),
-        supabase
-          .from("arc_feedback")
-          .select("*")
-          .order("id", { ascending: false })
-          .limit(10),
-      ]);
-
-      if (cmdResult.error) console.warn("arc_command_log query failed:", cmdResult.error);
-      if (evtResult.error) console.warn("agent_events query failed:", evtResult.error);
-      if (fbResult.error) console.warn("arc_feedback query failed:", fbResult.error);
-
-      const cmds = cmdResult.data || [];
-      const evts = evtResult.data || [];
-      const fbs = fbResult.data || [];
-
-      setCommands(cmds);
-      setEvents(evts);
-      setFeedback(fbs);
-      setLastUpdated(new Date());
-
-      const allTerminal: LogEvent[] = [
-        ...cmds.map(c => convertToTerminalEvent(c, 'command')),
-        ...evts.map(e => convertToTerminalEvent(e, 'event')),
-        ...fbs.map(f => convertToTerminalEvent(f, 'feedback')),
-      ].sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
-      setTerminalEvents(allTerminal);
-
-      const allTimeline: TimelineEvent[] = [
-        ...cmds.map(c => convertToTimelineEvent(c, 'command')),
-        ...evts.map(e => convertToTimelineEvent(e, 'event')),
-        ...fbs.map(f => convertToTimelineEvent(f, 'feedback')),
-      ].sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
-      setTimelineEvents(allTimeline);
-    } catch (err) {
-      console.error("Error fetching data:", err);
-      setError(err instanceof Error ? err.message : "Failed to fetch data");
-    } finally {
-      setIsLoading(false);
-    }
+  const handleRefresh = () => {
+    refetchCommands();
+    refetchEvents();
+    refetchFeedback();
   };
 
-  useEffect(() => {
-    fetchData();
+  const terminalEvents: LogEvent[] = [
+    ...commands.map(c => convertToTerminalEvent(c, 'command')),
+    ...events.map(e => convertToTerminalEvent(e, 'event')),
+    ...feedback.map(f => convertToTerminalEvent(f, 'feedback')),
+  ].sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
 
-    if (!supabase) return;
-
-    const cmdChannel = supabase!
-      .channel("arc-command-log-realtime")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "arc_command_log" },
-        () => fetchData()
-      )
-      .subscribe();
-
-    const evtChannel = supabase!
-      .channel("agent-events-realtime")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "agent_events" },
-        () => fetchData()
-      )
-      .subscribe();
-
-    const fbChannel = supabase!
-      .channel("arc-feedback-realtime")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "arc_feedback" },
-        () => fetchData()
-      )
-      .subscribe();
-
-    return () => {
-      supabase!.removeChannel(cmdChannel);
-      supabase!.removeChannel(evtChannel);
-      supabase!.removeChannel(fbChannel);
-    };
-  }, []);
-
-  if (!isSupabaseConfigured()) {
-    return (
-      <div className="flex items-center justify-center h-full p-6">
-        <Card className="max-w-md">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <AlertCircle className="h-5 w-5 text-destructive" />
-              Supabase Not Configured
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">
-              Real-time dashboard requires Supabase configuration. Please set
-              VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY environment variables.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  const timelineEvents: TimelineEvent[] = [
+    ...commands.map(c => convertToTimelineEvent(c, 'command')),
+    ...events.map(e => convertToTimelineEvent(e, 'event')),
+    ...feedback.map(f => convertToTimelineEvent(f, 'feedback')),
+  ].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
 
   const getStatusVariant = (status: string | null): "default" | "secondary" | "destructive" | "outline" => {
     switch (status?.toLowerCase()) {
@@ -261,15 +171,10 @@ export default function Dashboard() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          {lastUpdated && (
-            <span className="text-xs text-muted-foreground">
-              Updated: {format(lastUpdated, "HH:mm:ss")}
-            </span>
-          )}
           <Button
             variant="outline"
             size="sm"
-            onClick={fetchData}
+            onClick={handleRefresh}
             disabled={isLoading}
             data-testid="button-refresh"
           >
@@ -278,15 +183,6 @@ export default function Dashboard() {
           </Button>
         </div>
       </div>
-
-      {error && (
-        <Card className="border-destructive">
-          <CardContent className="flex items-center gap-2 py-4">
-            <AlertCircle className="h-5 w-5 text-destructive" />
-            <span className="text-destructive">{error}</span>
-          </CardContent>
-        </Card>
-      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <TerminalHeartbeat events={terminalEvents} maxEvents={30} />
@@ -319,7 +215,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <ScrollArea className="h-[300px]">
-              {isLoading ? (
+              {cmdLoading ? (
                 <div className="space-y-3">
                   {[1, 2, 3].map((i) => (
                     <Skeleton key={i} className="h-20" />
@@ -345,6 +241,7 @@ export default function Dashboard() {
                       </div>
                       <p className="text-xs text-muted-foreground">
                         {format(new Date(cmd.created_at), "MMM d, HH:mm:ss")}
+                        {cmd.duration_ms && ` (${cmd.duration_ms}ms)`}
                       </p>
                     </div>
                   ))}
@@ -367,7 +264,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <ScrollArea className="h-[300px]">
-              {isLoading ? (
+              {evtLoading ? (
                 <div className="space-y-3">
                   {[1, 2, 3].map((i) => (
                     <Skeleton key={i} className="h-20" />
@@ -386,11 +283,11 @@ export default function Dashboard() {
                       data-testid={`event-${evt.id}`}
                     >
                       <div className="flex items-center justify-between gap-2">
-                        <span className="font-medium">{evt.agent_name}</span>
-                        <Badge variant="outline">{evt.event_type}</Badge>
+                        <span className="font-medium">{evt.agent_id}</span>
+                        <Badge variant="outline">{evt.type}</Badge>
                       </div>
                       <p className="text-xs text-muted-foreground">
-                        {format(new Date(evt.created_at), "MMM d, HH:mm:ss")}
+                        {format(new Date(evt.received_at || evt.created_at), "MMM d, HH:mm:ss")}
                       </p>
                     </div>
                   ))}
@@ -413,7 +310,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <ScrollArea className="h-[300px]">
-              {isLoading ? (
+              {fbLoading ? (
                 <div className="space-y-3">
                   {[1, 2, 3].map((i) => (
                     <Skeleton key={i} className="h-20" />

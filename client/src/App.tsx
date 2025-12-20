@@ -22,6 +22,9 @@ import InvestigationLounge from "@/pages/InvestigationLounge";
 import QuantumWarRoom from "@/pages/QuantumWarRoom";
 import TemporalAnomalyLab from "@/pages/TemporalAnomalyLab";
 import BioSentinel from "@/pages/BioSentinel";
+import TeamCommandCenter from "@/pages/TeamCommandCenter";
+import OperationsSimulator from "@/pages/OperationsSimulator";
+import AnalyticsHub from "@/pages/AnalyticsHub";
 import { Shield, Activity, Lock } from "lucide-react";
 
 function CommandLogsPage() {
@@ -121,6 +124,9 @@ function AuthenticatedLayout() {
               <Route path="/quantum-warroom" component={QuantumWarRoom} />
               <Route path="/temporal-anomaly-lab" component={TemporalAnomalyLab} />
               <Route path="/bio-sentinel" component={BioSentinel} />
+              <Route path="/team-command" component={TeamCommandCenter} />
+              <Route path="/operations-simulator" component={OperationsSimulator} />
+              <Route path="/analytics" component={AnalyticsHub} />
               <Route component={NotFound} />
             </Switch>
           </main>

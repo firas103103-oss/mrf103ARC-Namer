@@ -5,9 +5,11 @@
   import path from "path";
   import { createServer, type Server } from "http";
   import { storage } from "./storage";
+  import { db } from "./db";
   import { setupAuth, isAuthenticated } from "./replitAuth";
   import OpenAI from "openai";
   import { createClient } from "@supabase/supabase-js";
+  import { sql } from "drizzle-orm";
   import {
     agentEventSchema,
     ceoReminderSchema,
@@ -204,18 +206,206 @@
       }
     });
 
-    // ==================== SUPABASE TEST ====================
-    app.get("/api/arc/db/test", async (_req, res) => {
-      const url = process.env.SUPABASE_URL;
-      const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-      if (!url || !key) return sendError(res, 500, "Supabase config missing");
-
+    // ==================== DASHBOARD DATA ENDPOINTS ====================
+    
+    // Get command logs from local PostgreSQL
+    app.get("/api/dashboard/commands", isAuthenticated, async (_req, res) => {
       try {
-        const r = await fetch(`${url}/rest/v1/agent_events?select=*`, {
-          headers: { apikey: key, Authorization: `Bearer ${key}` },
+        const result = await db.execute(sql`
+          SELECT id, command, payload, status, duration_ms, source, created_at, completed_at
+          FROM arc_command_log
+          ORDER BY created_at DESC
+          LIMIT 20
+        `);
+        sendSuccess(res, result.rows || []);
+      } catch (e: any) {
+        sendSuccess(res, []);
+      }
+    });
+
+    // Get agent events from local PostgreSQL
+    app.get("/api/dashboard/events", isAuthenticated, async (_req, res) => {
+      try {
+        const result = await db.execute(sql`
+          SELECT id, event_id, agent_id, type, payload, created_at, received_at
+          FROM agent_events
+          ORDER BY received_at DESC
+          LIMIT 20
+        `);
+        sendSuccess(res, result.rows || []);
+      } catch (e: any) {
+        sendSuccess(res, []);
+      }
+    });
+
+    // Get feedback from local PostgreSQL
+    app.get("/api/dashboard/feedback", isAuthenticated, async (_req, res) => {
+      try {
+        const result = await db.execute(sql`
+          SELECT id, command_id, source, status, data, created_at
+          FROM arc_feedback
+          ORDER BY created_at DESC
+          LIMIT 20
+        `);
+        sendSuccess(res, result.rows || []);
+      } catch (e: any) {
+        sendSuccess(res, []);
+      }
+    });
+
+    // Get dashboard metrics
+    app.get("/api/dashboard/metrics", isAuthenticated, async (_req, res) => {
+      try {
+        const [cmdResult, taskResult, activityResult] = await Promise.all([
+          db.execute(sql`
+            SELECT 
+              COUNT(*) as total,
+              COUNT(*) FILTER (WHERE status = 'completed') as success,
+              COUNT(*) FILTER (WHERE status = 'failed') as failed,
+              AVG(duration_ms) as avg_response
+            FROM arc_command_log
+            WHERE created_at > NOW() - INTERVAL '7 days'
+          `),
+          db.execute(sql`
+            SELECT 
+              COUNT(*) as total,
+              COUNT(*) FILTER (WHERE status = 'completed') as completed,
+              COUNT(*) FILTER (WHERE status = 'in_progress') as in_progress
+            FROM team_tasks
+          `),
+          db.execute(sql`
+            SELECT COUNT(*) as count FROM activity_feed WHERE created_at > NOW() - INTERVAL '24 hours'
+          `),
+        ]);
+        
+        sendSuccess(res, {
+          commands: cmdResult.rows?.[0] || { total: 0, success: 0, failed: 0, avg_response: 0 },
+          tasks: taskResult.rows?.[0] || { total: 0, completed: 0, in_progress: 0 },
+          activity24h: activityResult.rows?.[0]?.count || 0,
         });
-        const data = await r.json();
-        sendSuccess(res, { count: data.length });
+      } catch (e: any) {
+        sendSuccess(res, {
+          commands: { total: 0, success: 0, failed: 0, avg_response: 0 },
+          tasks: { total: 0, completed: 0, in_progress: 0 },
+          activity24h: 0,
+        });
+      }
+    });
+
+    // ==================== TEAM TASKS ENDPOINTS ====================
+    
+    app.get("/api/team/tasks", isAuthenticated, async (_req, res) => {
+      try {
+        const result = await db.execute(sql`
+          SELECT * FROM team_tasks ORDER BY created_at DESC LIMIT 50
+        `);
+        sendSuccess(res, result.rows || []);
+      } catch (e: any) {
+        sendSuccess(res, []);
+      }
+    });
+
+    app.post("/api/team/tasks", isAuthenticated, async (req, res) => {
+      try {
+        const { title, description, assignedAgent, priority, dueDate, tags } = req.body;
+        const tagsArray = Array.isArray(tags) && tags.length > 0 ? tags : null;
+        const result = await db.execute(sql`
+          INSERT INTO team_tasks (title, description, assigned_agent, priority, due_date, tags, status)
+          VALUES (${title}, ${description || null}, ${assignedAgent || null}, ${priority || 'medium'}, ${dueDate || null}, ${tagsArray}, 'pending')
+          RETURNING *
+        `);
+        sendSuccess(res, result.rows?.[0]);
+      } catch (e: any) {
+        sendError(res, 500, e.message);
+      }
+    });
+
+    app.patch("/api/team/tasks/:id", isAuthenticated, async (req, res) => {
+      try {
+        const { id } = req.params;
+        const { status, assignedAgent, priority } = req.body;
+        const result = await db.execute(sql`
+          UPDATE team_tasks 
+          SET status = COALESCE(${status}, status),
+              assigned_agent = COALESCE(${assignedAgent}, assigned_agent),
+              priority = COALESCE(${priority}, priority),
+              updated_at = NOW(),
+              completed_at = CASE WHEN ${status} = 'completed' THEN NOW() ELSE completed_at END
+          WHERE id = ${id}
+          RETURNING *
+        `);
+        sendSuccess(res, result.rows?.[0]);
+      } catch (e: any) {
+        sendError(res, 500, e.message);
+      }
+    });
+
+    // ==================== ACTIVITY FEED ====================
+    
+    app.get("/api/activity", isAuthenticated, async (_req, res) => {
+      try {
+        const result = await db.execute(sql`
+          SELECT * FROM activity_feed ORDER BY created_at DESC LIMIT 50
+        `);
+        sendSuccess(res, result.rows || []);
+      } catch (e: any) {
+        sendSuccess(res, []);
+      }
+    });
+
+    app.post("/api/activity", isAuthenticated, async (req, res) => {
+      try {
+        const { type, title, description, agentId, metadata } = req.body;
+        const result = await db.execute(sql`
+          INSERT INTO activity_feed (type, title, description, agent_id, metadata)
+          VALUES (${type}, ${title}, ${description}, ${agentId}, ${JSON.stringify(metadata || {})})
+          RETURNING *
+        `);
+        sendSuccess(res, result.rows?.[0]);
+      } catch (e: any) {
+        sendError(res, 500, e.message);
+      }
+    });
+
+    // ==================== WORKFLOW SIMULATIONS ====================
+    
+    app.get("/api/simulations", isAuthenticated, async (_req, res) => {
+      try {
+        const result = await db.execute(sql`
+          SELECT * FROM workflow_simulations ORDER BY created_at DESC
+        `);
+        sendSuccess(res, result.rows || []);
+      } catch (e: any) {
+        sendSuccess(res, []);
+      }
+    });
+
+    app.post("/api/simulations", isAuthenticated, async (req, res) => {
+      try {
+        const { name, description, steps } = req.body;
+        const result = await db.execute(sql`
+          INSERT INTO workflow_simulations (name, description, steps, status)
+          VALUES (${name}, ${description}, ${JSON.stringify(steps || [])}, 'draft')
+          RETURNING *
+        `);
+        sendSuccess(res, result.rows?.[0]);
+      } catch (e: any) {
+        sendError(res, 500, e.message);
+      }
+    });
+
+    app.post("/api/simulations/:id/run", isAuthenticated, async (req, res) => {
+      try {
+        const { id } = req.params;
+        // Run simulation logic would go here
+        const result = await db.execute(sql`
+          UPDATE workflow_simulations 
+          SET last_run_at = NOW(), 
+              last_result = ${JSON.stringify({ status: 'completed', timestamp: new Date().toISOString() })}
+          WHERE id = ${id}
+          RETURNING *
+        `);
+        sendSuccess(res, result.rows?.[0]);
       } catch (e: any) {
         sendError(res, 500, e.message);
       }

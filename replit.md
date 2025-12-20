@@ -4,12 +4,15 @@
 
 This is **ARC Intelligence Framework v2.0** - a complete enterprise intelligence operating system integrating:
 - **Mr.F Brain**: Executive AI orchestrator with voice capabilities
-- **Multi-Agent System**: 6 specialized AI agents (Mr.F, L0-Ops, L0-Comms, L0-Intel, Dr. Maya Quest, Jordan Spark)
+- **Multi-Agent System**: 10 specialized AI agents (Mr.F, L0-Ops, L0-Comms, L0-Intel, Alex Vision, Diana Grant, Marcus Law, Sarah Numbers, Jordan Spark, Dr. Maya Quest)
 - **Voice Layer**: ElevenLabs text-to-speech integration with per-agent voice IDs
-- **Real-time Dashboard**: Supabase-powered monitoring of commands, events, and n8n callbacks
+- **Real-time Dashboard**: PostgreSQL-powered monitoring of commands, events, and n8n callbacks
+- **Team Command Center**: Task management and agent coordination
+- **Operations Simulator**: Workflow testing and simulation
+- **Analytics Hub**: Business intelligence and performance metrics
 - **n8n Automation**: Webhook integration for workflow automation
 
-The project uses Express.js backend with TypeScript, React frontend with Vite, Drizzle ORM for PostgreSQL, and integrates with Supabase, OpenAI, ElevenLabs, and n8n.
+The project uses Express.js backend with TypeScript, React frontend with Vite, Drizzle ORM for PostgreSQL, and integrates with OpenAI, ElevenLabs, and n8n. Dashboard data is stored in local PostgreSQL (migrated from Supabase).
 
 ## User Preferences
 
@@ -59,10 +62,12 @@ Preferred communication style: Simple, everyday language.
 ## External Dependencies
 
 ### Core Services
-- **PostgreSQL**: Database (via Drizzle ORM) - requires `DATABASE_URL` environment variable
+- **PostgreSQL**: Primary database (via Drizzle ORM) - requires `DATABASE_URL` environment variable
+  - All dashboard data, tasks, activity feed, simulations stored locally
+  - Tables: arc_command_log, arc_feedback, agent_events, team_tasks, activity_feed, workflow_simulations
 - **n8n Workflows**: Primary consumer of the API endpoints - sends agent events and receives responses
   - Webhook URL: `https://feras102.app.n8n.cloud/webhook/agent-message`
-- **Supabase**: Used for `arc_message_archive` table queries
+- **Supabase** (legacy): Used only for `arc_message_archive` table queries in some endpoints
   - Requires `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` (or `SUPABASE_ANON_KEY`)
 - **OpenAI**: Powers the Virtual Office AI agents
   - Requires `OPENAI_API_KEY`
@@ -113,6 +118,30 @@ Preferred communication style: Simple, everyday language.
   }
   ```
 - Response: Agent summary with message counts, timestamps, and recent examples
+
+### Dashboard Data Endpoints (PostgreSQL)
+
+**GET /api/dashboard/commands** - Get command logs from local PostgreSQL
+**GET /api/dashboard/events** - Get agent events from local PostgreSQL
+**GET /api/dashboard/feedback** - Get n8n callback feedback from local PostgreSQL
+**GET /api/dashboard/metrics** - Get dashboard metrics (command stats, task stats, activity count)
+
+### Team Management Endpoints
+
+**GET /api/team/tasks** - Get all team tasks
+**POST /api/team/tasks** - Create a new task
+**PATCH /api/team/tasks/:id** - Update task status/assignment
+
+### Activity Feed Endpoints
+
+**GET /api/activity** - Get activity feed
+**POST /api/activity** - Log a new activity
+
+### Workflow Simulation Endpoints
+
+**GET /api/simulations** - Get all workflow simulations
+**POST /api/simulations** - Create a new simulation
+**POST /api/simulations/:id/run** - Run a simulation
 
 ### Virtual Office Endpoints
 

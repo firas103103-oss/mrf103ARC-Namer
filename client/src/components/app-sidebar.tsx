@@ -13,6 +13,9 @@ import {
   Crosshair,
   Clock,
   Zap,
+  Target,
+  Workflow,
+  TrendingUp,
 } from "lucide-react";
 import {
   Sidebar,
@@ -49,6 +52,24 @@ const operationsItems = [
     url: "/system-monitor",
     icon: Activity,
     testId: "link-system-monitor",
+  },
+  {
+    title: "Team Command",
+    url: "/team-command",
+    icon: Target,
+    testId: "link-team-command",
+  },
+  {
+    title: "Operations Simulator",
+    url: "/operations-simulator",
+    icon: Workflow,
+    testId: "link-operations-simulator",
+  },
+  {
+    title: "Analytics Hub",
+    url: "/analytics",
+    icon: TrendingUp,
+    testId: "link-analytics",
   },
 ];
 
