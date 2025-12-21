@@ -148,6 +148,174 @@
     // ==================== AGENTS ====================
     app.get("/api/agents", (_req, res) => sendSuccess(res, VIRTUAL_AGENTS));
 
+    // ==================== ARC REALITY REPORT ====================
+    app.post("/api/arc/reality-report", async (req: Request, res: Response) => {
+      const { request_id, include = [], verbosity = "full" } = req.body;
+      const report: Record<string, any> = {
+        request_id,
+        generated_at: new Date().toISOString(),
+        verbosity,
+      };
+
+      // ENV CHECK
+      if (include.includes("env")) {
+        report.env = {
+          NODE_ENV: process.env.NODE_ENV || "development",
+          DATABASE_URL: process.env.DATABASE_URL ? "SET" : "MISSING",
+          OPENAI_API_KEY: process.env.OPENAI_API_KEY ? "SET" : "MISSING",
+          ELEVENLABS_API_KEY: process.env.ELEVENLABS_API_KEY ? "SET" : "MISSING",
+          SUPABASE_URL: (process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL) ? "SET" : "MISSING",
+          SUPABASE_KEY: process.env.SUPABASE_KEY ? "SET" : "MISSING",
+          ARC_BACKEND_SECRET: process.env.ARC_BACKEND_SECRET ? "SET" : "MISSING",
+          ARC_TOKEN: process.env.ARC_TOKEN ? "SET" : "MISSING",
+          N8N_WEBHOOK_URL: process.env.N8N_WEBHOOK_URL ? "SET" : "MISSING",
+          TWILIO_ACCOUNT_SID: process.env.TWILIO_ACCOUNT_SID ? "SET" : "MISSING",
+        };
+      }
+
+      // ROUTES CHECK
+      if (include.includes("routes")) {
+        report.routes = {
+          health: "GET /api/health",
+          auth: ["GET /api/auth/user", "GET /api/login", "GET /api/logout", "GET /api/callback"],
+          arc_execute: "POST /arc/execute (X-ARC-TOKEN)",
+          arc_api: [
+            "POST /api/arc/reality-report",
+            "POST /api/arc/agents/mrf-brain",
+            "POST /api/arc/agents/summary",
+            "POST /api/arc/agent-events",
+            "POST /api/arc/ceo-reminders",
+            "POST /api/arc/executive-summary",
+            "POST /api/arc/governance/notify",
+            "POST /api/arc/rules/broadcast",
+            "POST /api/arc/notifications/high",
+            "POST /api/arc/receive",
+            "POST /api/arc/command",
+            "POST /api/arc/events",
+            "GET /api/arc/brain/state",
+            "GET /api/arc/brain/self-awareness",
+          ],
+          chat: "POST /api/chat",
+          tts: "POST /api/tts",
+          conversations: ["GET /api/conversations", "POST /api/conversations", "GET /api/conversations/:id/messages"],
+          dashboard: ["GET /api/dashboard/commands", "GET /api/dashboard/events", "GET /api/dashboard/feedback", "GET /api/dashboard/metrics"],
+          team: ["GET /api/team/tasks", "POST /api/team/tasks", "PATCH /api/team/tasks/:id"],
+          activity: ["GET /api/activity", "POST /api/activity"],
+          simulations: ["GET /api/simulations", "POST /api/simulations", "POST /api/simulations/:id/run"],
+          bio_sentinel: ["GET /api/bio-sentinel/profiles", "POST /api/bio-sentinel/profiles", "POST /api/bio-sentinel/chat", "WS /ws/bio-sentinel"],
+          android: "GET /api/android/download",
+        };
+      }
+
+      // DATABASE CHECK
+      if (include.includes("db")) {
+        try {
+          const result = await db.execute(sql`SELECT 1 as ping`);
+          report.db = { status: "connected", ping: "ok" };
+        } catch (e: any) {
+          report.db = { status: "error", message: e.message };
+        }
+      }
+
+      // N8N CHECK
+      if (include.includes("n8n")) {
+        const webhookUrl = process.env.N8N_WEBHOOK_URL;
+        if (webhookUrl) {
+          try {
+            const resp = await fetch(webhookUrl, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ ping: true, from: "reality-report" }),
+            });
+            report.n8n = { status: resp.ok ? "reachable" : "error", http_status: resp.status, webhook_url: webhookUrl.substring(0, 50) + "..." };
+          } catch (e: any) {
+            report.n8n = { status: "unreachable", error: e.message };
+          }
+        } else {
+          report.n8n = { status: "not_configured" };
+        }
+      }
+
+      // SUPABASE CHECK
+      if (include.includes("supabase")) {
+        const url = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+        const key = process.env.SUPABASE_KEY;
+        if (url && key) {
+          try {
+            const supabase = createClient(url, key);
+            const { error } = await supabase.from("arc_jobs").select("id").limit(1);
+            report.supabase = {
+              status: error ? "error" : "connected",
+              url: url.substring(0, 40) + "...",
+              arc_jobs_table: error ? error.message : "accessible",
+            };
+          } catch (e: any) {
+            report.supabase = { status: "error", message: e.message };
+          }
+        } else {
+          report.supabase = { status: "not_configured", url: url ? "SET" : "MISSING", key: key ? "SET" : "MISSING" };
+        }
+      }
+
+      // OPENAI CHECK
+      if (include.includes("openai")) {
+        if (process.env.OPENAI_API_KEY) {
+          try {
+            const models = await openai.models.list();
+            report.openai = { status: "connected", models_available: models.data.length };
+          } catch (e: any) {
+            report.openai = { status: "error", message: e.message };
+          }
+        } else {
+          report.openai = { status: "not_configured" };
+        }
+      }
+
+      // ELEVENLABS CHECK
+      if (include.includes("elevenlabs")) {
+        const apiKey = process.env.ELEVENLABS_API_KEY;
+        if (apiKey) {
+          try {
+            const resp = await fetch("https://api.elevenlabs.io/v1/voices", {
+              headers: { "xi-api-key": apiKey },
+            });
+            const data = await resp.json();
+            report.elevenlabs = { status: resp.ok ? "connected" : "error", voices_count: data.voices?.length || 0 };
+          } catch (e: any) {
+            report.elevenlabs = { status: "error", message: e.message };
+          }
+        } else {
+          report.elevenlabs = { status: "not_configured" };
+        }
+      }
+
+      // BUILD CHECK
+      if (include.includes("build")) {
+        const fs = await import("fs");
+        const distExists = fs.existsSync("dist/public/index.html");
+        const androidExists = fs.existsSync("android/app/build.gradle");
+        report.build = {
+          web_dist: distExists ? "present" : "missing",
+          android_project: androidExists ? "present" : "missing",
+          capacitor_config: fs.existsSync("capacitor.config.ts") ? "present" : "missing",
+        };
+      }
+
+      // RUNTIME CHECK
+      if (include.includes("runtime")) {
+        report.runtime = {
+          node_version: process.version,
+          platform: process.platform,
+          arch: process.arch,
+          uptime_seconds: Math.floor(process.uptime()),
+          memory_mb: Math.floor(process.memoryUsage().heapUsed / 1024 / 1024),
+          pid: process.pid,
+        };
+      }
+
+      res.json({ ok: true, report });
+    });
+
     // ==================== CHAT ====================
     app.post("/api/chat", isAuthenticated, async (req: any, res) => {
       try {
