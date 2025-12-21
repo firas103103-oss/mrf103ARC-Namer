@@ -3,6 +3,7 @@
   import express from "express";
   import fs from "fs";
   import path from "path";
+  import archiver from "archiver";
   import { createServer, type Server } from "http";
   import { storage } from "./storage";
   import { db } from "./db";
@@ -653,6 +654,32 @@ Provide helpful, accurate analysis. If you can't identify a specific smell, expl
         sendSuccess(res, { imported: importedCount });
       } catch (e: any) {
         sendError(res, 400, e.message);
+      }
+    });
+
+    // ==================== ANDROID APK DOWNLOAD ====================
+    app.get("/api/android/download", async (_req, res) => {
+      try {
+        const androidDir = path.join(process.cwd(), "android");
+        
+        if (!fs.existsSync(androidDir)) {
+          return sendError(res, 404, "Android project not found. Run 'npx cap add android' first.");
+        }
+
+        res.setHeader("Content-Type", "application/zip");
+        res.setHeader("Content-Disposition", "attachment; filename=arc-android-project.zip");
+
+        const archive = archiver("zip", { zlib: { level: 9 } });
+        
+        archive.on("error", (err) => {
+          throw err;
+        });
+
+        archive.pipe(res);
+        archive.directory(androidDir, "arc-android-project");
+        await archive.finalize();
+      } catch (e: any) {
+        sendError(res, 500, e.message);
       }
     });
 

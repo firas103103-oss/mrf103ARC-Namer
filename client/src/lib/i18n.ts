@@ -79,6 +79,8 @@ const resources = {
         voiceInterfaceDesc: 'Natural language voice commands for hands-free agent coordination and system control',
         analyticsReporting: 'Analytics & Reporting',
         analyticsReportingDesc: 'Comprehensive dashboards and automated reporting for operational insights',
+        androidApp: 'Android App',
+        androidAppDesc: 'Download the Android project to build and install the ARC Intelligence app on your mobile device.',
       },
       header: {
         arcCommandCenter: 'ARC Command Center',
@@ -259,6 +261,8 @@ const resources = {
         voiceInterfaceDesc: 'أوامر صوتية بلغة طبيعية لتنسيق الوكلاء والتحكم في النظام بدون استخدام اليدين',
         analyticsReporting: 'التحليلات والتقارير',
         analyticsReportingDesc: 'لوحات تحكم شاملة وتقارير آلية للرؤى التشغيلية',
+        androidApp: 'تطبيق أندرويد',
+        androidAppDesc: 'قم بتحميل مشروع أندرويد لبناء وتثبيت تطبيق ARC Intelligence على جهازك المحمول.',
       },
       header: {
         arcCommandCenter: 'مركز قيادة ARC',

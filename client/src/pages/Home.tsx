@@ -18,6 +18,8 @@ import {
   ArrowRight,
   Wifi,
   FlaskConical,
+  Smartphone,
+  Download,
 } from "lucide-react";
 
 interface QuickAccessCard {
@@ -247,6 +249,37 @@ export default function Home() {
                 </div>
               </div>
             ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="border-chart-3/20 bg-gradient-to-r from-chart-3/5 to-primary/5" data-testid="card-android-download">
+        <CardContent className="p-6">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div className="flex items-start gap-4">
+              <div className="p-4 rounded-md bg-chart-3/10 border border-chart-3/20">
+                <Smartphone className="h-8 w-8 text-chart-3" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <h2 className="text-xl font-display font-semibold text-foreground">
+                    {t("landing.androidApp") || "Android App"}
+                  </h2>
+                  <Badge variant="outline" className="bg-chart-3/10 text-chart-3 border-chart-3/30 text-[10px]">
+                    Capacitor
+                  </Badge>
+                </div>
+                <p className="text-muted-foreground max-w-md">
+                  {t("landing.androidAppDesc") || "Download the Android project to build and install the ARC Intelligence app on your mobile device."}
+                </p>
+              </div>
+            </div>
+            <Button asChild data-testid="button-download-android">
+              <a href="/api/android/download" download>
+                <Download className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
+                {t("common.download") || "Download"}
+              </a>
+            </Button>
           </div>
         </CardContent>
       </Card>
