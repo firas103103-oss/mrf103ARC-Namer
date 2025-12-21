@@ -77,6 +77,21 @@
     res.status(200).json(data ? data : { status: "ok" });
   }
 
+  // ==================== ARC EXECUTE TOKEN MIDDLEWARE ====================
+  function arcTokenMiddleware(req: Request, res: Response, next: NextFunction) {
+    const token = req.headers["x-arc-token"];
+    const expectedToken = process.env.ARC_TOKEN;
+
+    if (!expectedToken) {
+      return res.status(500).json({ ok: false, error: "server_misconfigured" });
+    }
+
+    if (token !== expectedToken) {
+      return res.status(401).json({ ok: false, error: "unauthorized" });
+    }
+    next();
+  }
+
   // ==================== MAIN ROUTE REGISTRATION ====================
   export async function registerRoutes(httpServer: Server, app: Express): Promise<Server> {
     // Setup Replit Auth
@@ -100,6 +115,33 @@
         status: "ok",
         service: "ARC Virtual Office",
         timestamp: new Date().toISOString(),
+      });
+    });
+
+    // ==================== ARC EXECUTE (X-ARC-TOKEN) ====================
+    app.post("/arc/execute", arcTokenMiddleware, (req: Request, res: Response) => {
+      const { job_id, command, payload } = req.body;
+
+      if (!job_id || !command) {
+        return res.status(400).json({ ok: false, error: "missing_required_fields" });
+      }
+
+      const external_trace = `replit-${Date.now()}`;
+
+      if (payload?.action === "ping") {
+        return res.json({
+          ok: true,
+          job_id,
+          external_trace,
+          result: { pong: true, ts: new Date().toISOString() }
+        });
+      }
+
+      return res.json({
+        ok: true,
+        job_id,
+        external_trace,
+        result: { message: "executor placeholder", echo: payload }
       });
     });
 
