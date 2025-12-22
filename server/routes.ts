@@ -149,13 +149,18 @@
       });
     });
 
-    // ==================== ARC EXECUTE (X-ARC-TOKEN) ====================
-    // Real command router supporting: ping, chat, tts, emit_n8n, db_query
-    app.post("/arc/execute", arcTokenMiddleware, async (req: Request, res: Response) => {
-      const { job_id, command, payload } = req.body;
+    // ==================== ARC EXECUTE (ARC_BACKEND_SECRET) ====================
+    // Real command router supporting: ping, chat, tts, emit_n8n, db_query, create_task, update_task, log_event
+    // Unknown commands are forwarded to n8n webhook for external processing
+    app.post("/arc/execute", authMiddleware, async (req: Request, res: Response) => {
+      const { job_id, run_id, command, payload } = req.body;
+      const executionId = `exec-${Date.now()}-${Math.random().toString(36).substr(2, 8)}`;
 
-      if (!job_id || !command) {
-        return res.status(400).json({ ok: false, error: "missing_required_fields" });
+      // Accept either job_id or run_id for flexibility
+      const effectiveJobId = job_id || run_id || executionId;
+
+      if (!command) {
+        return res.status(400).json({ ok: false, error: "command is required", execution_id: executionId });
       }
 
       const external_trace = `replit-${Date.now()}`;
@@ -493,28 +498,123 @@
             break;
           }
 
-          default:
-            // Log unknown command for tracking, return echo
-            result = { message: "command_not_implemented", command, echo: payload };
+          default: {
+            // Forward unknown commands to n8n webhook for external processing
+            const webhookUrl = process.env.N8N_WEBHOOK_URL;
+            if (!webhookUrl) {
+              return res.status(500).json({ 
+                ok: false, 
+                error: "server_misconfigured", 
+                missing: "N8N_WEBHOOK_URL",
+                execution_id: executionId 
+              });
+            }
+
+            // Forward to n8n with retry (1 retry for transient errors)
+            let n8nStatus: number | null = null;
+            let n8nOk: boolean = false;
+            let n8nBody: any = null;
+            let n8nError: string | null = null;
+            let n8nAttempts = 0;
+
+            for (let attempt = 0; attempt < 2; attempt++) {
+              n8nAttempts++;
+              try {
+                const controller = new AbortController();
+                const timeout = setTimeout(() => controller.abort(), 30000); // 30s timeout
+                
+                const fetchResp = await fetch(webhookUrl, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ 
+                    execution_id: executionId,
+                    job_id: effectiveJobId, 
+                    command, 
+                    payload,
+                    source: "arc_execute",
+                    timestamp: new Date().toISOString()
+                  }),
+                  signal: controller.signal,
+                });
+                
+                clearTimeout(timeout);
+                n8nStatus = fetchResp.status;
+                n8nOk = fetchResp.ok;
+                
+                try {
+                  const text = await fetchResp.text();
+                  n8nBody = text ? JSON.parse(text) : null;
+                } catch {
+                  n8nBody = null;
+                }
+                
+                if (fetchResp.ok) break; // Success, exit retry loop
+                
+                // Non-retryable status codes
+                if (fetchResp.status >= 400 && fetchResp.status < 500) break;
+                
+              } catch (fetchErr: any) {
+                n8nError = fetchErr.message;
+                if (attempt === 1) break; // Last attempt, exit
+                await new Promise(r => setTimeout(r, 1000)); // Wait 1s before retry
+              }
+            }
+
+            result = { 
+              forwarded_to: "n8n",
+              n8n_status: n8nStatus,
+              n8n_ok: n8nOk,
+              n8n_attempts: n8nAttempts,
+              n8n_error: n8nError,
+              n8n_response: n8nBody,
+              command,
+              execution_id: executionId
+            };
+            break;
+          }
         }
 
         const durationMs = Date.now() - startTime;
 
-        // Log command execution
-        await db.execute(sql`
-          INSERT INTO arc_command_log (command, payload, status, duration_ms, source)
-          VALUES (${command}, ${JSON.stringify(payload || {})}, 'completed', ${durationMs}, 'arc_execute')
-        `).catch(() => {}); // Don't fail if logging fails
+        // Store execution proof in arc_command_log
+        let storedRowId: string | null = null;
+        try {
+          const insertResult = await db.execute(sql`
+            INSERT INTO arc_command_log (command, payload, status, duration_ms, source)
+            VALUES (${command}, ${JSON.stringify({ execution_id: executionId, job_id: effectiveJobId, ...payload })}, 'completed', ${durationMs}, 'arc_execute')
+            RETURNING id
+          `);
+          storedRowId = (insertResult.rows[0] as any)?.id || null;
+        } catch {
+          // Don't fail if logging fails
+        }
 
-        return res.json({ ok: true, job_id, external_trace, duration_ms: durationMs, result });
+        return res.json({ 
+          ok: true, 
+          execution_id: executionId,
+          job_id: effectiveJobId, 
+          external_trace, 
+          duration_ms: durationMs, 
+          stored_table: "arc_command_log",
+          stored_row_id: storedRowId,
+          server_timestamp: new Date().toISOString(),
+          result 
+        });
       } catch (e: any) {
         const durationMs = Date.now() - startTime;
         // Log failed command
         await db.execute(sql`
           INSERT INTO arc_command_log (command, payload, status, duration_ms, source)
-          VALUES (${command}, ${JSON.stringify(payload || {})}, 'failed', ${durationMs}, 'arc_execute')
+          VALUES (${command}, ${JSON.stringify({ execution_id: executionId, job_id: effectiveJobId, ...payload })}, 'failed', ${durationMs}, 'arc_execute')
         `).catch(() => {});
-        return res.status(500).json({ ok: false, job_id, external_trace, error: e.message });
+        return res.status(500).json({ 
+          ok: false, 
+          execution_id: executionId,
+          job_id: effectiveJobId, 
+          external_trace, 
+          error: e.message,
+          server_timestamp: new Date().toISOString()
+        });
       }
     });
 
@@ -943,7 +1043,7 @@
       }
     });
 
-    // POST /api/arc/executive-summary - Generate executive summary
+    // POST /api/arc/executive-summary - Store executive summary (manual)
     app.post("/api/arc/executive-summary", async (req: Request, res: Response) => {
       try {
         const { date, summary_text, profit_score, risk_score, top_decisions } = req.body;
@@ -957,6 +1057,100 @@
         `);
         const id = (result.rows?.[0] as any)?.id;
         sendSuccess(res, { status: "ok", id, stored: "executive_summaries" });
+      } catch (e: any) {
+        sendError(res, 500, e.message);
+      }
+    });
+
+    // POST /api/arc/generate-summary - Auto-generate daily summary from recent events
+    app.post("/api/arc/generate-summary", async (req: Request, res: Response) => {
+      try {
+        const { run_id, limit_events = 20, limit_commands = 10 } = req.body;
+        const today = new Date().toISOString().split("T")[0];
+        const summaryId = `summary-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`;
+
+        // 1. Fetch recent agent events
+        const eventsResult = await db.execute(sql`
+          SELECT id, event_id, agent_id, type, payload, created_at
+          FROM agent_events
+          ORDER BY created_at DESC
+          LIMIT ${limit_events}
+        `);
+        const recentEvents = eventsResult.rows || [];
+
+        // 2. Fetch recent command executions
+        const commandsResult = await db.execute(sql`
+          SELECT id, command, status, duration_ms, source, created_at
+          FROM arc_command_log
+          ORDER BY created_at DESC
+          LIMIT ${limit_commands}
+        `);
+        const recentCommands = commandsResult.rows || [];
+
+        // 3. Generate summary text
+        let summaryText: string;
+        let aiGenerated = false;
+
+        // Try OpenAI if available
+        if (process.env.OPENAI_API_KEY && openai) {
+          try {
+            const eventsSummary = recentEvents.map((e: any) => 
+              `- ${e.agent_id}: ${e.type} at ${e.created_at}`
+            ).join("\n");
+            const commandsSummary = recentCommands.map((c: any) => 
+              `- ${c.command}: ${c.status} (${c.duration_ms}ms)`
+            ).join("\n");
+
+            const prompt = `Generate a brief executive summary (2-3 sentences) for the ARC system based on recent activity:
+
+Recent Agent Events (${recentEvents.length}):
+${eventsSummary || "No recent events"}
+
+Recent Commands (${recentCommands.length}):
+${commandsSummary || "No recent commands"}
+
+Summary for ${today}:`;
+
+            const completion = await openai.chat.completions.create({
+              model: "gpt-4o-mini",
+              messages: [{ role: "user", content: prompt }],
+              max_tokens: 200,
+            });
+            summaryText = completion.choices[0]?.message?.content || "";
+            aiGenerated = true;
+          } catch (aiErr: any) {
+            // Fallback to deterministic summary
+            summaryText = `Daily Summary (${today}): ${recentEvents.length} agent events and ${recentCommands.length} commands processed. ` +
+              `Top agents: ${[...new Set(recentEvents.slice(0, 5).map((e: any) => e.agent_id))].join(", ") || "none"}. ` +
+              `Command success rate: ${recentCommands.filter((c: any) => c.status === "completed").length}/${recentCommands.length}.`;
+          }
+        } else {
+          // Deterministic fallback when no AI
+          summaryText = `Daily Summary (${today}): ${recentEvents.length} agent events and ${recentCommands.length} commands processed. ` +
+            `Top agents: ${[...new Set(recentEvents.slice(0, 5).map((e: any) => e.agent_id))].join(", ") || "none"}. ` +
+            `Command success rate: ${recentCommands.filter((c: any) => c.status === "completed").length}/${recentCommands.length}.`;
+        }
+
+        // 4. Store summary in executive_summaries
+        const insertResult = await db.execute(sql`
+          INSERT INTO executive_summaries (date, summary_text, profit_score, risk_score, top_decisions)
+          VALUES (${today}, ${summaryText}, ${null}, ${null}, ${null})
+          RETURNING id
+        `);
+        const storedId = (insertResult.rows?.[0] as any)?.id;
+
+        sendSuccess(res, { 
+          ok: true,
+          summary_id: summaryId,
+          stored_id: storedId,
+          stored: true,
+          date: today,
+          ai_generated: aiGenerated,
+          events_processed: recentEvents.length,
+          commands_processed: recentCommands.length,
+          summary_preview: summaryText.slice(0, 200),
+          run_id
+        });
       } catch (e: any) {
         sendError(res, 500, e.message);
       }
