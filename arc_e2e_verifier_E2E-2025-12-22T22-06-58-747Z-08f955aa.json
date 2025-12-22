@@ -1,0 +1,246 @@
+{
+  "run_id": "E2E-2025-12-22T22-06-58-747Z-08f955aa",
+  "generated_at": "2025-12-22T22:06:58.748Z",
+  "base_url": "http://127.0.0.1:5000",
+  "env_presence": {
+    "ARC_BACKEND_SECRET_present": true,
+    "DATABASE_URL_present": true
+  },
+  "endpoints": {
+    "/api/health": {
+      "url": "http://127.0.0.1:5000/api/health",
+      "method": "GET",
+      "ok": true,
+      "status": 200,
+      "statusText": "OK",
+      "ms": 59,
+      "responseHeaders": {
+        "access-control-allow-origin": "*",
+        "connection": "keep-alive",
+        "content-length": "85",
+        "content-type": "application/json; charset=utf-8",
+        "date": "Mon, 22 Dec 2025 22:06:58 GMT",
+        "etag": "W/\"55-r31KMmIGeetTlXAxJrzNw3DC1n0\"",
+        "keep-alive": "timeout=5",
+        "x-powered-by": "Express"
+      },
+      "bodyTextPreview": "{\"status\":\"ok\",\"service\":\"ARC Virtual Office\",\"timestamp\":\"2025-12-22T22:06:58.802Z\"}",
+      "bodyJson": {
+        "status": "ok",
+        "service": "ARC Virtual Office",
+        "timestamp": "2025-12-22T22:06:58.802Z"
+      }
+    },
+    "/ping": {
+      "url": "http://127.0.0.1:5000/ping",
+      "method": "GET",
+      "ok": true,
+      "status": 200,
+      "statusText": "OK",
+      "ms": 6,
+      "responseHeaders": {
+        "access-control-allow-origin": "*",
+        "connection": "keep-alive",
+        "content-length": "63",
+        "content-type": "application/json; charset=utf-8",
+        "date": "Mon, 22 Dec 2025 22:06:58 GMT",
+        "etag": "W/\"3f-XHuo0aT2IQlAySeQRGjYvkzIOdk\"",
+        "keep-alive": "timeout=5",
+        "x-powered-by": "Express"
+      },
+      "bodyTextPreview": "{\"status\":\"alive\",\"message\":\"✅ ARC Bridge Server is running\"}",
+      "bodyJson": {
+        "status": "alive",
+        "message": "✅ ARC Bridge Server is running"
+      }
+    },
+    "/api/arc/reality-report": {
+      "url": "http://127.0.0.1:5000/api/arc/reality-report",
+      "method": "GET",
+      "ok": true,
+      "status": 200,
+      "statusText": "OK",
+      "ms": 42,
+      "responseHeaders": {
+        "access-control-allow-origin": "*",
+        "connection": "keep-alive",
+        "content-length": "46868",
+        "content-type": "text/html; charset=utf-8",
+        "date": "Mon, 22 Dec 2025 22:06:58 GMT",
+        "keep-alive": "timeout=5",
+        "vary": "Origin",
+        "x-powered-by": "Express"
+      },
+      "bodyTextPreview": "<!DOCTYPE html>\n<html lang=\"en\">\n  <head>\n    <script type=\"module\">\nimport { createHotContext } from \"/@vite/client\";\nconst hot = createHotContext(\"/__dummy__runtime-error-plugin\");\n\nfunction sendError(error) {\n  if (!(error instanceof Error)) {\n    error = new Error(\"(unknown runtime error)\");\n  }\n  const serialized = {\n    message: error.message,\n    stack: error.stack,\n  };\n  hot.send(\"runtime-error-plugin:error\", serialized);\n}\n\nwindow.addEventListener(\"error\", (evt) => {\n  sendError(evt.error);\n});\n\nwindow.addEventListener(\"unhandledrejection\", (evt) => {\n  sendError(evt.reason);\n});\n</script>\n\n    <script type=\"module\">import { injectIntoGlobalHook } from \"/@react-refresh\";\ninjectIntoGlobalHook(window);\nwindow.$RefreshReg$ = () => {};\nwindow.$RefreshSig$ = () => (type) => type;</script>\n\n    <script type=\"module\" src=\"/@vite/client\"></script>\n\n    <meta charset=\"UTF-8\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, maximum-scale=1\" />\n    <link rel=\"icon\" type=\"image/png\" href=\"/favicon.png\" />\n    <link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n    <link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n    <link href=\"https://fonts.googleapis.com/css2?family=Architects+Daughter&family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Fira+Code:wght@300..700&family=Geist+Mono:wght@100..900&family=Geist:wght@100..900&family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=IBM+Plex+Sans:ital,wght@0,100..700;1,100..700&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Lora:ital,wght@0,400..700;1,400..700&family=Merriweather:ital,opsz,wght@0,18..144,300..900;1,18..144,300..900&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Outfit:wght@100..900&",
+      "bodyJson": null
+    },
+    "/api/arc/status": {
+      "url": "http://127.0.0.1:5000/api/arc/status",
+      "method": "GET",
+      "ok": true,
+      "status": 200,
+      "statusText": "OK",
+      "ms": 15,
+      "responseHeaders": {
+        "access-control-allow-origin": "*",
+        "connection": "keep-alive",
+        "content-length": "46868",
+        "content-type": "text/html; charset=utf-8",
+        "date": "Mon, 22 Dec 2025 22:06:58 GMT",
+        "keep-alive": "timeout=5",
+        "vary": "Origin",
+        "x-powered-by": "Express"
+      },
+      "bodyTextPreview": "<!DOCTYPE html>\n<html lang=\"en\">\n  <head>\n    <script type=\"module\">\nimport { createHotContext } from \"/@vite/client\";\nconst hot = createHotContext(\"/__dummy__runtime-error-plugin\");\n\nfunction sendError(error) {\n  if (!(error instanceof Error)) {\n    error = new Error(\"(unknown runtime error)\");\n  }\n  const serialized = {\n    message: error.message,\n    stack: error.stack,\n  };\n  hot.send(\"runtime-error-plugin:error\", serialized);\n}\n\nwindow.addEventListener(\"error\", (evt) => {\n  sendError(evt.error);\n});\n\nwindow.addEventListener(\"unhandledrejection\", (evt) => {\n  sendError(evt.reason);\n});\n</script>\n\n    <script type=\"module\">import { injectIntoGlobalHook } from \"/@react-refresh\";\ninjectIntoGlobalHook(window);\nwindow.$RefreshReg$ = () => {};\nwindow.$RefreshSig$ = () => (type) => type;</script>\n\n    <script type=\"module\" src=\"/@vite/client\"></script>\n\n    <meta charset=\"UTF-8\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, maximum-scale=1\" />\n    <link rel=\"icon\" type=\"image/png\" href=\"/favicon.png\" />\n    <link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n    <link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n    <link href=\"https://fonts.googleapis.com/css2?family=Architects+Daughter&family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Fira+Code:wght@300..700&family=Geist+Mono:wght@100..900&family=Geist:wght@100..900&family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=IBM+Plex+Sans:ital,wght@0,100..700;1,100..700&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Lora:ital,wght@0,400..700;1,400..700&family=Merriweather:ital,opsz,wght@0,18..144,300..900;1,18..144,300..900&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Outfit:wght@100..900&",
+      "bodyJson": null
+    },
+    "/api/arc/agent-events": {
+      "url": "http://127.0.0.1:5000/api/arc/agent-events",
+      "method": "POST",
+      "ok": true,
+      "status": 200,
+      "statusText": "OK",
+      "ms": 368,
+      "responseHeaders": {
+        "access-control-allow-origin": "*",
+        "connection": "keep-alive",
+        "content-length": "83",
+        "content-type": "application/json; charset=utf-8",
+        "date": "Mon, 22 Dec 2025 22:06:59 GMT",
+        "etag": "W/\"53-2fd40GPgbn56ny6Zdc18LPvZvA8\"",
+        "keep-alive": "timeout=5",
+        "x-powered-by": "Express"
+      },
+      "bodyTextPreview": "{\"status\":\"ok\",\"id\":\"9b91a534-a54c-4b69-8f43-5a604138a70a\",\"stored\":\"agent_events\"}",
+      "bodyJson": {
+        "status": "ok",
+        "id": "9b91a534-a54c-4b69-8f43-5a604138a70a",
+        "stored": "agent_events"
+      }
+    },
+    "/api/arc/receive": {
+      "url": "http://127.0.0.1:5000/api/arc/receive",
+      "method": "POST",
+      "ok": true,
+      "status": 200,
+      "statusText": "OK",
+      "ms": 227,
+      "responseHeaders": {
+        "access-control-allow-origin": "*",
+        "connection": "keep-alive",
+        "content-length": "83",
+        "content-type": "application/json; charset=utf-8",
+        "date": "Mon, 22 Dec 2025 22:06:59 GMT",
+        "etag": "W/\"53-0W2HXE2Vg8mdHwdjFk4d8BuJn54\"",
+        "keep-alive": "timeout=5",
+        "x-powered-by": "Express"
+      },
+      "bodyTextPreview": "{\"status\":\"ok\",\"id\":\"0ebe59bb-b104-4d7a-9357-dd70ad388da4\",\"stored\":\"arc_feedback\"}",
+      "bodyJson": {
+        "status": "ok",
+        "id": "0ebe59bb-b104-4d7a-9357-dd70ad388da4",
+        "stored": "arc_feedback"
+      }
+    },
+    "/arc/execute": {
+      "url": "http://127.0.0.1:5000/arc/execute",
+      "method": "POST",
+      "ok": true,
+      "status": 200,
+      "statusText": "OK",
+      "ms": 6319,
+      "responseHeaders": {
+        "access-control-allow-origin": "*",
+        "connection": "keep-alive",
+        "content-length": "605",
+        "content-type": "application/json; charset=utf-8",
+        "date": "Mon, 22 Dec 2025 22:07:05 GMT",
+        "etag": "W/\"25d-W/F51OV88qDON3rdB+bu/iwkTk8\"",
+        "keep-alive": "timeout=5",
+        "x-powered-by": "Express"
+      },
+      "bodyTextPreview": "{\"ok\":true,\"execution_id\":\"exec-1766441219505-e8m8kun8\",\"job_id\":\"E2E-2025-12-22T22-06-58-747Z-08f955aa\",\"external_trace\":\"replit-1766441219505\",\"duration_ms\":6260,\"stored_table\":\"arc_command_log\",\"stored_row_id\":\"8b481e68-53d7-49d4-9de7-246f7acca515\",\"server_timestamp\":\"2025-12-22T22:07:05.794Z\",\"result\":{\"forwarded_to\":\"n8n\",\"n8n_status\":200,\"n8n_ok\":true,\"n8n_attempts\":1,\"n8n_error\":null,\"n8n_response\":{\"command_id\":\"a2f0f07d-402d-452a-8b4c-99866fed9c82\",\"status\":\"processed\",\"processed_at\":\"2025-12-23T01:07:05.701+03:00\"},\"command\":\"ARC>E2E_EXECUTE\",\"execution_id\":\"exec-1766441219505-e8m8kun8\"}}",
+      "bodyJson": {
+        "ok": true,
+        "execution_id": "exec-1766441219505-e8m8kun8",
+        "job_id": "E2E-2025-12-22T22-06-58-747Z-08f955aa",
+        "external_trace": "replit-1766441219505",
+        "duration_ms": 6260,
+        "stored_table": "arc_command_log",
+        "stored_row_id": "8b481e68-53d7-49d4-9de7-246f7acca515",
+        "server_timestamp": "2025-12-22T22:07:05.794Z",
+        "result": {
+          "forwarded_to": "n8n",
+          "n8n_status": 200,
+          "n8n_ok": true,
+          "n8n_attempts": 1,
+          "n8n_error": null,
+          "n8n_response": {
+            "command_id": "a2f0f07d-402d-452a-8b4c-99866fed9c82",
+            "status": "processed",
+            "processed_at": "2025-12-23T01:07:05.701+03:00"
+          },
+          "command": "ARC>E2E_EXECUTE",
+          "execution_id": "exec-1766441219505-e8m8kun8"
+        }
+      }
+    },
+    "/api/arc/generate-summary": {
+      "url": "http://127.0.0.1:5000/api/arc/generate-summary",
+      "method": "POST",
+      "ok": true,
+      "status": 200,
+      "statusText": "OK",
+      "ms": 2659,
+      "responseHeaders": {
+        "access-control-allow-origin": "*",
+        "connection": "keep-alive",
+        "content-length": "477",
+        "content-type": "application/json; charset=utf-8",
+        "date": "Mon, 22 Dec 2025 22:07:08 GMT",
+        "etag": "W/\"1dd-lih3bcW8ZIsmP1DFUPSW3F7+o7E\"",
+        "keep-alive": "timeout=5",
+        "x-powered-by": "Express"
+      },
+      "bodyTextPreview": "{\"ok\":true,\"summary_id\":\"summary-1766441225802-65jha3\",\"stored_id\":\"a2de3f18-0546-4cb3-8887-6e61b3a9e288\",\"stored\":true,\"date\":\"2025-12-22\",\"ai_generated\":true,\"events_processed\":4,\"commands_processed\":10,\"summary_preview\":\"On December 22, 2025, the ARC system recorded multiple agent events, including two E2E probe events and a task initiated by the agent \\\"sarah-numbers.\\\" Command execution reflected efficiency, with nume\",\"run_id\":\"E2E-2025-12-22T22-06-58-747Z-08f955aa\"}",
+      "bodyJson": {
+        "ok": true,
+        "summary_id": "summary-1766441225802-65jha3",
+        "stored_id": "a2de3f18-0546-4cb3-8887-6e61b3a9e288",
+        "stored": true,
+        "date": "2025-12-22",
+        "ai_generated": true,
+        "events_processed": 4,
+        "commands_processed": 10,
+        "summary_preview": "On December 22, 2025, the ARC system recorded multiple agent events, including two E2E probe events and a task initiated by the agent \"sarah-numbers.\" Command execution reflected efficiency, with nume",
+        "run_id": "E2E-2025-12-22T22-06-58-747Z-08f955aa"
+      }
+    }
+  },
+  "db_proof": {
+    "table_count": {
+      "count": 24
+    },
+    "event_verification": {
+      "found": true,
+      "rows": [
+        {
+          "id": "9b91a534-a54c-4b69-8f43-5a604138a70a",
+          "agent_id": "e2e_verifier",
+          "type": "E2E_PROBE_EVENT",
+          "payload": {
+            "at": "2025-12-22T22:06:58.879Z",
+            "run_id": "E2E-2025-12-22T22-06-58-747Z-08f955aa",
+            "source": "arc_e2e_verifier.js"
+          },
+          "created_at": null
+        }
+      ],
+      "count": 1
+    }
+  },
+  "verdict": {
+    "pass": true,
+    "reasons": []
+  }
+}

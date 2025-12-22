@@ -581,7 +581,7 @@
         try {
           const insertResult = await db.execute(sql`
             INSERT INTO arc_command_log (command, payload, status, duration_ms, source)
-            VALUES (${command}, ${JSON.stringify({ execution_id: executionId, job_id: effectiveJobId, ...payload })}, 'completed', ${durationMs}, 'arc_execute')
+            VALUES (${command}, ${JSON.stringify({ execution_id: executionId, job_id: effectiveJobId, ...(payload ?? {}) })}, 'completed', ${durationMs}, 'arc_execute')
             RETURNING id
           `);
           storedRowId = (insertResult.rows[0] as any)?.id || null;
@@ -605,7 +605,7 @@
         // Log failed command
         await db.execute(sql`
           INSERT INTO arc_command_log (command, payload, status, duration_ms, source)
-          VALUES (${command}, ${JSON.stringify({ execution_id: executionId, job_id: effectiveJobId, ...payload })}, 'failed', ${durationMs}, 'arc_execute')
+          VALUES (${command}, ${JSON.stringify({ execution_id: executionId, job_id: effectiveJobId, ...(payload ?? {}) })}, 'failed', ${durationMs}, 'arc_execute')
         `).catch(() => {});
         return res.status(500).json({ 
           ok: false, 
@@ -1120,14 +1120,16 @@ Summary for ${today}:`;
             aiGenerated = true;
           } catch (aiErr: any) {
             // Fallback to deterministic summary
+            const topAgents1 = Array.from(new Set(recentEvents.slice(0, 5).map((e: any) => e.agent_id))).join(", ") || "none";
             summaryText = `Daily Summary (${today}): ${recentEvents.length} agent events and ${recentCommands.length} commands processed. ` +
-              `Top agents: ${[...new Set(recentEvents.slice(0, 5).map((e: any) => e.agent_id))].join(", ") || "none"}. ` +
+              `Top agents: ${topAgents1}. ` +
               `Command success rate: ${recentCommands.filter((c: any) => c.status === "completed").length}/${recentCommands.length}.`;
           }
         } else {
           // Deterministic fallback when no AI
+          const topAgents2 = Array.from(new Set(recentEvents.slice(0, 5).map((e: any) => e.agent_id))).join(", ") || "none";
           summaryText = `Daily Summary (${today}): ${recentEvents.length} agent events and ${recentCommands.length} commands processed. ` +
-            `Top agents: ${[...new Set(recentEvents.slice(0, 5).map((e: any) => e.agent_id))].join(", ") || "none"}. ` +
+            `Top agents: ${topAgents2}. ` +
             `Command success rate: ${recentCommands.filter((c: any) => c.status === "completed").length}/${recentCommands.length}.`;
         }
 
