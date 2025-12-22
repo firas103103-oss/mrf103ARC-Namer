@@ -254,7 +254,7 @@ export default function QuantumWarRoom() {
                     <SelectItem key={scenario.id} value={scenario.id}>
                       <div className="flex items-center gap-2">
                         <span>{scenario.name}</span>
-                        <Badge variant="secondary" size="sm">{scenario.category}</Badge>
+                        <Badge variant="secondary" className="text-xs">{scenario.category}</Badge>
                       </div>
                     </SelectItem>
                   ))}
@@ -424,7 +424,7 @@ export default function QuantumWarRoom() {
                 <div className="flex items-center gap-3">
                   <div className="w-3 h-3 rounded-full bg-primary animate-pulse-glow" />
                   <span className="text-sm font-medium">{DECISION_TREE.label}</span>
-                  <Badge variant="outline" size="sm">{DECISION_TREE.probability}%</Badge>
+                  <Badge variant="outline" className="text-xs">{DECISION_TREE.probability}%</Badge>
                 </div>
                 
                 <div className="pl-6 border-l-2 border-border space-y-3">
@@ -433,7 +433,7 @@ export default function QuantumWarRoom() {
                       <div className="flex items-center gap-3">
                         <div className="w-2 h-2 rounded-full bg-secondary" />
                         <span className="text-sm">{branch.label}</span>
-                        <Badge variant="secondary" size="sm">{branch.probability}%</Badge>
+                        <Badge variant="secondary" className="text-xs">{branch.probability}%</Badge>
                       </div>
                       <div className="pl-5 space-y-1">
                         {branch.children?.map((outcome) => (
@@ -510,7 +510,7 @@ export default function QuantumWarRoom() {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">AI Tactical Recommendations</span>
-                <Badge variant="outline" size="sm">
+                <Badge variant="outline" className="text-xs">
                   <Brain className="h-3 w-3 mr-1" />
                   AI Generated
                 </Badge>
