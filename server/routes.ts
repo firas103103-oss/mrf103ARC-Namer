@@ -151,7 +151,39 @@
       });
     });
 
-    // ==================== ARC EXECUTE (ARC_BACKEND_SECRET) ====================
+    // ==================== ARC STATUS ====================
+    app.get("/api/arc/status", async (_req, res) => {
+      const uptime = process.uptime();
+      const status: Record<string, any> = {
+        status: "operational",
+        service: "ARC Intelligence Framework",
+        version: "2.0",
+        timestamp: new Date().toISOString(),
+        uptime_seconds: Math.floor(uptime),
+        uptime_formatted: `${Math.floor(uptime / 3600)}h ${Math.floor((uptime % 3600) / 60)}m ${Math.floor(uptime % 60)}s`,
+        env: {
+          NODE_ENV: process.env.NODE_ENV || "development",
+          DATABASE_URL: process.env.DATABASE_URL ? "SET" : "MISSING",
+          X_ARC_SECRET: process.env.X_ARC_SECRET ? "SET" : "MISSING",
+          ARC_BACKEND_SECRET: process.env.ARC_BACKEND_SECRET ? "SET" : "MISSING",
+          OPENAI_API_KEY: process.env.OPENAI_API_KEY ? "SET" : "MISSING",
+          ELEVENLABS_API_KEY: process.env.ELEVENLABS_API_KEY ? "SET" : "MISSING",
+          N8N_WEBHOOK_URL: process.env.N8N_WEBHOOK_URL ? "SET" : "MISSING",
+        },
+      };
+
+      // Check DB connection
+      try {
+        await db.execute(sql`SELECT 1 as ping`);
+        status.database = { status: "connected" };
+      } catch (e: any) {
+        status.database = { status: "error", message: e.message };
+      }
+
+      res.json(status);
+    });
+
+    // ==================== ARC EXECUTE (X_ARC_SECRET) ====================
     // Real command router supporting: ping, chat, tts, emit_n8n, db_query, create_task, update_task, log_event
     // Unknown commands are forwarded to n8n webhook for external processing
     app.post("/arc/execute", authMiddleware, async (req: Request, res: Response) => {
@@ -624,8 +656,11 @@
     app.get("/api/agents", (_req, res) => sendSuccess(res, VIRTUAL_AGENTS));
 
     // ==================== ARC REALITY REPORT ====================
-    app.post("/api/arc/reality-report", async (req: Request, res: Response) => {
-      const { request_id, include = [], verbosity = "full" } = req.body;
+    // Support both GET (simple status) and POST (detailed report)
+    async function handleRealityReport(req: Request, res: Response) {
+      const { request_id, include = [], verbosity = "full" } = req.method === "GET" 
+        ? { request_id: `get-${Date.now()}`, include: ["env", "db", "routes"], verbosity: "full" }
+        : req.body;
       const report: Record<string, any> = {
         request_id,
         generated_at: new Date().toISOString(),
@@ -641,8 +676,8 @@
           ELEVENLABS_API_KEY: process.env.ELEVENLABS_API_KEY ? "SET" : "MISSING",
           SUPABASE_URL: (process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL) ? "SET" : "MISSING",
           SUPABASE_KEY: process.env.SUPABASE_KEY ? "SET" : "MISSING",
+          X_ARC_SECRET: process.env.X_ARC_SECRET ? "SET" : "MISSING",
           ARC_BACKEND_SECRET: process.env.ARC_BACKEND_SECRET ? "SET" : "MISSING",
-          ARC_TOKEN: process.env.ARC_TOKEN ? "SET" : "MISSING",
           N8N_WEBHOOK_URL: process.env.N8N_WEBHOOK_URL ? "SET" : "MISSING",
           TWILIO_ACCOUNT_SID: process.env.TWILIO_ACCOUNT_SID ? "SET" : "MISSING",
         };
@@ -789,7 +824,11 @@
       }
 
       res.json({ ok: true, report });
-    });
+    }
+    
+    // Register both GET and POST for reality-report
+    app.get("/api/arc/reality-report", handleRealityReport);
+    app.post("/api/arc/reality-report", handleRealityReport);
 
     // ==================== CHAT ====================
     app.post("/api/chat", isAuthenticated, contractsMiddleware("chat", "chat_per_minute"), async (req: any, res) => {

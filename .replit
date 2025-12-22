@@ -52,6 +52,6 @@ defaultBucketID = "replit-objstore-749310c7-fadb-4943-be5e-91328d95c879"
 [userenv]
 
 [userenv.shared]
-X_ARC_TOKEN = "arc-e2e-test-token-2024"
+X_ARC_TOKEN = "mrf_arc_secret_2025_01"
 
 [userenv.production]
