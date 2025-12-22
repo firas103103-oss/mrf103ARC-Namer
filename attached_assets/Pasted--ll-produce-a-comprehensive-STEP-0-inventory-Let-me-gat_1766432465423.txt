@@ -1,0 +1,255 @@
+'ll produce a comprehensive STEP 0 inventory. Let me gather detailed information on all the areas you specified.
+
+STEP 0: FULL INVENTORY / FILE MAP
+1. Root Tree Structure
+/
+├── android/               # Capacitor Android APK (2.1MB) - ACTIVE
+├── arc_core/              # Agent contracts, brain manifest, actions - ACTIVE
+│   ├── actions/           # Telegram + report action stubs
+│   ├── workflows/         # ARC_Executive_Workflow.json
+│   ├── agent_contracts.json
+│   └── brain_manifest.json
+├── archives/              # EMPTY (0 files)
+├── attached_assets/       # User uploads (15MB) - MOSTLY UNUSED
+├── client/                # React frontend (Vite)
+│   └── src/
+│       ├── components/    # UI + custom components
+│       ├── pages/         # 15 page files
+│       ├── hooks/         # useAuth, useToast
+│       └── lib/           # queryClient, i18n, utils
+├── docs/                  # X Bio Sentinel specs (28KB) - REFERENCE
+├── firmware/              # ESP32 PlatformIO project (92KB) - REFERENCE
+├── reports/               # EMPTY (0 files)
+├── script/                # Build scripts
+├── server/                # Express backend
+│   ├── modules/           # n8n_webhook, agent_events, etc.
+│   ├── routes/            # voice.js stubs
+│   ├── config/            # voiceMap.json
+│   ├── routes.ts          # Main API routes (~2400 lines)
+│   ├── causal.ts          # Causal memory helpers
+│   ├── contracts.ts       # Agent contracts middleware
+│   └── storage.ts         # DB storage interface
+└── shared/                # Drizzle schema + types
+2. Client Pages/Routes (17 routes)
+Route	File	Backend Dependencies	Status
+/	Home.tsx	None	DOC ONLY
+/home	Home.tsx	None	DOC ONLY
+/dashboard	dashboard.tsx	/api/dashboard/commands,events,feedback, /api/core/timeline	REAL
+/command-logs	virtual-office.tsx	/api/chat, /api/agents	REAL
+/system-monitor	ARCMonitor component	/api/arc/reality-report	REAL
+/voice-chat	VoiceChatRealtime	WebSocket, /api/chat	REAL
+/voice-selector	ARCVoiceSelector	/api/agents	REAL
+/agent-voices	VirtualOffice.tsx	/api/agents	REAL
+/self-check	SelfCheck.tsx	Supabase REST (legacy)	LEGACY
+/metrics	ARCCommandMetrics	NONE (static mock charts)	MOCK
+/investigation-lounge	InvestigationLounge.tsx	/api/agents, /api/activity	REAL
+/quantum-warroom	QuantumWarRoom.tsx	/api/scenarios, /api/agents	REAL
+/temporal-anomaly-lab	TemporalAnomalyLab.tsx	/api/agents/performance, /api/agents/anomalies	REAL
+/bio-sentinel	BioSentinel.tsx	/api/bio-sentinel/*	REAL
+/team-command	TeamCommandCenter.tsx	/api/team/tasks, /api/activity	REAL
+/operations-simulator	OperationsSimulator.tsx	/api/simulations	REAL
+/analytics	AnalyticsHub.tsx	/api/dashboard/metrics, /api/agents/performance	REAL
+/system-architecture	SystemArchitecture.tsx	None	DOC ONLY
+Summary: 13 REAL, 3 DOC ONLY, 1 MOCK, 1 LEGACY
+
+3. Backend Endpoints (57 total)
+Auth (4) — Used by UI
+Method	Endpoint	Used By
+GET	/api/auth/user	UI (session check)
+GET	/api/health	Internal only
+POST	/api/login	UI
+POST	/api/logout	UI
+Core Command (1) — Used by n8n + UI
+Method	Endpoint	Used By
+POST	/arc/execute	UI, n8n, ChatGPT
+ARC Ingest (10) — Used by n8n
+Method	Endpoint	Used By
+POST	/api/arc/receive	n8n
+POST	/api/arc/command	n8n
+POST	/api/arc/events	n8n
+POST	/api/arc/agent-events	n8n
+POST	/api/arc/ceo-reminders	n8n
+POST	/api/arc/executive-summary	n8n
+POST	/api/arc/governance/notify	n8n
+POST	/api/arc/rules/broadcast	n8n
+POST	/api/arc/notifications/high	n8n
+POST	/api/arc/reality-report	UI (System Monitor)
+Brain State (2) — Internal/Doc
+Method	Endpoint	Used By
+GET	/api/arc/brain/state	Internal
+GET	/api/arc/brain/self-awareness	Internal
+Causal Memory (8) — Used by instrumentation
+Method	Endpoint	Used By
+POST	/api/core/intent	Internal
+POST	/api/core/action	Internal
+PATCH	/api/core/action/:id	Internal
+POST	/api/core/result	Internal
+POST	/api/core/impact	Internal
+GET	/api/core/timeline	UI (Dashboard)
+POST	/api/core/reflect	Internal
+GET	/api/core/reflections	Internal
+Chat & TTS (3) — Used by UI
+Method	Endpoint	Used By
+GET	/api/agents	UI (multiple pages)
+POST	/api/chat	UI
+POST	/api/tts	UI
+Dashboard (4) — Used by UI
+Method	Endpoint	Used By
+GET	/api/dashboard/commands	UI
+GET	/api/dashboard/events	UI
+GET	/api/dashboard/feedback	UI
+GET	/api/dashboard/metrics	UI
+Analytics (3) — Used by UI
+Method	Endpoint	Used By
+GET	/api/agents/performance	UI
+GET	/api/agents/anomalies	UI
+GET	/api/agents/analytics	UI
+Team & Activity (5) — Used by UI
+Method	Endpoint	Used By
+GET	/api/team/tasks	UI
+POST	/api/team/tasks	UI
+PATCH	/api/team/tasks/:id	UI
+GET	/api/activity	UI
+POST	/api/activity	UI
+Simulations (4) — Used by UI
+Method	Endpoint	Used By
+GET	/api/simulations	UI
+POST	/api/simulations	UI
+PATCH	/api/simulations/:id	UI
+POST	/api/simulations/:id/run	UI
+Scenarios (3) — Used by UI
+Method	Endpoint	Used By
+GET	/api/scenarios	UI
+POST	/api/scenarios	UI
+PATCH	/api/scenarios/:id	UI
+Bio Sentinel (9) — Used by UI
+Method	Endpoint	Used By
+GET	/api/bio-sentinel/profiles	UI
+POST	/api/bio-sentinel/profiles	UI
+GET	/api/bio-sentinel/profiles/:id	UI
+DELETE	/api/bio-sentinel/profiles/:id	UI
+POST	/api/bio-sentinel/readings	UI + ESP32
+GET	/api/bio-sentinel/readings	UI
+POST	/api/bio-sentinel/chat	UI
+GET	/api/bio-sentinel/export	UI
+POST	/api/bio-sentinel/import	UI
+Contracts (5) — UNUSED by UI
+Method	Endpoint	Used By
+GET	/api/contracts	Unused
+GET	/api/contracts/summary	Unused
+GET	/api/contracts/agent/:agentId	Unused
+GET	/api/contracts/action/:actionType	Unused
+POST	/api/contracts/check-permission	Unused
+Android (1) — Used by downloads
+Method	Endpoint	Used By
+GET	/api/android/download	APK download
+4. Database Tables (24 tables)
+Table	Actively Used	Notes
+sessions	YES	Auth sessions
+users	YES	User accounts
+conversations	Limited	Chat history
+chat_messages	Limited	Message storage
+agent_events	YES	n8n ingest
+ceo_reminders	YES	n8n ingest
+executive_summaries	YES	n8n ingest
+governance_notifications	YES	n8n ingest
+rule_broadcasts	YES	n8n ingest
+high_priority_notifications	YES	n8n ingest
+arc_command_log	YES	Dashboard
+arc_feedback	YES	Dashboard
+team_tasks	YES	Team page
+activity_feed	YES	Activity log
+workflow_simulations	YES	Simulator
+mission_scenarios	YES	War room
+smell_profiles	YES	Bio Sentinel
+sensor_readings	YES	Bio Sentinel
+smell_captures	YES	Bio Sentinel
+intent_log	YES	Causal memory
+action_log	YES	Causal memory
+result_log	YES	Causal memory
+impact_log	YES	Causal memory
+reflections	YES	Reflective loop
+All 24 tables are actively used.
+
+5. Attached Assets Inventory
+Images (14 files, ~869KB total) — ALL UNUSED
+File	Size	Type	Referenced
+1_QwdodjKKPepfbYwzl4qMuA_*.png	84KB	PNG	NO
+2_*.png	92KB	PNG	NO
+google-org-chart_*.jpg	187KB	JPG	NO
+JZvK0dog2fyG6...*.png	10KB	PNG	NO
+matrix_organization_*.jpg	55KB	JPG	NO
+Multiagent-system-Architecture_*.webp	40KB	WEBP	NO
+OFHi2PF2kxdP...*.jfif	8KB	JFIF	NO
+org-chart-with-faces2_*.png	187KB	PNG	NO
+RcnGwmbZfNkD...*.png	5KB	PNG	NO
+Rof9eJ_7BdGd...*.png	9KB	PNG	NO
+Screenshot_20251220_*.jpg	50KB	JPG	NO
+SystemArchitecture_*.png	52KB	PNG	NO
+VoUYqLQS8q_S...*.jfif	8KB	JFIF	NO
+wmud_pyramid_org_dev_*.webp	62KB	WEBP	NO
+Evidence: grep -r "attached_assets\|@assets" client/src returns only vite.config.ts alias definition.
+
+Documents (20 files, ~14MB total) — ALL UNUSED
+File	Size	Type	Referenced
+content-*.md	4KB	MD	NO
+Pasted-*.txt (10 files)	~40KB	TXT	NO (prompts)
+Risk_Assessment_*.pdf	440KB	PDF	NO
+xbio_book_*.docx	36KB	DOCX	NO
+x-bio-sentinel-hq_*.zip	63KB	ZIP	NO
+Arabic PDFs (8 files)	~13MB	PDF	NO
+6. Integration Inventory
+Integration	Secret	Used	Where	Status
+OpenAI	OPENAI_API_KEY ✓	YES	/api/chat, /arc/execute:chat	WORKING
+ElevenLabs	ELEVENLABS_API_KEY ✓	YES	/api/tts, /arc/execute:tts	WORKING
+n8n Outbound	N8N_WEBHOOK_URL ✓	YES	sendToN8N(), /arc/execute:emit_n8n	WORKING
+n8n Inbound	N/A	YES	10 POST /api/arc/* endpoints	WORKING
+Supabase	SUPABASE_URL, SUPABASE_KEY ✓	LEGACY	Only SelfCheck.tsx	DEPRECATED
+Twilio	TWILIO_* (3 keys) ✓	NO	Not implemented	UNUSED
+Telegram	MISSING	NO	No bot code, relies on n8n	BROKEN
+Replit Auth	(auto)	YES	/api/login, /api/logout, session	WORKING
+7. UNUSED / LEGACY / DUPLICATE Section
+UNUSED Assets
+Category	Items	Evidence
+All images (14)	attached_assets/*.png,jpg,jfif,webp	Not imported anywhere in client/src/
+All PDFs (9)	attached_assets/*.pdf	Not imported anywhere
+All prompts (10)	attached_assets/Pasted-*.txt	Session prompts, not code
+ZIP/DOCX (2)	x-bio-sentinel-hq.zip, xbio_book.docx	Not referenced
+UNUSED Endpoints
+Endpoint	Reason
+GET /api/contracts	No UI calls this
+GET /api/contracts/summary	No UI calls this
+GET /api/contracts/agent/:agentId	No UI calls this
+GET /api/contracts/action/:actionType	No UI calls this
+POST /api/contracts/check-permission	No UI calls this
+LEGACY Code
+Item	Location	Status
+SelfCheck.tsx	/self-check page	Uses Supabase REST API directly
+Supabase client	routes.ts line 12	Only used in legacy endpoints
+MOCK Data
+Item	Location	Status
+/metrics page	ARCCommandMetrics.tsx	Static chart data, no API call
+EMPTY Folders
+Folder	Content
+archives/	0 files
+reports/	0 files
+Summary Statistics
+Category	Count
+Total Routes	17
+REAL Data Routes	13
+MOCK Routes	1
+LEGACY Routes	1
+DOC-ONLY Routes	3
+Total Endpoints	57
+Unused Endpoints	5
+Total Tables	24
+Unused Tables	0
+Total Attached Assets	38 files
+Unused Attached Assets	38 files (100%)
+Active Integrations	5 (OpenAI, ElevenLabs, n8n in/out, Replit Auth)
+Broken Integrations	1 (Telegram)
+Unused Integrations	1 (Twilio)
+Legacy Integrations	1 (Supabase)
+STEP 0 COMPLETE.
+
+Awaiting your "APPROVED" to proceed with PRE-EXECUTION CHANGE SPEC for Steps 1–4.

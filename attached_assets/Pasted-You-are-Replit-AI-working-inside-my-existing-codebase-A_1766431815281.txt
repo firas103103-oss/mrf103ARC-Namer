@@ -1,0 +1,75 @@
+You are Replit AI working inside my existing codebase (ARC Intelligence Framework + X Bio Sentinel).
+
+NON-NEGOTIABLE RULES
+- Do NOT delete or remove any existing endpoints or tables.
+- Do NOT modify or delete existing tables (no dropping, renaming, breaking migrations).
+- Additions only.
+- Any instrumentation must run ONLY when ARC secret header is valid.
+- Do NOT broaden scope beyond what I asked.
+- No marketing text.
+
+EXECUTION MODE (MANDATORY)
+You must follow: PRE-EXECUTION CHANGE SPEC → WAIT FOR APPROVAL → EXECUTE → REPORT.
+
+CURRENT PHASE: “LIVE CORE STABILIZATION” (Minimal, highest impact)
+Goal: Make the system truly “live/real” for the user (not mock), and fix the real blockers that prevent live sync and real-time operations.
+
+STEP 0 (FIRST): FULL INVENTORY / FILE MAP (BEFORE ANY CHANGES)
+Produce a factual inventory report of the whole repo:
+- Root structure + key folders
+- List pages/routes in client (all 16 pages) and which are mock vs real
+- List backend endpoints and which are actually used by UI vs unused
+- List DB tables (Drizzle schema) and which are actively written/read
+- List integrations and their status: OpenAI, ElevenLabs, n8n inbound/outbound, Supabase legacy, Telegram bot
+Output in Markdown, short bullets, no filler.
+
+THEN: PRODUCE A SINGLE “PRE-EXECUTION CHANGE SPEC” (NO CODE YET)
+This spec must target ONLY the following 5 items, in this exact order:
+
+1) AUTH HEADER COMPATIBILITY (if not already)
+Accept BOTH headers temporarily:
+- x_arc_secret (canonical)
+- x-arc-secret (legacy)
+Use helper getArcSecret(req) and hasValidArcSecret(req) to gate instrumentation.
+(If already implemented, state evidence and skip.)
+
+2) TELEGRAM BOT RESTORE (STOPPED WORKING)
+Diagnose why Telegram stopped:
+- Verify env vars / token usage
+- Check webhook/polling approach
+- Identify exact failure point from logs if possible
+Provide fix plan in spec (no execution yet).
+
+3) N8N REAL TWO-WAY SYNC (NO ASSUMPTIONS)
+- Confirm current inbound endpoints that exist: /api/arc/receive, /api/arc/agent-events, /api/arc/command, etc.
+- Confirm outbound module sendToN8N() and its required secrets.
+- Define minimal reliable handshake:
+  n8n → backend ingest (store) + backend → n8n emit (ack)
+Spec must include exact endpoint contracts and headers.
+
+4) REMOVE MOCK DATA FROM UI (ONLY CONNECT EXISTING APIs)
+- Identify which pages still use mock data (Investigation/WarRoom/AnomalyLab/Analytics/Simulator)
+- For each page: list exact file(s) + mock variables + the real endpoint to connect
+- No new fancy features. Just replace mock with real fetch + loading + empty states.
+
+5) “LIVE MODE” HEALTH SIGNALS
+- Add a single “Live Status” panel (UI) showing:
+  Auth status, DB reachable, WebSocket status, n8n reachable, Telegram reachable
+- Use existing /api/health and create minimal new /api/live/status endpoint if needed (addition-only).
+
+SPEC FORMAT REQUIREMENTS
+Your PRE-EXECUTION CHANGE SPEC must include:
+- Goal
+- Scope (files changed, endpoints added, tables added = ideally none)
+- Exact diffs plan (file-by-file bullets)
+- Security impact (headers, secrets, auth)
+- Backward compatibility (confirm no removals)
+- Test plan (curl + UI click path)
+- Rollback plan (checkpoint names)
+- Risk level
+
+AFTER YOU OUTPUT THE SPEC
+STOP. Ask for approval with one line:
+"STATUS: Awaiting approval to execute Step 1."
+
+Do NOT implement anything until I approve.

@@ -1,0 +1,52 @@
+I need a COMPLETE, FACTUAL project inventory report of the current Replit codebase.
+
+Rules:
+- Read-only. Do NOT modify any files.
+- Do NOT propose improvements.
+- Do NOT market/praise.
+- Output MUST be Structured Markdown with clear sections and bullet points.
+
+Scope:
+A) Full tree inventory:
+1) Print the full directory tree (depth 6) including hidden config files (e.g., .replit, .env.example if exists, etc).
+2) Include file sizes and last modified timestamps if available.
+3) Explicitly inventory these folders if present: server/, client/, shared/, arc_core/, docs/, firmware/, android/, attached_assets/, archives/, reports/, script/.
+
+B) Runtime usage mapping (REAL execution):
+4) Identify the actual runtime entry points for production + dev:
+   - server entry file(s)
+   - client entry file(s)
+   - build scripts
+   - db migration flow (drizzle)
+5) For each top-level folder, mark:
+   - ACTIVE (used at runtime)
+   - BUILD-ONLY (used only in build)
+   - LEGACY (present but not used)
+   - UNKNOWN (cannot confirm)
+Provide evidence: import references or script references (file → lines / imports).
+
+C) Attached assets inventory:
+6) For attached_assets/ and any uploads folder:
+   - list each file
+   - type (pdf/png/jpg/docx/json/etc)
+   - purpose if inferable from filename
+   - whether referenced anywhere in code (search for path/name)
+
+D) Endpoint/UI coverage mapping:
+7) List all pages (routes) in client and map to backend endpoints they call.
+8) Mark pages that render mock data vs real API data (show the exact source file and key variable/function).
+
+E) Dead/duplicate/unused detection (FACTUAL only):
+9) Detect:
+   - duplicate pages/components
+   - endpoints that exist but never called by UI
+   - tables present but never written to (based on server code usage, not guessing)
+
+Output format:
+1) Executive Summary (10 lines max)
+2) Directory Tree
+3) Folder-by-folder inventory table (ACTIVE/BUILD/LEGACY/UNKNOWN + evidence)
+4) Attached Assets inventory
+5) UI→API mapping
+6) Unused/Legacy findings (with evidence)
+7) “What I could NOT verify”
