@@ -37,10 +37,10 @@ export default function ARCMonitor() {
 
   const checkServerHealth = async () => {
     try {
-      const res = await fetch("/health");
+      const res = await fetch("/api/health");
       if (res.ok) {
         const json = await res.json();
-        setStatus((s) => ({ ...s, server: "Active", lastHeartbeat: json.time }));
+        setStatus((s) => ({ ...s, server: "Active", lastHeartbeat: json.timestamp || new Date().toISOString() }));
       } else setStatus((s) => ({ ...s, server: "Unreachable" }));
     } catch {
       setStatus((s) => ({ ...s, server: "Offline" }));
