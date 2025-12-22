@@ -1,0 +1,64 @@
+You are working inside ARC Intelligence Framework v2.0 (Express + TS + Postgres/Drizzle).
+Task: Implement 3 MVPs in 60 minutes: Causal Memory, Agent Contracts enforcement, Reflective Loop.
+Constraints:
+- Do NOT add new pages.
+- Minimal code changes, but production-safe.
+- Use existing DATABASE_URL (local Postgres) and Drizzle schema in shared/schema.ts.
+- All new endpoints MUST require X-ARC-SECRET = ARC_BACKEND_SECRET.
+- Keep naming consistent with existing tables.
+
+DELIVERABLES:
+
+1) Causal Memory (DB + API)
+Create 4 new tables in shared/schema.ts (Drizzle):
+- intent_log: id, created_at, actor_type ('user'|'agent'|'system'|'external'), actor_id, intent_type, intent_text, context jsonb
+- action_log: id, created_at, intent_id FK, action_type, action_target, request jsonb, cost_usd numeric nullable, status ('queued'|'running'|'success'|'failed')
+- result_log: id, created_at, action_id FK, output jsonb, error text nullable, latency_ms int nullable
+- impact_log: id, created_at, intent_id FK, impact_type, impact_score int nullable, impact jsonb
+Add indexes on created_at and FK columns.
+
+Create API routes in server/routes.ts:
+POST /api/core/intent (create intent) -> returns intent_id
+POST /api/core/action (create action linked to intent) -> returns action_id
+POST /api/core/result (create result linked to action) -> returns result_id
+POST /api/core/impact (create impact linked to intent) -> returns impact_id
+GET  /api/core/timeline?limit=50 (returns last N intents joined with actions/results/impacts)
+
+Also: In existing command execution flow (where /arc/execute or /api/chat or n8n receive endpoints),
+add minimal instrumentation:
+- When a command/chat request comes in: create intent_log row
+- When calling OpenAI or doing external call: create action_log row (status running/success/failed)
+- Store response/error in result_log
+Only log if header X-ARC-SECRET is present; otherwise skip logging (avoid logging public traffic).
+
+2) Agent Contracts (Policy + Middleware)
+Create file arc_core/agent_contracts.json with policies per agent_id.
+Fields: allowed_actions[], max_cost_usd_per_intent, risk_level ('low'|'med'|'high'), requires_confirmation boolean.
+Implement middleware:
+- On endpoints that trigger actions (chat, browser automation, external http, n8n bridge), read agent id (from body.agent_id or default 'mrf').
+- Enforce:
+  - action_type must be in allowed_actions (else 403)
+  - if requires_confirmation=true and body.confirmation_token missing -> 409 with {required:"confirmation"}
+  - track cumulative cost per intent_id (sum action_log.cost_usd) and block if exceed max_cost_usd_per_intent
+Add endpoint:
+GET /api/core/contracts (returns current contracts)
+POST /api/core/contracts/reload (reload file without restart)
+
+3) Reflective Loop (Daily/Manual)
+Create endpoint:
+POST /api/core/reflect (manual run) -> creates a "reflection" record in existing executive_summaries table if exists, otherwise create a new table reflections: id, created_at, window_minutes, stats jsonb, top_errors jsonb, recommendations jsonb.
+This reflection should:
+- Pull last 24h (or window_minutes param) from intent/action/result tables
+- Compute counts: total_intents, success_actions, failed_actions, avg_latency, top action_types
+- Extract top 10 errors from result_log.error
+- Produce recommendations using OpenAI ONLY if OPENAI_API_KEY exists; otherwise produce rule-based recommendations.
+Store output in reflections table.
+
+Finally:
+- Run Drizzle push migration or create SQL migration as needed.
+- Update any imports/build errors.
+- Provide a short checklist of what to test via curl.
+Return ONLY:
+1) Files changed list
+2) Key endpoints list
+3) Test curl commands

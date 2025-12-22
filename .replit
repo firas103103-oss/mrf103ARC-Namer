@@ -54,5 +54,3 @@ defaultBucketID = "replit-objstore-749310c7-fadb-4943-be5e-91328d95c879"
 [userenv.shared]
 
 [userenv.production]
-VITE_SUPABASE_URL = "https://udcwitnnogxrvoxefrge.supabase.co"
-VITE_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVkY3dpdG5ub2d4cnZveGVmcmdlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUzMTUwNTcsImV4cCI6MjA4MDg5MTA1N30.SfPkepVomW4bwFSi1lhS81d-nSlNgYQ3jhjtHri8hhg"
