@@ -26,6 +26,7 @@ import BioSentinel from "@/pages/BioSentinel";
 import TeamCommandCenter from "@/pages/TeamCommandCenter";
 import OperationsSimulator from "@/pages/OperationsSimulator";
 import AnalyticsHub from "@/pages/AnalyticsHub";
+import SystemArchitecture from "@/pages/SystemArchitecture";
 import { Shield, Activity, Lock } from "lucide-react";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { useTranslation } from "react-i18next";
@@ -133,6 +134,7 @@ function AuthenticatedLayout() {
               <Route path="/team-command" component={TeamCommandCenter} />
               <Route path="/operations-simulator" component={OperationsSimulator} />
               <Route path="/analytics" component={AnalyticsHub} />
+              <Route path="/system-architecture" component={SystemArchitecture} />
               <Route component={NotFound} />
             </Switch>
           </main>

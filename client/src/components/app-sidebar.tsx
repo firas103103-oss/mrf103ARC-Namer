@@ -18,6 +18,7 @@ import {
   Target,
   Workflow,
   TrendingUp,
+  Network,
 } from "lucide-react";
 import {
   Sidebar,
@@ -44,6 +45,7 @@ export function AppSidebar() {
   const operationsItems = [
     { titleKey: "nav.home", url: "/", icon: Home, testId: "link-home" },
     { titleKey: "nav.dashboard", url: "/dashboard", icon: LayoutDashboard, testId: "link-dashboard" },
+    { titleKey: "nav.systemArchitecture", url: "/system-architecture", icon: Network, testId: "link-system-architecture" },
     { titleKey: "nav.commandLogs", url: "/command-logs", icon: Terminal, testId: "link-command-logs" },
     { titleKey: "nav.systemMonitor", url: "/system-monitor", icon: Activity, testId: "link-system-monitor" },
     { titleKey: "nav.teamCommand", url: "/team-command", icon: Target, testId: "link-team-command" },
