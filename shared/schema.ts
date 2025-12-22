@@ -986,6 +986,7 @@ export const createActionSchema = z.object({
 
 export const createResultSchema = z.object({
   action_id: z.string(),
+  success: z.boolean().optional(), // If true, action_log.status -> 'success'; if false -> 'failed'
   output: z.record(z.unknown()).optional(),
   error: z.string().optional(),
   latency_ms: z.number().optional(),

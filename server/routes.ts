@@ -858,21 +858,32 @@
       }
     });
 
-    // POST /api/core/result - Create result log entry
+    // POST /api/core/result - Create result log entry and update action status
     app.post("/api/core/result", async (req: Request, res: Response) => {
       try {
         const parsed = createResultSchema.safeParse(req.body);
         if (!parsed.success) {
           return sendError(res, 400, "Invalid payload", parsed.error.errors);
         }
-        const { action_id, output, error, latency_ms } = parsed.data;
+        const { action_id, success, output, error, latency_ms } = parsed.data;
+        
+        // Insert result log entry
         const result = await db.execute(sql`
           INSERT INTO result_log (action_id, output, error, latency_ms)
           VALUES (${action_id}, ${JSON.stringify(output || {})}, ${error || null}, ${latency_ms || null})
           RETURNING id, created_at
         `);
         const row = result.rows?.[0] as any;
-        sendSuccess(res, { id: row?.id, created_at: row?.created_at });
+        
+        // Update action_log.status based on success field
+        if (success !== undefined) {
+          const newStatus = success ? "success" : "failed";
+          await db.execute(sql`
+            UPDATE action_log SET status = ${newStatus} WHERE id = ${action_id}
+          `);
+        }
+        
+        sendSuccess(res, { id: row?.id, created_at: row?.created_at, action_status_updated: success !== undefined });
       } catch (e: any) {
         sendError(res, 500, e.message);
       }
