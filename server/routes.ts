@@ -273,6 +273,226 @@
             result = { rows: queryResult.rows, row_count: queryResult.rows?.length || 0 };
             break;
 
+          case "create_task": {
+            // Create a new task with causal logging
+            if (!payload?.title) {
+              return res.status(400).json({ ok: false, error: "title required for create_task command" });
+            }
+            
+            // Step 1: Insert into team_tasks
+            const taskInsert = await db.execute(sql`
+              INSERT INTO team_tasks (title, description, assigned_agent, priority, status, created_by, metadata)
+              VALUES (
+                ${payload.title},
+                ${payload.description || null},
+                ${payload.assigned_agent_id || null},
+                ${payload.priority || 'medium'},
+                'pending',
+                ${'arc_execute'},
+                ${JSON.stringify({ job_id, source: 'arc_execute' })}
+              )
+              RETURNING id, title, status, priority, assigned_agent, created_at
+            `);
+            const createdTask = taskInsert.rows[0] as any;
+            
+            // Step 2: Insert into activity_feed
+            await db.execute(sql`
+              INSERT INTO activity_feed (type, title, description, agent_id, metadata)
+              VALUES (
+                'task_created',
+                ${`Task Created: ${payload.title}`},
+                ${payload.description || null},
+                ${payload.assigned_agent_id || 'system'},
+                ${JSON.stringify({ task_id: createdTask.id, job_id })}
+              )
+            `);
+            
+            // Step 3: Log causal chain
+            const ctIntentRes = await db.execute(sql`
+              INSERT INTO intent_log (actor_type, actor_id, intent_type, intent_text, context)
+              VALUES ('system', 'arc_execute', 'create_task', ${`Create task: ${payload.title}`}, ${JSON.stringify({ job_id })})
+              RETURNING id
+            `);
+            const ctIntentId = (ctIntentRes.rows[0] as any).id;
+            
+            const ctActionRes = await db.execute(sql`
+              INSERT INTO action_log (intent_id, action_type, action_target, request, status)
+              VALUES (${ctIntentId}, 'db_insert', 'team_tasks', ${JSON.stringify({ detail: `Insert task ${createdTask.id}`, agent_id: 'arc_execute' })}, 'running')
+              RETURNING id
+            `);
+            const ctActionId = (ctActionRes.rows[0] as any).id;
+            
+            const ctResultRes = await db.execute(sql`
+              INSERT INTO result_log (action_id, output, latency_ms)
+              VALUES (${ctActionId}, ${JSON.stringify({ task_id: createdTask.id, success: true })}, ${Date.now() - startTime})
+              RETURNING id
+            `);
+            const ctResultId = (ctResultRes.rows[0] as any).id;
+            
+            // Update action status to success
+            await db.execute(sql`UPDATE action_log SET status = 'success' WHERE id = ${ctActionId}`);
+            
+            result = {
+              task: createdTask,
+              activity_logged: true,
+              causal: { intent_id: ctIntentId, action_id: ctActionId, result_id: ctResultId }
+            };
+            break;
+          }
+
+          case "update_task": {
+            // Update an existing task with causal logging
+            if (!payload?.task_id) {
+              return res.status(400).json({ ok: false, error: "task_id required for update_task command" });
+            }
+            
+            // Build dynamic update
+            const updates: string[] = [];
+            const updateValues: any = {};
+            
+            if (payload.status) {
+              updates.push("status");
+              updateValues.status = payload.status;
+            }
+            if (payload.notes) {
+              updates.push("notes/metadata");
+            }
+            
+            // Step 1: Update team_tasks
+            let taskUpdate;
+            if (payload.status === "completed") {
+              taskUpdate = await db.execute(sql`
+                UPDATE team_tasks 
+                SET status = ${payload.status}, 
+                    updated_at = NOW(),
+                    completed_at = NOW(),
+                    metadata = metadata || ${JSON.stringify({ notes: payload.notes, updated_by: 'arc_execute', job_id })}::jsonb
+                WHERE id = ${payload.task_id}
+                RETURNING id, title, status, assigned_agent, updated_at, completed_at
+              `);
+            } else if (payload.status) {
+              taskUpdate = await db.execute(sql`
+                UPDATE team_tasks 
+                SET status = ${payload.status}, 
+                    updated_at = NOW(),
+                    metadata = metadata || ${JSON.stringify({ notes: payload.notes, updated_by: 'arc_execute', job_id })}::jsonb
+                WHERE id = ${payload.task_id}
+                RETURNING id, title, status, assigned_agent, updated_at
+              `);
+            } else {
+              taskUpdate = await db.execute(sql`
+                UPDATE team_tasks 
+                SET updated_at = NOW(),
+                    metadata = metadata || ${JSON.stringify({ notes: payload.notes, updated_by: 'arc_execute', job_id })}::jsonb
+                WHERE id = ${payload.task_id}
+                RETURNING id, title, status, assigned_agent, updated_at
+              `);
+            }
+            
+            if (!taskUpdate.rows || taskUpdate.rows.length === 0) {
+              return res.status(404).json({ ok: false, error: "Task not found" });
+            }
+            const updatedTask = taskUpdate.rows[0] as any;
+            
+            // Step 2: Insert into activity_feed
+            await db.execute(sql`
+              INSERT INTO activity_feed (type, title, description, agent_id, metadata)
+              VALUES (
+                'task_updated',
+                ${`Task Updated: ${updatedTask.title}`},
+                ${payload.notes || `Status changed to ${payload.status || 'updated'}`},
+                ${updatedTask.assigned_agent || 'system'},
+                ${JSON.stringify({ task_id: payload.task_id, new_status: payload.status, job_id })}
+              )
+            `);
+            
+            // Step 3: Log causal chain
+            const utIntentRes = await db.execute(sql`
+              INSERT INTO intent_log (actor_type, actor_id, intent_type, intent_text, context)
+              VALUES ('system', 'arc_execute', 'update_task', ${`Update task ${payload.task_id}: ${payload.status || 'notes'}`}, ${JSON.stringify({ job_id })})
+              RETURNING id
+            `);
+            const utIntentId = (utIntentRes.rows[0] as any).id;
+            
+            const utActionRes = await db.execute(sql`
+              INSERT INTO action_log (intent_id, action_type, action_target, request, status)
+              VALUES (${utIntentId}, 'db_update', 'team_tasks', ${JSON.stringify({ detail: `Update task ${payload.task_id}`, agent_id: 'arc_execute' })}, 'running')
+              RETURNING id
+            `);
+            const utActionId = (utActionRes.rows[0] as any).id;
+            
+            const utResultRes = await db.execute(sql`
+              INSERT INTO result_log (action_id, output, latency_ms)
+              VALUES (${utActionId}, ${JSON.stringify({ task_id: payload.task_id, new_status: updatedTask.status, success: true })}, ${Date.now() - startTime})
+              RETURNING id
+            `);
+            const utResultId = (utResultRes.rows[0] as any).id;
+            
+            // Update action status to success
+            await db.execute(sql`UPDATE action_log SET status = 'success' WHERE id = ${utActionId}`);
+            
+            result = {
+              task: updatedTask,
+              activity_logged: true,
+              causal: { intent_id: utIntentId, action_id: utActionId, result_id: utResultId }
+            };
+            break;
+          }
+
+          case "log_event": {
+            // Log an agent event with causal tracking
+            if (!payload?.event_type) {
+              return res.status(400).json({ ok: false, error: "event_type required for log_event command" });
+            }
+            
+            const eventId = `evt-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+            
+            // Step 1: Insert into agent_events
+            const eventInsert = await db.execute(sql`
+              INSERT INTO agent_events (event_id, agent_id, type, payload, created_at)
+              VALUES (
+                ${eventId},
+                ${payload.agent_id || 'arc_execute'},
+                ${payload.event_type},
+                ${JSON.stringify({ message: payload.message, data: payload.data, job_id })},
+                NOW()
+              )
+              RETURNING id, event_id, agent_id, type, received_at
+            `);
+            const createdEvent = eventInsert.rows[0] as any;
+            
+            // Step 2: Log causal chain
+            const leIntentRes = await db.execute(sql`
+              INSERT INTO intent_log (actor_type, actor_id, intent_type, intent_text, context)
+              VALUES ('agent', ${payload.agent_id || 'arc_execute'}, 'log_event', ${payload.message || `Event: ${payload.event_type}`}, ${JSON.stringify({ job_id, event_type: payload.event_type })})
+              RETURNING id
+            `);
+            const leIntentId = (leIntentRes.rows[0] as any).id;
+            
+            const leActionRes = await db.execute(sql`
+              INSERT INTO action_log (intent_id, action_type, action_target, request, status)
+              VALUES (${leIntentId}, 'db_insert', 'agent_events', ${JSON.stringify({ detail: `Log event ${eventId}`, agent_id: payload.agent_id || 'arc_execute' })}, 'running')
+              RETURNING id
+            `);
+            const leActionId = (leActionRes.rows[0] as any).id;
+            
+            const leResultRes = await db.execute(sql`
+              INSERT INTO result_log (action_id, output, latency_ms)
+              VALUES (${leActionId}, ${JSON.stringify({ event_id: eventId, db_id: createdEvent.id, success: true })}, ${Date.now() - startTime})
+              RETURNING id
+            `);
+            const leResultId = (leResultRes.rows[0] as any).id;
+            
+            // Update action status to success
+            await db.execute(sql`UPDATE action_log SET status = 'success' WHERE id = ${leActionId}`);
+            
+            result = {
+              event: createdEvent,
+              causal: { intent_id: leIntentId, action_id: leActionId, result_id: leResultId }
+            };
+            break;
+          }
+
           default:
             // Log unknown command for tracking, return echo
             result = { message: "command_not_implemented", command, echo: payload };
