@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { sql } from 'drizzle-orm';
-import { index, integer, jsonb, pgTable, text, timestamp, varchar } from "drizzle-orm/pg-core";
+import { index, integer, jsonb, numeric, pgTable, text, timestamp, varchar } from "drizzle-orm/pg-core";
 
 // ============================================
 // Virtual Office Agent Definitions
@@ -890,3 +890,110 @@ export const SMELL_CATEGORIES = {
   industrial: ["Manufacturing", "Automotive", "Construction"],
   household: ["Cleaning", "Cooking", "Personal care"],
 } as const;
+
+// ============================================
+// CAUSAL MEMORY SYSTEM TABLES
+// ============================================
+
+// Intent Log - Records user/agent/system intents
+export const intentLog = pgTable("intent_log", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  createdAt: timestamp("created_at").defaultNow(),
+  actorType: varchar("actor_type", { length: 50 }).notNull(), // 'user' | 'agent' | 'system' | 'external'
+  actorId: varchar("actor_id", { length: 255 }),
+  intentType: varchar("intent_type", { length: 100 }).notNull(),
+  intentText: text("intent_text").notNull(),
+  context: jsonb("context"),
+});
+
+export type IntentLog = typeof intentLog.$inferSelect;
+export type InsertIntentLog = typeof intentLog.$inferInsert;
+
+// Action Log - Records actions taken in response to intents
+export const actionLog = pgTable("action_log", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  createdAt: timestamp("created_at").defaultNow(),
+  intentId: varchar("intent_id").references(() => intentLog.id).notNull(),
+  actionType: varchar("action_type", { length: 100 }).notNull(),
+  actionTarget: varchar("action_target", { length: 255 }),
+  request: jsonb("request"),
+  costUsd: numeric("cost_usd"),
+  status: varchar("status", { length: 50 }).default("queued"), // 'queued' | 'running' | 'success' | 'failed'
+});
+
+export type ActionLog = typeof actionLog.$inferSelect;
+export type InsertActionLog = typeof actionLog.$inferInsert;
+
+// Result Log - Records results of actions
+export const resultLog = pgTable("result_log", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  createdAt: timestamp("created_at").defaultNow(),
+  actionId: varchar("action_id").references(() => actionLog.id).notNull(),
+  output: jsonb("output"),
+  error: text("error"),
+  latencyMs: integer("latency_ms"),
+});
+
+export type ResultLog = typeof resultLog.$inferSelect;
+export type InsertResultLog = typeof resultLog.$inferInsert;
+
+// Impact Log - Records impacts of intents
+export const impactLog = pgTable("impact_log", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  createdAt: timestamp("created_at").defaultNow(),
+  intentId: varchar("intent_id").references(() => intentLog.id).notNull(),
+  impactType: varchar("impact_type", { length: 100 }).notNull(),
+  impactScore: integer("impact_score"),
+  impact: jsonb("impact"),
+});
+
+export type ImpactLog = typeof impactLog.$inferSelect;
+export type InsertImpactLog = typeof impactLog.$inferInsert;
+
+// Reflections - Stores daily/manual reflection analysis
+export const reflections = pgTable("reflections", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  createdAt: timestamp("created_at").defaultNow(),
+  windowMinutes: integer("window_minutes").default(1440),
+  stats: jsonb("stats"),
+  topErrors: jsonb("top_errors"),
+  recommendations: jsonb("recommendations"),
+});
+
+export type Reflection = typeof reflections.$inferSelect;
+export type InsertReflection = typeof reflections.$inferInsert;
+
+// ============================================
+// Causal Memory Zod Schemas for Validation
+// ============================================
+
+export const createIntentSchema = z.object({
+  actor_type: z.enum(["user", "agent", "system", "external"]),
+  actor_id: z.string().optional(),
+  intent_type: z.string(),
+  intent_text: z.string(),
+  context: z.record(z.unknown()).optional(),
+});
+
+export const createActionSchema = z.object({
+  intent_id: z.string(),
+  action_type: z.string(),
+  action_target: z.string().optional(),
+  request: z.record(z.unknown()).optional(),
+  cost_usd: z.number().optional(),
+  status: z.enum(["queued", "running", "success", "failed"]).optional(),
+});
+
+export const createResultSchema = z.object({
+  action_id: z.string(),
+  output: z.record(z.unknown()).optional(),
+  error: z.string().optional(),
+  latency_ms: z.number().optional(),
+});
+
+export const createImpactSchema = z.object({
+  intent_id: z.string(),
+  impact_type: z.string(),
+  impact_score: z.number().optional(),
+  impact: z.record(z.unknown()).optional(),
+});

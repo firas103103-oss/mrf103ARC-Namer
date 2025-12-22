@@ -30,6 +30,15 @@
     wsCommandAckSchema,
     wsSensorReadingSchema,
     simulationUpdateSchema,
+    createIntentSchema,
+    createActionSchema,
+    createResultSchema,
+    createImpactSchema,
+    intentLog,
+    actionLog,
+    resultLog,
+    impactLog,
+    reflections,
     VIRTUAL_AGENTS,
     SMELL_CATEGORIES,
     type ExecutiveSummaryResponse,
@@ -47,13 +56,34 @@
   } from "@shared/schema";
   import { WebSocketServer, WebSocket } from "ws";
   import { ZodError } from "zod";
+  import { loadContracts, getAgentContract, getActionContract, getContractsSummary, contractsMiddleware, checkPermission } from "./contracts";
 
   // ==================== OPENAI CONFIG ====================
   const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
   // ==================== AUTH MIDDLEWARE ====================
+  // Supports both "x-arc-secret" (legacy) and "x_arc_secret" (canonical)
+  function getArcSecret(req: Request): string | undefined {
+    // Canonical header first, then legacy hyphenated version
+    const canonical = req.headers["x_arc_secret"];
+    const legacy = req.headers["x-arc-secret"];
+    // Headers can be string or string[], normalize to string
+    if (typeof canonical === "string") return canonical;
+    if (typeof legacy === "string") return legacy;
+    if (Array.isArray(canonical)) return canonical[0];
+    if (Array.isArray(legacy)) return legacy[0];
+    return undefined;
+  }
+
+  function hasValidArcSecret(req: Request): boolean {
+    const secret = getArcSecret(req);
+    const expectedSecret = process.env.ARC_BACKEND_SECRET;
+    if (!expectedSecret) return false;
+    return secret === expectedSecret;
+  }
+
   function authMiddleware(req: Request, res: Response, next: NextFunction) {
-    const secret = req.headers["x-arc-secret"];
+    const secret = getArcSecret(req);
     const expectedSecret = process.env.ARC_BACKEND_SECRET;
 
     if (!expectedSecret) {
@@ -120,7 +150,8 @@
     });
 
     // ==================== ARC EXECUTE (X-ARC-TOKEN) ====================
-    app.post("/arc/execute", arcTokenMiddleware, (req: Request, res: Response) => {
+    // Real command router supporting: ping, chat, tts, emit_n8n, db_query
+    app.post("/arc/execute", arcTokenMiddleware, async (req: Request, res: Response) => {
       const { job_id, command, payload } = req.body;
 
       if (!job_id || !command) {
@@ -128,22 +159,143 @@
       }
 
       const external_trace = `replit-${Date.now()}`;
+      const startTime = Date.now();
 
-      if (payload?.action === "ping") {
-        return res.json({
-          ok: true,
-          job_id,
-          external_trace,
-          result: { pong: true, ts: new Date().toISOString() }
-        });
+      try {
+        let result: any;
+
+        switch (command) {
+          case "ping":
+            result = { pong: true, ts: new Date().toISOString() };
+            break;
+
+          case "chat":
+            // Execute chat with specified agent
+            if (!payload?.message) {
+              return res.status(400).json({ ok: false, error: "message required for chat command" });
+            }
+            const agentId = payload.agent_id || "mrf";
+            const agent = VIRTUAL_AGENTS.find((a) => a.id === agentId);
+            if (!agent) {
+              return res.status(400).json({ ok: false, error: `Agent ${agentId} not found` });
+            }
+            if (!process.env.OPENAI_API_KEY) {
+              return res.status(500).json({ ok: false, error: "OPENAI_API_KEY not configured" });
+            }
+            const chatResp = await openai.chat.completions.create({
+              model: "gpt-4o",
+              messages: [
+                { role: "system", content: agent.systemPrompt },
+                { role: "user", content: payload.message },
+              ],
+            });
+            result = {
+              agent_id: agentId,
+              agent_name: agent.name,
+              response: chatResp.choices[0].message.content,
+            };
+            break;
+
+          case "tts":
+            // Text-to-speech via ElevenLabs
+            if (!payload?.text) {
+              return res.status(400).json({ ok: false, error: "text required for tts command" });
+            }
+            const elevenLabsKey = process.env.ELEVENLABS_API_KEY;
+            if (!elevenLabsKey) {
+              return res.status(500).json({ ok: false, error: "ELEVENLABS_API_KEY not configured" });
+            }
+            const voiceId = payload.voice_id || "pNInz6obpgDQGcFmaJgB";
+            const ttsResp = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
+              method: "POST",
+              headers: {
+                "xi-api-key": elevenLabsKey,
+                "Content-Type": "application/json",
+                "Accept": "audio/mpeg",
+              },
+              body: JSON.stringify({
+                text: payload.text,
+                model_id: "eleven_multilingual_v2",
+                voice_settings: { stability: 0.5, similarity_boost: 0.75 },
+              }),
+            });
+            if (!ttsResp.ok) {
+              const errText = await ttsResp.text();
+              return res.status(ttsResp.status).json({ ok: false, error: `ElevenLabs: ${errText}` });
+            }
+            const audioBuffer = Buffer.from(await ttsResp.arrayBuffer());
+            result = { audio_base64: audioBuffer.toString("base64"), voice_id: voiceId };
+            break;
+
+          case "emit_n8n":
+            // Emit webhook to n8n
+            const webhookUrl = process.env.N8N_WEBHOOK_URL;
+            if (!webhookUrl) {
+              return res.status(500).json({ ok: false, error: "N8N_WEBHOOK_URL not configured" });
+            }
+            const n8nResp = await fetch(webhookUrl, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ job_id, ...payload }),
+            });
+            result = { n8n_status: n8nResp.status, n8n_ok: n8nResp.ok };
+            break;
+
+          case "db_query":
+            // Execute read-only database query (SELECT only, hardened)
+            if (!payload?.query) {
+              return res.status(400).json({ ok: false, error: "query required for db_query command" });
+            }
+            const rawQuery = (payload.query as string).trim();
+            const queryUpper = rawQuery.toUpperCase();
+            
+            // Block multiple statements (semicolons except in strings)
+            const cleanedQuery = rawQuery.replace(/'[^']*'/g, "").replace(/"[^"]*"/g, "");
+            if (cleanedQuery.includes(";")) {
+              return res.status(403).json({ ok: false, error: "Multiple statements not allowed" });
+            }
+            
+            // Must start with SELECT
+            if (!queryUpper.startsWith("SELECT")) {
+              return res.status(403).json({ ok: false, error: "Only SELECT queries allowed" });
+            }
+            
+            // Block dangerous keywords
+            const dangerousKeywords = ["INSERT", "UPDATE", "DELETE", "DROP", "CREATE", "ALTER", "TRUNCATE", "GRANT", "REVOKE", "EXEC", "EXECUTE", "UNION"];
+            for (const keyword of dangerousKeywords) {
+              const regex = new RegExp(`\\b${keyword}\\b`, "i");
+              if (regex.test(cleanedQuery)) {
+                return res.status(403).json({ ok: false, error: `Keyword '${keyword}' not allowed` });
+              }
+            }
+            
+            const queryResult = await db.execute(sql.raw(rawQuery));
+            result = { rows: queryResult.rows, row_count: queryResult.rows?.length || 0 };
+            break;
+
+          default:
+            // Log unknown command for tracking, return echo
+            result = { message: "command_not_implemented", command, echo: payload };
+        }
+
+        const durationMs = Date.now() - startTime;
+
+        // Log command execution
+        await db.execute(sql`
+          INSERT INTO arc_command_log (command, payload, status, duration_ms, source)
+          VALUES (${command}, ${JSON.stringify(payload || {})}, 'completed', ${durationMs}, 'arc_execute')
+        `).catch(() => {}); // Don't fail if logging fails
+
+        return res.json({ ok: true, job_id, external_trace, duration_ms: durationMs, result });
+      } catch (e: any) {
+        const durationMs = Date.now() - startTime;
+        // Log failed command
+        await db.execute(sql`
+          INSERT INTO arc_command_log (command, payload, status, duration_ms, source)
+          VALUES (${command}, ${JSON.stringify(payload || {})}, 'failed', ${durationMs}, 'arc_execute')
+        `).catch(() => {});
+        return res.status(500).json({ ok: false, job_id, external_trace, error: e.message });
       }
-
-      return res.json({
-        ok: true,
-        job_id,
-        external_trace,
-        result: { message: "executor placeholder", echo: payload }
-      });
     });
 
     // ==================== AGENTS ====================
@@ -318,7 +470,7 @@
     });
 
     // ==================== CHAT ====================
-    app.post("/api/chat", isAuthenticated, async (req: any, res) => {
+    app.post("/api/chat", isAuthenticated, contractsMiddleware("chat", "chat_per_minute"), async (req: any, res) => {
       try {
         const parsed = chatRequestSchema.parse(req.body);
         const userId = req.user?.claims?.sub;
@@ -360,7 +512,7 @@
     });
 
     // ==================== TEXT-TO-SPEECH (ElevenLabs) ====================
-    app.post("/api/tts", isAuthenticated, async (req: Request, res: Response) => {
+    app.post("/api/tts", isAuthenticated, contractsMiddleware("tts", "tts_per_minute"), async (req: Request, res: Response) => {
       try {
         const { text, voice } = req.body;
         if (!text) return sendError(res, 400, "Text is required");
@@ -467,6 +619,483 @@
           } catch { /* use default */ }
         }
         sendSuccess(res, { selfAwareness: data });
+      } catch (e: any) {
+        sendError(res, 500, e.message);
+      }
+    });
+
+    // ==================== ARC INGEST ENDPOINTS ====================
+    
+    // POST /api/arc/receive - Store n8n callback data in arc_feedback table
+    app.post("/api/arc/receive", async (req: Request, res: Response) => {
+      try {
+        const { command_id, source, status, data } = req.body;
+        if (!source) {
+          return sendError(res, 400, "source is required");
+        }
+        const result = await db.execute(sql`
+          INSERT INTO arc_feedback (command_id, source, status, data)
+          VALUES (${command_id || null}, ${source}, ${status || 'received'}, ${JSON.stringify(data || {})})
+          RETURNING id
+        `);
+        const id = (result.rows?.[0] as any)?.id;
+        sendSuccess(res, { status: "ok", id, stored: "arc_feedback" });
+      } catch (e: any) {
+        sendError(res, 500, e.message);
+      }
+    });
+
+    // POST /api/arc/command - Log Mr.F Brain commands in arc_command_log table
+    app.post("/api/arc/command", async (req: Request, res: Response) => {
+      try {
+        const { command, payload, status, source, user_id } = req.body;
+        if (!command) {
+          return sendError(res, 400, "command is required");
+        }
+        const result = await db.execute(sql`
+          INSERT INTO arc_command_log (command, payload, status, source, user_id)
+          VALUES (${command}, ${JSON.stringify(payload || {})}, ${status || 'pending'}, ${source || null}, ${user_id || null})
+          RETURNING id
+        `);
+        const id = (result.rows?.[0] as any)?.id;
+        sendSuccess(res, { status: "ok", id, stored: "arc_command_log" });
+      } catch (e: any) {
+        sendError(res, 500, e.message);
+      }
+    });
+
+    // POST /api/arc/events - Store agent events in agent_events table
+    app.post("/api/arc/events", async (req: Request, res: Response) => {
+      try {
+        const { event_id, agent_id, type, payload, created_at } = req.body;
+        if (!event_id || !agent_id || !type) {
+          return sendError(res, 400, "event_id, agent_id, and type are required");
+        }
+        const result = await db.execute(sql`
+          INSERT INTO agent_events (event_id, agent_id, type, payload, created_at)
+          VALUES (${event_id}, ${agent_id}, ${type}, ${JSON.stringify(payload || {})}, ${created_at || null})
+          RETURNING id
+        `);
+        const id = (result.rows?.[0] as any)?.id;
+        sendSuccess(res, { status: "ok", id, stored: "agent_events" });
+      } catch (e: any) {
+        sendError(res, 500, e.message);
+      }
+    });
+
+    // POST /api/arc/agent-events - Alternative ingest for agent events (n8n compatible)
+    app.post("/api/arc/agent-events", async (req: Request, res: Response) => {
+      try {
+        const parsed = supabaseAgentEventSchema.safeParse(req.body);
+        if (!parsed.success) {
+          return sendError(res, 400, "Invalid payload", parsed.error.errors);
+        }
+        const { agent_name, event_type, payload } = parsed.data;
+        const eventId = `evt-${Date.now()}-${Math.random().toString(36).substring(7)}`;
+        const result = await db.execute(sql`
+          INSERT INTO agent_events (event_id, agent_id, type, payload)
+          VALUES (${eventId}, ${agent_name}, ${event_type}, ${JSON.stringify(payload || {})})
+          RETURNING id
+        `);
+        const id = (result.rows?.[0] as any)?.id;
+        sendSuccess(res, { status: "ok", id, stored: "agent_events" });
+      } catch (e: any) {
+        sendError(res, 500, e.message);
+      }
+    });
+
+    // POST /api/arc/ceo-reminders - Handle CEO reminders
+    app.post("/api/arc/ceo-reminders", async (req: Request, res: Response) => {
+      try {
+        const { date, missing_ceos } = req.body;
+        if (!date) {
+          return sendError(res, 400, "date is required");
+        }
+        const result = await db.execute(sql`
+          INSERT INTO ceo_reminders (date, missing_ceos)
+          VALUES (${date}, ${missing_ceos || null})
+          RETURNING id
+        `);
+        const id = (result.rows?.[0] as any)?.id;
+        sendSuccess(res, { status: "ok", id, stored: "ceo_reminders" });
+      } catch (e: any) {
+        sendError(res, 500, e.message);
+      }
+    });
+
+    // POST /api/arc/executive-summary - Generate executive summary
+    app.post("/api/arc/executive-summary", async (req: Request, res: Response) => {
+      try {
+        const { date, summary_text, profit_score, risk_score, top_decisions } = req.body;
+        if (!date || !summary_text) {
+          return sendError(res, 400, "date and summary_text are required");
+        }
+        const result = await db.execute(sql`
+          INSERT INTO executive_summaries (date, summary_text, profit_score, risk_score, top_decisions)
+          VALUES (${date}, ${summary_text}, ${profit_score || null}, ${risk_score || null}, ${top_decisions || null})
+          RETURNING id
+        `);
+        const id = (result.rows?.[0] as any)?.id;
+        sendSuccess(res, { status: "ok", id, stored: "executive_summaries" });
+      } catch (e: any) {
+        sendError(res, 500, e.message);
+      }
+    });
+
+    // POST /api/arc/governance/notify - Governance notifications
+    app.post("/api/arc/governance/notify", async (req: Request, res: Response) => {
+      try {
+        const { rule_id, status, title, summary, proposer_agent_id } = req.body;
+        if (!rule_id || !status || !title) {
+          return sendError(res, 400, "rule_id, status, and title are required");
+        }
+        const result = await db.execute(sql`
+          INSERT INTO governance_notifications (rule_id, status, title, summary, proposer_agent_id)
+          VALUES (${rule_id}, ${status}, ${title}, ${summary || null}, ${proposer_agent_id || null})
+          RETURNING id
+        `);
+        const id = (result.rows?.[0] as any)?.id;
+        sendSuccess(res, { status: "ok", id, stored: "governance_notifications" });
+      } catch (e: any) {
+        sendError(res, 500, e.message);
+      }
+    });
+
+    // POST /api/arc/rules/broadcast - Rule broadcasts
+    app.post("/api/arc/rules/broadcast", async (req: Request, res: Response) => {
+      try {
+        const { rule_id, effective_at, status, title } = req.body;
+        if (!rule_id || !status || !title) {
+          return sendError(res, 400, "rule_id, status, and title are required");
+        }
+        const result = await db.execute(sql`
+          INSERT INTO rule_broadcasts (rule_id, effective_at, status, title)
+          VALUES (${rule_id}, ${effective_at || null}, ${status}, ${title})
+          RETURNING id
+        `);
+        const id = (result.rows?.[0] as any)?.id;
+        sendSuccess(res, { status: "ok", id, stored: "rule_broadcasts" });
+      } catch (e: any) {
+        sendError(res, 500, e.message);
+      }
+    });
+
+    // POST /api/arc/notifications/high - High priority notifications
+    app.post("/api/arc/notifications/high", async (req: Request, res: Response) => {
+      try {
+        const { source_agent_id, severity, title, body, context } = req.body;
+        if (!source_agent_id || !severity || !title) {
+          return sendError(res, 400, "source_agent_id, severity, and title are required");
+        }
+        const result = await db.execute(sql`
+          INSERT INTO high_priority_notifications (source_agent_id, severity, title, body, context)
+          VALUES (${source_agent_id}, ${severity}, ${title}, ${body || null}, ${JSON.stringify(context || {})})
+          RETURNING id
+        `);
+        const id = (result.rows?.[0] as any)?.id;
+        sendSuccess(res, { status: "ok", id, stored: "high_priority_notifications" });
+      } catch (e: any) {
+        sendError(res, 500, e.message);
+      }
+    });
+
+    // ==================== CAUSAL MEMORY ENDPOINTS ====================
+
+    // POST /api/core/intent - Create intent log entry
+    app.post("/api/core/intent", async (req: Request, res: Response) => {
+      try {
+        const parsed = createIntentSchema.safeParse(req.body);
+        if (!parsed.success) {
+          return sendError(res, 400, "Invalid payload", parsed.error.errors);
+        }
+        const { actor_type, actor_id, intent_type, intent_text, context } = parsed.data;
+        const result = await db.execute(sql`
+          INSERT INTO intent_log (actor_type, actor_id, intent_type, intent_text, context)
+          VALUES (${actor_type}, ${actor_id || null}, ${intent_type}, ${intent_text}, ${JSON.stringify(context || {})})
+          RETURNING id, created_at
+        `);
+        const row = result.rows?.[0] as any;
+        sendSuccess(res, { id: row?.id, created_at: row?.created_at });
+      } catch (e: any) {
+        sendError(res, 500, e.message);
+      }
+    });
+
+    // POST /api/core/action - Create action log entry
+    app.post("/api/core/action", async (req: Request, res: Response) => {
+      try {
+        const parsed = createActionSchema.safeParse(req.body);
+        if (!parsed.success) {
+          return sendError(res, 400, "Invalid payload", parsed.error.errors);
+        }
+        const { intent_id, action_type, action_target, request, cost_usd, status } = parsed.data;
+        const result = await db.execute(sql`
+          INSERT INTO action_log (intent_id, action_type, action_target, request, cost_usd, status)
+          VALUES (${intent_id}, ${action_type}, ${action_target || null}, ${JSON.stringify(request || {})}, ${cost_usd || null}, ${status || 'queued'})
+          RETURNING id, created_at
+        `);
+        const row = result.rows?.[0] as any;
+        sendSuccess(res, { id: row?.id, created_at: row?.created_at });
+      } catch (e: any) {
+        sendError(res, 500, e.message);
+      }
+    });
+
+    // PATCH /api/core/action/:id - Update action status
+    app.patch("/api/core/action/:id", async (req: Request, res: Response) => {
+      try {
+        const { id } = req.params;
+        const { status } = req.body;
+        if (!status) {
+          return sendError(res, 400, "status is required");
+        }
+        await db.execute(sql`
+          UPDATE action_log SET status = ${status} WHERE id = ${id}
+        `);
+        sendSuccess(res, { updated: true, id, status });
+      } catch (e: any) {
+        sendError(res, 500, e.message);
+      }
+    });
+
+    // POST /api/core/result - Create result log entry
+    app.post("/api/core/result", async (req: Request, res: Response) => {
+      try {
+        const parsed = createResultSchema.safeParse(req.body);
+        if (!parsed.success) {
+          return sendError(res, 400, "Invalid payload", parsed.error.errors);
+        }
+        const { action_id, output, error, latency_ms } = parsed.data;
+        const result = await db.execute(sql`
+          INSERT INTO result_log (action_id, output, error, latency_ms)
+          VALUES (${action_id}, ${JSON.stringify(output || {})}, ${error || null}, ${latency_ms || null})
+          RETURNING id, created_at
+        `);
+        const row = result.rows?.[0] as any;
+        sendSuccess(res, { id: row?.id, created_at: row?.created_at });
+      } catch (e: any) {
+        sendError(res, 500, e.message);
+      }
+    });
+
+    // POST /api/core/impact - Create impact log entry
+    app.post("/api/core/impact", async (req: Request, res: Response) => {
+      try {
+        const parsed = createImpactSchema.safeParse(req.body);
+        if (!parsed.success) {
+          return sendError(res, 400, "Invalid payload", parsed.error.errors);
+        }
+        const { intent_id, impact_type, impact_score, impact } = parsed.data;
+        const result = await db.execute(sql`
+          INSERT INTO impact_log (intent_id, impact_type, impact_score, impact)
+          VALUES (${intent_id}, ${impact_type}, ${impact_score || null}, ${JSON.stringify(impact || {})})
+          RETURNING id, created_at
+        `);
+        const row = result.rows?.[0] as any;
+        sendSuccess(res, { id: row?.id, created_at: row?.created_at });
+      } catch (e: any) {
+        sendError(res, 500, e.message);
+      }
+    });
+
+    // GET /api/core/timeline - Get causal timeline (intents with actions, results, impacts)
+    app.get("/api/core/timeline", async (req: Request, res: Response) => {
+      try {
+        const limit = parseInt(req.query.limit as string) || 20;
+        const offset = parseInt(req.query.offset as string) || 0;
+        const result = await db.execute(sql`
+          SELECT 
+            i.id as intent_id,
+            i.created_at as intent_at,
+            i.actor_type,
+            i.actor_id,
+            i.intent_type,
+            i.intent_text,
+            json_agg(DISTINCT jsonb_build_object(
+              'id', a.id,
+              'action_type', a.action_type,
+              'action_target', a.action_target,
+              'status', a.status,
+              'cost_usd', a.cost_usd
+            )) FILTER (WHERE a.id IS NOT NULL) as actions,
+            json_agg(DISTINCT jsonb_build_object(
+              'id', r.id,
+              'latency_ms', r.latency_ms,
+              'error', r.error
+            )) FILTER (WHERE r.id IS NOT NULL) as results,
+            json_agg(DISTINCT jsonb_build_object(
+              'id', im.id,
+              'impact_type', im.impact_type,
+              'impact_score', im.impact_score
+            )) FILTER (WHERE im.id IS NOT NULL) as impacts
+          FROM intent_log i
+          LEFT JOIN action_log a ON a.intent_id = i.id
+          LEFT JOIN result_log r ON r.action_id = a.id
+          LEFT JOIN impact_log im ON im.intent_id = i.id
+          GROUP BY i.id
+          ORDER BY i.created_at DESC
+          LIMIT ${limit} OFFSET ${offset}
+        `);
+        sendSuccess(res, result.rows || []);
+      } catch (e: any) {
+        sendError(res, 500, e.message);
+      }
+    });
+
+    // POST /api/core/reflect - Generate reflection analysis (Reflective Loop)
+    app.post("/api/core/reflect", async (req: Request, res: Response) => {
+      try {
+        const windowMinutes = req.body.window_minutes || 1440; // Default 24 hours
+
+        // Get stats for the window
+        const statsResult = await db.execute(sql`
+          SELECT
+            COUNT(DISTINCT i.id) as total_intents,
+            COUNT(DISTINCT a.id) as total_actions,
+            COUNT(DISTINCT r.id) as total_results,
+            COUNT(DISTINCT CASE WHEN a.status = 'success' THEN a.id END) as successful_actions,
+            COUNT(DISTINCT CASE WHEN a.status = 'failed' THEN a.id END) as failed_actions,
+            COALESCE(SUM(a.cost_usd::numeric), 0) as total_cost,
+            COALESCE(AVG(r.latency_ms), 0) as avg_latency
+          FROM intent_log i
+          LEFT JOIN action_log a ON a.intent_id = i.id
+          LEFT JOIN result_log r ON r.action_id = a.id
+          WHERE i.created_at > NOW() - (${windowMinutes} || ' minutes')::interval
+        `);
+
+        const stats = statsResult.rows?.[0] || {};
+
+        // Get top errors
+        const errorsResult = await db.execute(sql`
+          SELECT r.error, COUNT(*) as count
+          FROM result_log r
+          JOIN action_log a ON r.action_id = a.id
+          JOIN intent_log i ON a.intent_id = i.id
+          WHERE r.error IS NOT NULL
+            AND i.created_at > NOW() - (${windowMinutes} || ' minutes')::interval
+          GROUP BY r.error
+          ORDER BY count DESC
+          LIMIT 5
+        `);
+
+        const topErrors = errorsResult.rows || [];
+
+        // Generate AI recommendations if OpenAI is configured
+        let recommendations: string[] = [];
+        if (process.env.OPENAI_API_KEY) {
+          try {
+            const prompt = `Analyze these system metrics and provide 3 brief recommendations:
+Stats: ${JSON.stringify(stats)}
+Top Errors: ${JSON.stringify(topErrors)}
+Provide actionable, concise recommendations.`;
+            const aiResp = await openai.chat.completions.create({
+              model: "gpt-4o-mini",
+              messages: [{ role: "user", content: prompt }],
+              max_tokens: 300,
+            });
+            const content = aiResp.choices[0]?.message?.content || "";
+            recommendations = content.split("\n").filter((line) => line.trim().length > 0);
+          } catch {
+            recommendations = ["AI recommendations unavailable"];
+          }
+        }
+
+        // Store reflection
+        const reflectResult = await db.execute(sql`
+          INSERT INTO reflections (window_minutes, stats, top_errors, recommendations)
+          VALUES (${windowMinutes}, ${JSON.stringify(stats)}, ${JSON.stringify(topErrors)}, ${JSON.stringify(recommendations)})
+          RETURNING id, created_at
+        `);
+
+        const row = reflectResult.rows?.[0] as any;
+        sendSuccess(res, {
+          id: row?.id,
+          created_at: row?.created_at,
+          window_minutes: windowMinutes,
+          stats,
+          top_errors: topErrors,
+          recommendations,
+        });
+      } catch (e: any) {
+        sendError(res, 500, e.message);
+      }
+    });
+
+    // GET /api/core/reflections - Get past reflections
+    app.get("/api/core/reflections", async (req: Request, res: Response) => {
+      try {
+        const limit = parseInt(req.query.limit as string) || 10;
+        const result = await db.execute(sql`
+          SELECT id, created_at, window_minutes, stats, top_errors, recommendations
+          FROM reflections
+          ORDER BY created_at DESC
+          LIMIT ${limit}
+        `);
+        sendSuccess(res, result.rows || []);
+      } catch (e: any) {
+        sendError(res, 500, e.message);
+      }
+    });
+
+    // ==================== AGENT CONTRACTS ENDPOINTS ====================
+
+    // GET /api/contracts - Get full contracts configuration
+    app.get("/api/contracts", (_req: Request, res: Response) => {
+      try {
+        const contracts = loadContracts();
+        sendSuccess(res, contracts);
+      } catch (e: any) {
+        sendError(res, 500, e.message);
+      }
+    });
+
+    // GET /api/contracts/summary - Get contracts summary
+    app.get("/api/contracts/summary", (_req: Request, res: Response) => {
+      try {
+        const summary = getContractsSummary();
+        sendSuccess(res, summary);
+      } catch (e: any) {
+        sendError(res, 500, e.message);
+      }
+    });
+
+    // GET /api/contracts/agent/:agentId - Get agent contract
+    app.get("/api/contracts/agent/:agentId", (req: Request, res: Response) => {
+      try {
+        const { agentId } = req.params;
+        const contract = getAgentContract(agentId);
+        if (!contract) {
+          return sendError(res, 404, `Agent contract not found: ${agentId}`);
+        }
+        sendSuccess(res, contract);
+      } catch (e: any) {
+        sendError(res, 500, e.message);
+      }
+    });
+
+    // GET /api/contracts/action/:actionType - Get action contract
+    app.get("/api/contracts/action/:actionType", (req: Request, res: Response) => {
+      try {
+        const { actionType } = req.params;
+        const contract = getActionContract(actionType);
+        if (!contract) {
+          return sendError(res, 404, `Action contract not found: ${actionType}`);
+        }
+        sendSuccess(res, contract);
+      } catch (e: any) {
+        sendError(res, 500, e.message);
+      }
+    });
+
+    // POST /api/contracts/check-permission - Check if agent has permission for action
+    app.post("/api/contracts/check-permission", (req: Request, res: Response) => {
+      try {
+        const { agent_id, action } = req.body;
+        if (!agent_id || !action) {
+          return sendError(res, 400, "agent_id and action are required");
+        }
+        const allowed = checkPermission(agent_id, action);
+        sendSuccess(res, { agent_id, action, allowed });
       } catch (e: any) {
         sendError(res, 500, e.message);
       }
