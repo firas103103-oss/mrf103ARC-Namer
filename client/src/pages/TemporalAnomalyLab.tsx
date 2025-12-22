@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   Clock,
   Calendar,
@@ -22,11 +23,13 @@ import {
   Search,
   Play,
   Pause,
+  Loader2,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select,
   SelectContent,
@@ -49,7 +52,7 @@ interface Agent {
   id: string;
   name: string;
   role: string;
-  icon: typeof Crown;
+  avatar: string;
   currentPerformance: number;
   historicalAvg: number;
   trend: "up" | "down" | "stable";
@@ -84,26 +87,23 @@ interface ClusterGroup {
   performance: number;
 }
 
-const AGENTS: Agent[] = [
-  { id: "mrf", name: "Mr.F", role: "Executive Orchestrator", icon: Crown, currentPerformance: 94, historicalAvg: 91, trend: "up" },
-  { id: "l0-ops", name: "L0-Ops", role: "Operations Commander", icon: Settings, currentPerformance: 87, historicalAvg: 89, trend: "down" },
-  { id: "l0-comms", name: "L0-Comms", role: "Communications Director", icon: Radio, currentPerformance: 82, historicalAvg: 80, trend: "up" },
-  { id: "l0-intel", name: "L0-Intel", role: "Intelligence Analyst", icon: Brain, currentPerformance: 91, historicalAvg: 88, trend: "up" },
-  { id: "photographer", name: "Alex Vision", role: "Photography Specialist", icon: Camera, currentPerformance: 78, historicalAvg: 82, trend: "down" },
-  { id: "grants", name: "Diana Grant", role: "Grants Specialist", icon: FileText, currentPerformance: 85, historicalAvg: 84, trend: "stable" },
-  { id: "legal", name: "Marcus Law", role: "Legal Advisor", icon: Scale, currentPerformance: 89, historicalAvg: 87, trend: "up" },
-  { id: "finance", name: "Sarah Numbers", role: "Financial Analyst", icon: TrendingUp, currentPerformance: 92, historicalAvg: 90, trend: "up" },
-  { id: "creative", name: "Jordan Spark", role: "Creative Director", icon: Palette, currentPerformance: 76, historicalAvg: 81, trend: "down" },
-  { id: "researcher", name: "Dr. Maya Quest", role: "Research Analyst", icon: Search, currentPerformance: 88, historicalAvg: 86, trend: "up" },
-];
+interface PerformanceResponse {
+  agents: Agent[];
+  chartData: Array<Record<string, any>>;
+}
 
-const ANOMALIES: Anomaly[] = [
-  { id: "a1", agentId: "creative", agentName: "Jordan Spark", type: "drop", severity: "moderate", description: "Response time increased by 45% compared to baseline", timestamp: "2024-12-19 14:32", metric: "Response Time", deviation: -45 },
-  { id: "a2", agentId: "l0-ops", agentName: "L0-Ops", type: "pattern", severity: "minor", description: "Unusual task completion pattern detected during off-hours", timestamp: "2024-12-19 03:15", metric: "Task Pattern", deviation: -12 },
-  { id: "a3", agentId: "photographer", agentName: "Alex Vision", type: "drop", severity: "critical", description: "Quality score dropped below threshold for 3 consecutive periods", timestamp: "2024-12-18 09:45", metric: "Quality Score", deviation: -28 },
-  { id: "a4", agentId: "mrf", agentName: "Mr.F", type: "spike", severity: "minor", description: "Exceptional performance spike in decision accuracy", timestamp: "2024-12-18 16:20", metric: "Decision Accuracy", deviation: 18 },
-  { id: "a5", agentId: "finance", agentName: "Sarah Numbers", type: "spike", severity: "minor", description: "Above-average processing speed maintained for extended period", timestamp: "2024-12-17 11:00", metric: "Processing Speed", deviation: 22 },
-];
+const ICON_MAP: Record<string, typeof Crown> = {
+  crown: Crown,
+  settings: Settings,
+  radio: Radio,
+  brain: Brain,
+  camera: Camera,
+  "file-text": FileText,
+  scale: Scale,
+  "trending-up": TrendingUp,
+  palette: Palette,
+  search: Search,
+};
 
 const PLAYBOOKS: Playbook[] = [
   { id: "p1", title: "Recalibrate Creative Workflows", description: "Adjust task distribution and priority settings for Creative Director to optimize response times", status: "in-progress", priority: "high", relatedAnomalyId: "a1" },
@@ -119,16 +119,6 @@ const CLUSTER_GROUPS: ClusterGroup[] = [
   { id: "c3", name: "Needs Attention", color: "hsl(38deg 92% 50%)", agents: ["l0-ops", "creative", "photographer"], performance: 80 },
 ];
 
-const CHART_DATA = [
-  { date: "Dec 14", mrF: 88, l0Ops: 91, l0Intel: 85, creative: 83, avg: 86 },
-  { date: "Dec 15", mrF: 90, l0Ops: 89, l0Intel: 87, creative: 80, avg: 86 },
-  { date: "Dec 16", mrF: 92, l0Ops: 88, l0Intel: 89, creative: 79, avg: 87 },
-  { date: "Dec 17", mrF: 91, l0Ops: 87, l0Intel: 90, creative: 78, avg: 86 },
-  { date: "Dec 18", mrF: 93, l0Ops: 86, l0Intel: 91, creative: 75, avg: 86 },
-  { date: "Dec 19", mrF: 94, l0Ops: 87, l0Intel: 91, creative: 76, avg: 87 },
-  { date: "Dec 20", mrF: 94, l0Ops: 87, l0Intel: 91, creative: 76, avg: 87 },
-];
-
 const TIME_PRESETS = [
   { label: "Last 7 days", value: "7d" },
   { label: "Last 30 days", value: "30d" },
@@ -140,6 +130,19 @@ export default function TemporalAnomalyLab() {
   const [selectedAgents, setSelectedAgents] = useState<string[]>(["mrf", "l0-intel", "creative"]);
   const [isLiveMode, setIsLiveMode] = useState(false);
 
+  const { data: performanceData, isLoading: isLoadingPerformance, error: performanceError } = useQuery<PerformanceResponse>({
+    queryKey: ['/api/agents/performance', timeRange],
+    refetchInterval: isLiveMode ? 30000 : false,
+  });
+
+  const { data: anomalies, isLoading: isLoadingAnomalies, error: anomaliesError } = useQuery<Anomaly[]>({
+    queryKey: ['/api/agents/anomalies', timeRange],
+    refetchInterval: isLiveMode ? 30000 : false,
+  });
+
+  const agents = performanceData?.agents || [];
+  const chartData = performanceData?.chartData || [];
+
   const toggleAgent = (agentId: string) => {
     setSelectedAgents((prev) =>
       prev.includes(agentId)
@@ -150,7 +153,11 @@ export default function TemporalAnomalyLab() {
     );
   };
 
-  const selectedAgentData = AGENTS.filter((a) => selectedAgents.includes(a.id));
+  const selectedAgentData = agents.filter((a) => selectedAgents.includes(a.id));
+
+  const getAgentIcon = (avatar: string) => {
+    return ICON_MAP[avatar] || Crown;
+  };
 
   const getSeverityColor = (severity: Anomaly["severity"]) => {
     switch (severity) {
@@ -185,6 +192,8 @@ export default function TemporalAnomalyLab() {
     }
   };
 
+  const anomalyList = anomalies || [];
+
   return (
     <div className="p-6 space-y-6 bg-grid-pattern min-h-full" data-testid="temporal-anomaly-lab">
       <div className="flex items-center justify-between gap-4 flex-wrap">
@@ -218,6 +227,9 @@ export default function TemporalAnomalyLab() {
             <Zap className="h-3 w-3 mr-1" />
             {isLiveMode ? "Real-time" : "Analysis Mode"}
           </Badge>
+          {(isLoadingPerformance || isLoadingAnomalies) && (
+            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+          )}
         </div>
       </div>
 
@@ -288,68 +300,85 @@ export default function TemporalAnomalyLab() {
             </Select>
           </CardHeader>
           <CardContent className="space-y-4">
-            <ScrollArea className="h-[120px]">
-              <div className="flex flex-wrap gap-2">
-                {AGENTS.map((agent) => {
-                  const isSelected = selectedAgents.includes(agent.id);
-                  const IconComponent = agent.icon;
-                  return (
-                    <Button
-                      key={agent.id}
-                      variant={isSelected ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => toggleAgent(agent.id)}
-                      className="gap-1"
-                      data-testid={`button-agent-${agent.id}`}
-                    >
-                      <IconComponent className="h-3 w-3" />
-                      {agent.name}
-                    </Button>
-                  );
-                })}
+            {isLoadingPerformance ? (
+              <div className="space-y-3">
+                <Skeleton className="h-[120px] w-full" />
+                <div className="grid grid-cols-2 gap-3">
+                  <Skeleton className="h-24" />
+                  <Skeleton className="h-24" />
+                </div>
               </div>
-            </ScrollArea>
+            ) : performanceError ? (
+              <div className="text-center py-6 text-muted-foreground">
+                <AlertTriangle className="h-8 w-8 mx-auto mb-2 text-yellow-500" />
+                <p>Failed to load agent data</p>
+              </div>
+            ) : (
+              <>
+                <ScrollArea className="h-[120px]">
+                  <div className="flex flex-wrap gap-2">
+                    {agents.map((agent) => {
+                      const isSelected = selectedAgents.includes(agent.id);
+                      const IconComponent = getAgentIcon(agent.avatar);
+                      return (
+                        <Button
+                          key={agent.id}
+                          variant={isSelected ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => toggleAgent(agent.id)}
+                          className="gap-1"
+                          data-testid={`button-agent-${agent.id}`}
+                        >
+                          <IconComponent className="h-3 w-3" />
+                          {agent.name}
+                        </Button>
+                      );
+                    })}
+                  </div>
+                </ScrollArea>
 
-            {selectedAgentData.length > 0 && (
-              <div className="grid grid-cols-2 gap-3">
-                {selectedAgentData.map((agent) => {
-                  const IconComponent = agent.icon;
-                  const delta = agent.currentPerformance - agent.historicalAvg;
-                  return (
-                    <div
-                      key={agent.id}
-                      className="p-3 rounded-lg border border-border bg-muted/30 space-y-2"
-                      data-testid={`card-agent-comparison-${agent.id}`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div className="p-1.5 rounded-md bg-primary/20">
-                            <IconComponent className="h-4 w-4 text-primary" />
+                {selectedAgentData.length > 0 && (
+                  <div className="grid grid-cols-2 gap-3">
+                    {selectedAgentData.map((agent) => {
+                      const IconComponent = getAgentIcon(agent.avatar);
+                      const delta = agent.currentPerformance - agent.historicalAvg;
+                      return (
+                        <div
+                          key={agent.id}
+                          className="p-3 rounded-lg border border-border bg-muted/30 space-y-2"
+                          data-testid={`card-agent-comparison-${agent.id}`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <div className="p-1.5 rounded-md bg-primary/20">
+                                <IconComponent className="h-4 w-4 text-primary" />
+                              </div>
+                              <span className="font-medium text-sm">{agent.name}</span>
+                            </div>
+                            {getTrendIcon(agent.trend)}
                           </div>
-                          <span className="font-medium text-sm">{agent.name}</span>
+                          <div className="space-y-1">
+                            <div className="flex justify-between text-xs">
+                              <span className="text-muted-foreground">Current</span>
+                              <span className="font-mono font-medium">{agent.currentPerformance}%</span>
+                            </div>
+                            <div className="flex justify-between text-xs">
+                              <span className="text-muted-foreground">Historical Avg</span>
+                              <span className="font-mono">{agent.historicalAvg}%</span>
+                            </div>
+                            <div className="flex justify-between text-xs">
+                              <span className="text-muted-foreground">Delta</span>
+                              <span className={`font-mono ${delta >= 0 ? "text-green-400" : "text-red-400"}`}>
+                                {delta >= 0 ? "+" : ""}{delta}%
+                              </span>
+                            </div>
+                          </div>
                         </div>
-                        {getTrendIcon(agent.trend)}
-                      </div>
-                      <div className="space-y-1">
-                        <div className="flex justify-between text-xs">
-                          <span className="text-muted-foreground">Current</span>
-                          <span className="font-mono font-medium">{agent.currentPerformance}%</span>
-                        </div>
-                        <div className="flex justify-between text-xs">
-                          <span className="text-muted-foreground">Historical Avg</span>
-                          <span className="font-mono">{agent.historicalAvg}%</span>
-                        </div>
-                        <div className="flex justify-between text-xs">
-                          <span className="text-muted-foreground">Delta</span>
-                          <span className={`font-mono ${delta >= 0 ? "text-green-400" : "text-red-400"}`}>
-                            {delta >= 0 ? "+" : ""}{delta}%
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </>
             )}
           </CardContent>
         </Card>
@@ -364,42 +393,55 @@ export default function TemporalAnomalyLab() {
               <CardDescription>Detected performance anomalies and patterns</CardDescription>
             </div>
             <Badge variant="outline">
-              {ANOMALIES.length} detected
+              {anomalyList.length} detected
             </Badge>
           </CardHeader>
           <CardContent className="space-y-4">
-            <ScrollArea className="h-[240px]">
-              <div className="space-y-2 pr-4">
-                {ANOMALIES.map((anomaly) => (
-                  <div
-                    key={anomaly.id}
-                    className={`p-3 rounded-lg border ${getSeverityColor(anomaly.severity)} space-y-2`}
-                    data-testid={`anomaly-${anomaly.id}`}
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2">
-                        {getAnomalyIcon(anomaly.type)}
-                        <span className="font-medium text-sm">{anomaly.agentName}</span>
-                      </div>
-                      <Badge
-                        variant="outline"
-                        className={getSeverityColor(anomaly.severity)}
-                        data-testid={`badge-severity-${anomaly.id}`}
-                      >
-                        {anomaly.severity}
-                      </Badge>
-                    </div>
-                    <p className="text-xs text-muted-foreground">{anomaly.description}</p>
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-muted-foreground">{anomaly.timestamp}</span>
-                      <span className={`font-mono ${anomaly.deviation >= 0 ? "text-green-400" : "text-red-400"}`}>
-                        {anomaly.deviation >= 0 ? "+" : ""}{anomaly.deviation}% deviation
-                      </span>
-                    </div>
-                  </div>
-                ))}
+            {isLoadingAnomalies ? (
+              <div className="space-y-2">
+                <Skeleton className="h-20" />
+                <Skeleton className="h-20" />
+                <Skeleton className="h-20" />
               </div>
-            </ScrollArea>
+            ) : anomaliesError ? (
+              <div className="text-center py-6 text-muted-foreground">
+                <AlertTriangle className="h-8 w-8 mx-auto mb-2 text-yellow-500" />
+                <p>Failed to load anomalies</p>
+              </div>
+            ) : (
+              <ScrollArea className="h-[240px]">
+                <div className="space-y-2 pr-4">
+                  {anomalyList.map((anomaly) => (
+                    <div
+                      key={anomaly.id}
+                      className={`p-3 rounded-lg border ${getSeverityColor(anomaly.severity)} space-y-2`}
+                      data-testid={`anomaly-${anomaly.id}`}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          {getAnomalyIcon(anomaly.type)}
+                          <span className="font-medium text-sm">{anomaly.agentName}</span>
+                        </div>
+                        <Badge
+                          variant="outline"
+                          className={getSeverityColor(anomaly.severity)}
+                          data-testid={`badge-severity-${anomaly.id}`}
+                        >
+                          {anomaly.severity}
+                        </Badge>
+                      </div>
+                      <p className="text-xs text-muted-foreground">{anomaly.description}</p>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-muted-foreground">{anomaly.timestamp}</span>
+                        <span className={`font-mono ${anomaly.deviation >= 0 ? "text-green-400" : "text-red-400"}`}>
+                          {anomaly.deviation >= 0 ? "+" : ""}{anomaly.deviation}% deviation
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            )}
 
             <div className="space-y-2">
               <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Performance Clusters</span>
@@ -494,79 +536,87 @@ export default function TemporalAnomalyLab() {
             </Select>
           </CardHeader>
           <CardContent>
-            <div className="h-[280px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={CHART_DATA} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis
-                    dataKey="date"
-                    tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
-                    axisLine={{ stroke: "hsl(var(--border))" }}
-                  />
-                  <YAxis
-                    domain={[70, 100]}
-                    tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
-                    axisLine={{ stroke: "hsl(var(--border))" }}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "hsl(var(--card))",
-                      border: "1px solid hsl(var(--border))",
-                      borderRadius: "8px",
-                      color: "hsl(var(--foreground))",
-                    }}
-                  />
-                  <Legend
-                    wrapperStyle={{ fontSize: 11 }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="mrF"
-                    name="Mr.F"
-                    stroke="hsl(168deg 65% 46%)"
-                    strokeWidth={2}
-                    dot={false}
-                    activeDot={{ r: 4 }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="l0Ops"
-                    name="L0-Ops"
-                    stroke="hsl(207deg 90% 54%)"
-                    strokeWidth={2}
-                    dot={false}
-                    activeDot={{ r: 4 }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="l0Intel"
-                    name="L0-Intel"
-                    stroke="hsl(280deg 65% 60%)"
-                    strokeWidth={2}
-                    dot={false}
-                    activeDot={{ r: 4 }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="creative"
-                    name="Creative"
-                    stroke="hsl(38deg 92% 50%)"
-                    strokeWidth={2}
-                    dot={false}
-                    activeDot={{ r: 4 }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="avg"
-                    name="Average"
-                    stroke="hsl(var(--muted-foreground))"
-                    strokeWidth={1}
-                    strokeDasharray="5 5"
-                    dot={false}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
+            {isLoadingPerformance ? (
+              <Skeleton className="h-[280px] w-full" />
+            ) : performanceError ? (
+              <div className="h-[280px] flex items-center justify-center text-muted-foreground">
+                <div className="text-center">
+                  <AlertTriangle className="h-8 w-8 mx-auto mb-2 text-yellow-500" />
+                  <p>Failed to load chart data</p>
+                </div>
+              </div>
+            ) : (
+              <div className="h-[280px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                    <XAxis
+                      dataKey="date"
+                      tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
+                      axisLine={{ stroke: "hsl(var(--border))" }}
+                    />
+                    <YAxis
+                      domain={[70, 100]}
+                      tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
+                      axisLine={{ stroke: "hsl(var(--border))" }}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: "hsl(var(--card))",
+                        border: "1px solid hsl(var(--border))",
+                        borderRadius: "8px",
+                        color: "hsl(var(--foreground))",
+                      }}
+                    />
+                    <Legend
+                      wrapperStyle={{ fontSize: 11 }}
+                      formatter={(value) => <span className="text-foreground">{value}</span>}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="mrf"
+                      name="Mr.F"
+                      stroke="hsl(168deg 65% 46%)"
+                      strokeWidth={2}
+                      dot={false}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="l0ops"
+                      name="L0-Ops"
+                      stroke="hsl(207deg 90% 54%)"
+                      strokeWidth={2}
+                      dot={false}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="l0intel"
+                      name="L0-Intel"
+                      stroke="hsl(280deg 65% 60%)"
+                      strokeWidth={2}
+                      dot={false}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="creative"
+                      name="Creative"
+                      stroke="hsl(38deg 92% 50%)"
+                      strokeWidth={2}
+                      dot={false}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="avg"
+                      name="Average"
+                      stroke="hsl(var(--muted-foreground))"
+                      strokeWidth={2}
+                      strokeDasharray="5 5"
+                      dot={false}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

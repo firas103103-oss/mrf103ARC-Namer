@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { VIRTUAL_AGENTS } from "@shared/schema";
+import { Skeleton } from "@/components/ui/skeleton";
 import { 
   BarChart3,
   TrendingUp,
@@ -16,7 +16,8 @@ import {
   Clock,
   Target,
   ArrowUpRight,
-  ArrowDownRight
+  ArrowDownRight,
+  AlertCircle
 } from "lucide-react";
 
 interface DashboardMetrics {
@@ -40,6 +41,7 @@ interface AgentPerformance {
   tasksCompleted: number;
   avgResponseTime: number;
   successRate: number;
+  messageCount?: number;
 }
 
 export default function AnalyticsHub() {
@@ -47,13 +49,9 @@ export default function AnalyticsHub() {
     queryKey: ["/api/dashboard/metrics"],
   });
 
-  const mockAgentPerformance: AgentPerformance[] = VIRTUAL_AGENTS.slice(0, 6).map((agent, i) => ({
-    agentId: agent.id,
-    name: agent.name,
-    tasksCompleted: Math.floor(Math.random() * 50) + 10,
-    avgResponseTime: Math.floor(Math.random() * 500) + 100,
-    successRate: 85 + Math.floor(Math.random() * 15),
-  }));
+  const { data: agentPerformance, isLoading: agentLoading, error: agentError } = useQuery<AgentPerformance[]>({
+    queryKey: ["/api/agents/analytics"],
+  });
 
   const commandMetrics = metrics?.commands || { total: 0, success: 0, failed: 0, avg_response: 0 };
   const taskMetrics = metrics?.tasks || { total: 0, completed: 0, in_progress: 0 };
@@ -227,47 +225,66 @@ export default function AnalyticsHub() {
             <CardDescription>Individual agent metrics and productivity</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Agent</th>
-                    <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Tasks Completed</th>
-                    <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Avg Response</th>
-                    <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Success Rate</th>
-                    <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {mockAgentPerformance.map((agent) => (
-                    <tr key={agent.agentId} className="border-b last:border-0 hover:bg-muted/50" data-testid={`row-agent-${agent.agentId}`}>
-                      <td className="py-3 px-4">
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                            <Users className="h-4 w-4 text-primary" />
-                          </div>
-                          <span className="font-medium">{agent.name}</span>
-                        </div>
-                      </td>
-                      <td className="py-3 px-4 text-right font-medium">{agent.tasksCompleted}</td>
-                      <td className="py-3 px-4 text-right">
-                        <span className="text-muted-foreground">{agent.avgResponseTime}ms</span>
-                      </td>
-                      <td className="py-3 px-4 text-right">
-                        <span className={agent.successRate >= 90 ? "text-green-500" : agent.successRate >= 80 ? "text-yellow-500" : "text-destructive"}>
-                          {agent.successRate}%
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 text-right">
-                        <Badge variant="outline" className="bg-green-500/20 text-green-600 dark:text-green-400">
-                          Active
-                        </Badge>
-                      </td>
+            {agentLoading ? (
+              <div className="space-y-3" data-testid="agent-performance-loading">
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className="flex items-center gap-4">
+                    <Skeleton className="h-8 w-8 rounded-full" />
+                    <Skeleton className="h-4 flex-1" />
+                    <Skeleton className="h-4 w-16" />
+                    <Skeleton className="h-4 w-16" />
+                    <Skeleton className="h-4 w-16" />
+                  </div>
+                ))}
+              </div>
+            ) : agentError ? (
+              <div className="flex items-center gap-2 text-destructive p-4" data-testid="agent-performance-error">
+                <AlertCircle className="h-5 w-5" />
+                <span>Failed to load agent performance data</span>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Agent</th>
+                      <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Tasks Completed</th>
+                      <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Avg Response</th>
+                      <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Success Rate</th>
+                      <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Status</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {(agentPerformance || []).map((agent) => (
+                      <tr key={agent.agentId} className="border-b last:border-0 hover:bg-muted/50" data-testid={`row-agent-${agent.agentId}`}>
+                        <td className="py-3 px-4">
+                          <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                              <Users className="h-4 w-4 text-primary" />
+                            </div>
+                            <span className="font-medium">{agent.name}</span>
+                          </div>
+                        </td>
+                        <td className="py-3 px-4 text-right font-medium">{agent.tasksCompleted}</td>
+                        <td className="py-3 px-4 text-right">
+                          <span className="text-muted-foreground">{agent.avgResponseTime > 0 ? `${agent.avgResponseTime}ms` : '-'}</span>
+                        </td>
+                        <td className="py-3 px-4 text-right">
+                          <span className={agent.successRate >= 90 ? "text-green-500" : agent.successRate >= 80 ? "text-yellow-500" : "text-destructive"}>
+                            {agent.successRate}%
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-right">
+                          <Badge variant="outline" className="bg-green-500/20 text-green-600 dark:text-green-400">
+                            Active
+                          </Badge>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

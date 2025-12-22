@@ -547,6 +547,33 @@ export const workflowSimulations = pgTable("workflow_simulations", {
 export type WorkflowSimulation = typeof workflowSimulations.$inferSelect;
 export type InsertWorkflowSimulation = typeof workflowSimulations.$inferInsert;
 
+export const simulationUpdateSchema = z.object({
+  name: z.string().optional(),
+  description: z.string().optional(),
+  steps: z.array(z.record(z.unknown())).optional(),
+  status: z.enum(["draft", "running", "completed", "failed"]).optional(),
+});
+
+export type SimulationUpdate = z.infer<typeof simulationUpdateSchema>;
+
+// ============================================
+// Mission Scenarios Table
+// ============================================
+export const missionScenarios = pgTable("mission_scenarios", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  objectives: jsonb("objectives").default([]),
+  riskLevel: integer("risk_level").default(1),
+  category: varchar("category", { length: 100 }),
+  status: varchar("status", { length: 50 }).default("draft"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export type MissionScenario = typeof missionScenarios.$inferSelect;
+export type InsertMissionScenario = typeof missionScenarios.$inferInsert;
+
 // ============================================
 // X Bio Sentinel - Smell Profiles Table
 // pgvector extension enabled for similarity search

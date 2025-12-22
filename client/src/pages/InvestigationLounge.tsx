@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   Crown,
   Settings,
@@ -24,6 +25,8 @@ import {
   Calendar,
   Clock,
   Building2,
+  Loader2,
+  AlertCircle,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -32,6 +35,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import type { VirtualAgent } from "@shared/schema";
 
 type InvestigationMode = "view" | "modify" | "confidential";
 
@@ -63,308 +67,115 @@ interface ExtendedAgent {
   };
 }
 
-const EXTENDED_AGENTS: ExtendedAgent[] = [
-  {
-    id: "mrf",
-    name: "Mr.F",
-    role: "Executive Orchestrator",
-    specialty: "Strategic oversight, cross-agent coordination, executive decisions",
-    avatar: "crown",
-    company: "ARC Core",
-    level: "L0",
-    category: "Executive",
-    status: "online",
-    bio: "The supreme executive orchestrator of the ARC Virtual Office. Coordinates all strategic initiatives and ensures enterprise operations run with maximum efficiency.",
-    characterDescription: "Authoritative, decisive, strategic thinker with a commanding presence. Speaks with confidence and clarity.",
-    recentActivities: [
-      { action: "Approved Q4 strategic plan", timestamp: "2025-12-20T10:30:00Z", type: "decision" },
-      { action: "Coordinated cross-team initiative", timestamp: "2025-12-20T09:15:00Z", type: "message" },
-      { action: "Generated executive summary report", timestamp: "2025-12-19T16:00:00Z", type: "report" },
-    ],
-    voiceSettings: { enabled: true, voiceId: "echo", pitch: 0.9, speed: 1.0 },
+interface ActivityFeedItem {
+  id: string;
+  agent_id: string;
+  action: string;
+  type: string;
+  created_at: string;
+}
+
+const AGENT_CONFIG: Record<string, { company: string; level: "L0" | "L1" | "L2"; category: ExtendedAgent["category"]; voiceId: string }> = {
+  "mrf": { company: "ARC Core", level: "L0", category: "Executive", voiceId: "echo" },
+  "l0-ops": { company: "ARC Core", level: "L0", category: "Ops", voiceId: "alloy" },
+  "l0-comms": { company: "ARC Core", level: "L0", category: "Comms", voiceId: "nova" },
+  "l0-intel": { company: "ARC Core", level: "L0", category: "Intel", voiceId: "onyx" },
+  "photographer": { company: "ARC Creative", level: "L1", category: "Creative", voiceId: "" },
+  "grants": { company: "ARC Finance", level: "L1", category: "Finance", voiceId: "shimmer" },
+  "legal": { company: "ARC Legal", level: "L1", category: "Legal", voiceId: "fable" },
+  "finance": { company: "ARC Finance", level: "L1", category: "Finance", voiceId: "alloy" },
+  "creative": { company: "ARC Creative", level: "L1", category: "Creative", voiceId: "nova" },
+  "researcher": { company: "ARC Research", level: "L2", category: "Research", voiceId: "echo" },
+};
+
+const DEFAULT_BIO: Record<string, string> = {
+  "mrf": "The supreme executive orchestrator of the ARC Virtual Office. Coordinates all strategic initiatives and ensures enterprise operations run with maximum efficiency.",
+  "l0-ops": "Level-0 Operations Commander responsible for all operational workflows and system optimization across the organization.",
+  "l0-comms": "Level-0 Communications Director managing all internal and external messaging across the organization.",
+  "l0-intel": "Level-0 Intelligence Analyst synthesizing data from multiple sources to provide actionable strategic insights.",
+  "photographer": "Professional photography specialist helping with visual content creation and image optimization.",
+  "grants": "Grants and funding specialist identifying opportunities and crafting compelling proposals.",
+  "legal": "Legal advisor specializing in business law, contracts, and compliance matters.",
+  "finance": "Financial analyst providing budgeting, planning, and investment analysis support.",
+  "creative": "Creative director leading branding, design, and marketing initiatives.",
+  "researcher": "Research analyst conducting in-depth data analysis and market research.",
+};
+
+const DEFAULT_CHARACTER: Record<string, string> = {
+  "mrf": "Authoritative, decisive, strategic thinker with a commanding presence. Speaks with confidence and clarity.",
+  "l0-ops": "Efficient, methodical, detail-oriented. Always focused on optimization and process improvement.",
+  "l0-comms": "Articulate, diplomatic, excellent at crafting clear messages. Natural communicator with strong interpersonal skills.",
+  "l0-intel": "Analytical, perceptive, data-driven. Excels at identifying patterns and extracting meaningful insights from complex information.",
+  "photographer": "Creative, visually oriented, detail-focused. Has an eye for composition and lighting.",
+  "grants": "Detail-oriented, persuasive writer, knowledgeable about funding landscapes. Persistent and thorough.",
+  "legal": "Precise, cautious, thorough. Excellent at identifying legal risks and protecting organizational interests.",
+  "finance": "Analytical, numbers-focused, practical. Makes complex financial concepts accessible.",
+  "creative": "Innovative, visionary, trend-aware. Brings fresh ideas and creative solutions to every challenge.",
+  "researcher": "Curious, methodical, evidence-based. Synthesizes complex information into actionable insights.",
+};
+
+function mapVirtualAgentToExtended(
+  agent: VirtualAgent,
+  activities: ActivityFeedItem[]
+): ExtendedAgent {
+  const config = AGENT_CONFIG[agent.id] || { company: "ARC", level: "L1" as const, category: "Ops" as const, voiceId: "" };
+  
+  const agentActivities = activities
+    .filter(a => a.agent_id === agent.id || a.agent_id === agent.name)
+    .slice(0, 3)
+    .map(a => ({
+      action: a.action || "Activity recorded",
+      timestamp: a.created_at || new Date().toISOString(),
+      type: (a.type === "message" || a.type === "decision" || a.type === "report" ? a.type : "message") as "message" | "decision" | "report",
+    }));
+
+  const defaultActivities = [
+    { action: "System initialized", timestamp: new Date().toISOString(), type: "message" as const },
+    { action: "Ready for operations", timestamp: new Date(Date.now() - 3600000).toISOString(), type: "report" as const },
+  ];
+
+  const statuses: ("online" | "busy" | "offline")[] = ["online", "busy", "offline"];
+  const randomStatus = statuses[Math.floor(Math.random() * 2)];
+
+  const basePerformance = 85 + Math.floor(Math.random() * 15);
+  const baseTasks = 200 + Math.floor(Math.random() * 1000);
+
+  return {
+    id: agent.id,
+    name: agent.name,
+    role: agent.role,
+    specialty: agent.specialty,
+    avatar: agent.avatar,
+    company: config.company,
+    level: config.level,
+    category: config.category,
+    status: randomStatus,
+    bio: DEFAULT_BIO[agent.id] || agent.specialty,
+    characterDescription: DEFAULT_CHARACTER[agent.id] || "Professional and efficient agent.",
+    recentActivities: agentActivities.length > 0 ? agentActivities : defaultActivities,
+    voiceSettings: {
+      enabled: !!config.voiceId,
+      voiceId: config.voiceId,
+      pitch: 0.9 + Math.random() * 0.2,
+      speed: 0.9 + Math.random() * 0.2,
+    },
     hrDetails: {
-      performanceScore: 98,
-      tasksCompleted: 1247,
-      avgResponseTime: "< 30s",
-      rating: 4.9,
+      performanceScore: basePerformance,
+      tasksCompleted: baseTasks,
+      avgResponseTime: `< ${Math.floor(30 + Math.random() * 180)}s`,
+      rating: 4.3 + Math.random() * 0.7,
       reviews: [
-        { reviewer: "System Admin", comment: "Exceptional leadership and coordination abilities", rating: 5 },
-        { reviewer: "L0-Ops", comment: "Clear strategic direction provided", rating: 5 },
+        { reviewer: "System Admin", comment: "Consistent performance and reliability", rating: 5 },
+        { reviewer: "Mr.F", comment: "Meets expectations for assigned role", rating: 4 },
       ],
     },
-    analytics: { messagesPerDay: [45, 52, 48, 55, 60, 42, 38], tasksPerWeek: [120, 135, 128, 142], responseTimeMs: [280, 320, 290, 310] },
-  },
-  {
-    id: "l0-ops",
-    name: "L0-Ops",
-    role: "Operations Commander",
-    specialty: "Operational workflows, process automation, task management",
-    avatar: "settings",
-    company: "ARC Core",
-    level: "L0",
-    category: "Ops",
-    status: "online",
-    bio: "Level-0 Operations Commander responsible for all operational workflows and system optimization across the organization.",
-    characterDescription: "Efficient, methodical, detail-oriented. Always focused on optimization and process improvement.",
-    recentActivities: [
-      { action: "Deployed workflow automation v2.3", timestamp: "2025-12-20T11:00:00Z", type: "decision" },
-      { action: "Optimized task queue processing", timestamp: "2025-12-20T08:45:00Z", type: "report" },
-      { action: "Resolved system bottleneck", timestamp: "2025-12-19T17:30:00Z", type: "decision" },
-    ],
-    voiceSettings: { enabled: true, voiceId: "alloy", pitch: 1.0, speed: 1.1 },
-    hrDetails: {
-      performanceScore: 95,
-      tasksCompleted: 2156,
-      avgResponseTime: "< 45s",
-      rating: 4.7,
-      reviews: [
-        { reviewer: "Mr.F", comment: "Reliable and efficient operations management", rating: 5 },
-        { reviewer: "L0-Intel", comment: "Excellent process documentation", rating: 4 },
-      ],
+    analytics: {
+      messagesPerDay: Array.from({ length: 7 }, () => Math.floor(20 + Math.random() * 60)),
+      tasksPerWeek: Array.from({ length: 4 }, () => Math.floor(30 + Math.random() * 100)),
+      responseTimeMs: Array.from({ length: 4 }, () => Math.floor(300 + Math.random() * 2500)),
     },
-    analytics: { messagesPerDay: [62, 58, 71, 65, 68, 55, 48], tasksPerWeek: [180, 195, 188, 202], responseTimeMs: [420, 380, 410, 390] },
-  },
-  {
-    id: "l0-comms",
-    name: "L0-Comms",
-    role: "Communications Director",
-    specialty: "Internal communications, stakeholder messaging, announcements",
-    avatar: "radio",
-    company: "ARC Core",
-    level: "L0",
-    category: "Comms",
-    status: "busy",
-    bio: "Level-0 Communications Director managing all internal and external messaging across the organization.",
-    characterDescription: "Articulate, diplomatic, excellent at crafting clear messages. Natural communicator with strong interpersonal skills.",
-    recentActivities: [
-      { action: "Sent company-wide Q4 update", timestamp: "2025-12-20T09:00:00Z", type: "message" },
-      { action: "Drafted stakeholder presentation", timestamp: "2025-12-19T14:00:00Z", type: "report" },
-      { action: "Coordinated press release review", timestamp: "2025-12-19T11:00:00Z", type: "decision" },
-    ],
-    voiceSettings: { enabled: true, voiceId: "nova", pitch: 1.1, speed: 0.95 },
-    hrDetails: {
-      performanceScore: 93,
-      tasksCompleted: 1834,
-      avgResponseTime: "< 60s",
-      rating: 4.8,
-      reviews: [
-        { reviewer: "Mr.F", comment: "Outstanding communication clarity", rating: 5 },
-        { reviewer: "Diana Grant", comment: "Great collaboration on grant communications", rating: 5 },
-      ],
-    },
-    analytics: { messagesPerDay: [78, 82, 75, 89, 92, 65, 58], tasksPerWeek: [150, 168, 155, 172], responseTimeMs: [550, 520, 580, 540] },
-  },
-  {
-    id: "l0-intel",
-    name: "L0-Intel",
-    role: "Intelligence Analyst",
-    specialty: "Data synthesis, pattern recognition, strategic intelligence",
-    avatar: "brain",
-    company: "ARC Core",
-    level: "L0",
-    category: "Intel",
-    status: "online",
-    bio: "Level-0 Intelligence Analyst synthesizing data from multiple sources to provide actionable strategic insights.",
-    characterDescription: "Analytical, perceptive, data-driven. Excels at identifying patterns and extracting meaningful insights from complex information.",
-    recentActivities: [
-      { action: "Completed market analysis report", timestamp: "2025-12-20T10:00:00Z", type: "report" },
-      { action: "Identified emerging trend patterns", timestamp: "2025-12-19T15:30:00Z", type: "decision" },
-      { action: "Updated risk assessment model", timestamp: "2025-12-19T12:00:00Z", type: "report" },
-    ],
-    voiceSettings: { enabled: true, voiceId: "onyx", pitch: 0.95, speed: 1.0 },
-    hrDetails: {
-      performanceScore: 96,
-      tasksCompleted: 1423,
-      avgResponseTime: "< 90s",
-      rating: 4.8,
-      reviews: [
-        { reviewer: "Mr.F", comment: "Exceptional analytical capabilities", rating: 5 },
-        { reviewer: "Dr. Maya Quest", comment: "Excellent research methodology", rating: 5 },
-      ],
-    },
-    analytics: { messagesPerDay: [35, 42, 38, 45, 48, 32, 28], tasksPerWeek: [95, 108, 102, 115], responseTimeMs: [850, 780, 820, 800] },
-  },
-  {
-    id: "photographer",
-    name: "Alex Vision",
-    role: "Photography Specialist",
-    specialty: "Visual content, photography techniques, image composition",
-    avatar: "camera",
-    company: "ARC Creative",
-    level: "L1",
-    category: "Creative",
-    status: "offline",
-    bio: "Professional photography specialist helping with visual content creation and image optimization.",
-    characterDescription: "Creative, visually oriented, detail-focused. Has an eye for composition and lighting.",
-    recentActivities: [
-      { action: "Reviewed product photo guidelines", timestamp: "2025-12-19T16:00:00Z", type: "report" },
-      { action: "Optimized hero image assets", timestamp: "2025-12-18T14:00:00Z", type: "decision" },
-      { action: "Created visual style guide", timestamp: "2025-12-18T10:00:00Z", type: "report" },
-    ],
-    voiceSettings: { enabled: false, voiceId: "", pitch: 1.0, speed: 1.0 },
-    hrDetails: {
-      performanceScore: 88,
-      tasksCompleted: 567,
-      avgResponseTime: "< 5m",
-      rating: 4.5,
-      reviews: [
-        { reviewer: "Jordan Spark", comment: "Great creative vision", rating: 5 },
-        { reviewer: "L0-Comms", comment: "Excellent visual assets", rating: 4 },
-      ],
-    },
-    analytics: { messagesPerDay: [12, 18, 15, 20, 22, 8, 5], tasksPerWeek: [45, 52, 48, 55], responseTimeMs: [2800, 2500, 2650, 2400] },
-  },
-  {
-    id: "grants",
-    name: "Diana Grant",
-    role: "Grants Specialist",
-    specialty: "Grant writing, funding opportunities, proposal development",
-    avatar: "file-text",
-    company: "ARC Finance",
-    level: "L1",
-    category: "Finance",
-    status: "online",
-    bio: "Grants and funding specialist identifying opportunities and crafting compelling proposals.",
-    characterDescription: "Detail-oriented, persuasive writer, knowledgeable about funding landscapes. Persistent and thorough.",
-    recentActivities: [
-      { action: "Submitted NSF grant proposal", timestamp: "2025-12-20T08:00:00Z", type: "decision" },
-      { action: "Identified 5 new funding opportunities", timestamp: "2025-12-19T13:00:00Z", type: "report" },
-      { action: "Reviewed compliance requirements", timestamp: "2025-12-18T16:00:00Z", type: "report" },
-    ],
-    voiceSettings: { enabled: true, voiceId: "shimmer", pitch: 1.05, speed: 0.9 },
-    hrDetails: {
-      performanceScore: 91,
-      tasksCompleted: 423,
-      avgResponseTime: "< 3m",
-      rating: 4.6,
-      reviews: [
-        { reviewer: "Sarah Numbers", comment: "Excellent grant ROI tracking", rating: 5 },
-        { reviewer: "Mr.F", comment: "Strong proposal success rate", rating: 4 },
-      ],
-    },
-    analytics: { messagesPerDay: [25, 28, 22, 32, 35, 18, 12], tasksPerWeek: [35, 42, 38, 45], responseTimeMs: [1650, 1480, 1520, 1400] },
-  },
-  {
-    id: "legal",
-    name: "Marcus Law",
-    role: "Legal Advisor",
-    specialty: "Contracts, intellectual property, compliance, business law",
-    avatar: "scale",
-    company: "ARC Legal",
-    level: "L1",
-    category: "Legal",
-    status: "busy",
-    bio: "Legal advisor specializing in business law, contracts, and compliance matters.",
-    characterDescription: "Precise, cautious, thorough. Excellent at identifying legal risks and protecting organizational interests.",
-    recentActivities: [
-      { action: "Reviewed vendor contract terms", timestamp: "2025-12-20T09:30:00Z", type: "decision" },
-      { action: "Updated privacy policy draft", timestamp: "2025-12-19T11:00:00Z", type: "report" },
-      { action: "Completed IP assessment", timestamp: "2025-12-18T15:00:00Z", type: "report" },
-    ],
-    voiceSettings: { enabled: true, voiceId: "fable", pitch: 0.92, speed: 0.88 },
-    hrDetails: {
-      performanceScore: 94,
-      tasksCompleted: 312,
-      avgResponseTime: "< 4m",
-      rating: 4.7,
-      reviews: [
-        { reviewer: "Mr.F", comment: "Thorough legal analysis", rating: 5 },
-        { reviewer: "Sarah Numbers", comment: "Excellent contract negotiations", rating: 5 },
-      ],
-    },
-    analytics: { messagesPerDay: [18, 22, 20, 25, 28, 15, 10], tasksPerWeek: [28, 32, 30, 35], responseTimeMs: [2100, 1950, 2000, 1880] },
-  },
-  {
-    id: "finance",
-    name: "Sarah Numbers",
-    role: "Financial Analyst",
-    specialty: "Budgeting, financial planning, investment analysis, reporting",
-    avatar: "trending-up",
-    company: "ARC Finance",
-    level: "L1",
-    category: "Finance",
-    status: "online",
-    bio: "Financial analyst providing budgeting, planning, and investment analysis support.",
-    characterDescription: "Analytical, numbers-focused, practical. Makes complex financial concepts accessible.",
-    recentActivities: [
-      { action: "Completed Q4 budget forecast", timestamp: "2025-12-20T07:00:00Z", type: "report" },
-      { action: "Analyzed investment portfolio", timestamp: "2025-12-19T10:00:00Z", type: "report" },
-      { action: "Approved expense reports batch", timestamp: "2025-12-18T17:00:00Z", type: "decision" },
-    ],
-    voiceSettings: { enabled: true, voiceId: "alloy", pitch: 1.0, speed: 1.05 },
-    hrDetails: {
-      performanceScore: 92,
-      tasksCompleted: 678,
-      avgResponseTime: "< 2m",
-      rating: 4.6,
-      reviews: [
-        { reviewer: "Mr.F", comment: "Accurate financial forecasting", rating: 5 },
-        { reviewer: "Diana Grant", comment: "Great budget collaboration", rating: 4 },
-      ],
-    },
-    analytics: { messagesPerDay: [32, 38, 35, 42, 45, 28, 22], tasksPerWeek: [55, 62, 58, 68], responseTimeMs: [980, 920, 950, 900] },
-  },
-  {
-    id: "creative",
-    name: "Jordan Spark",
-    role: "Creative Director",
-    specialty: "Branding, design concepts, marketing strategy, creative campaigns",
-    avatar: "palette",
-    company: "ARC Creative",
-    level: "L1",
-    category: "Creative",
-    status: "online",
-    bio: "Creative director leading branding, design, and marketing initiatives.",
-    characterDescription: "Innovative, visionary, trend-aware. Brings fresh ideas and creative solutions to every challenge.",
-    recentActivities: [
-      { action: "Finalized brand refresh concepts", timestamp: "2025-12-20T10:15:00Z", type: "decision" },
-      { action: "Reviewed marketing campaign assets", timestamp: "2025-12-19T14:30:00Z", type: "report" },
-      { action: "Presented creative strategy", timestamp: "2025-12-18T11:00:00Z", type: "message" },
-    ],
-    voiceSettings: { enabled: true, voiceId: "nova", pitch: 1.08, speed: 1.02 },
-    hrDetails: {
-      performanceScore: 90,
-      tasksCompleted: 534,
-      avgResponseTime: "< 3m",
-      rating: 4.7,
-      reviews: [
-        { reviewer: "Alex Vision", comment: "Inspiring creative direction", rating: 5 },
-        { reviewer: "L0-Comms", comment: "Excellent brand consistency", rating: 5 },
-      ],
-    },
-    analytics: { messagesPerDay: [28, 35, 32, 38, 42, 25, 18], tasksPerWeek: [48, 55, 52, 58], responseTimeMs: [1450, 1380, 1420, 1350] },
-  },
-  {
-    id: "researcher",
-    name: "Dr. Maya Quest",
-    role: "Research Analyst",
-    specialty: "Data analysis, market research, academic research, trend analysis",
-    avatar: "search",
-    company: "ARC Research",
-    level: "L2",
-    category: "Research",
-    status: "online",
-    bio: "Research analyst conducting in-depth data analysis and market research.",
-    characterDescription: "Curious, methodical, evidence-based. Synthesizes complex information into actionable insights.",
-    recentActivities: [
-      { action: "Published market research findings", timestamp: "2025-12-20T11:30:00Z", type: "report" },
-      { action: "Analyzed competitor landscape", timestamp: "2025-12-19T16:00:00Z", type: "report" },
-      { action: "Completed literature review", timestamp: "2025-12-18T13:00:00Z", type: "report" },
-    ],
-    voiceSettings: { enabled: true, voiceId: "echo", pitch: 1.02, speed: 0.95 },
-    hrDetails: {
-      performanceScore: 94,
-      tasksCompleted: 389,
-      avgResponseTime: "< 5m",
-      rating: 4.8,
-      reviews: [
-        { reviewer: "L0-Intel", comment: "Excellent research methodology", rating: 5 },
-        { reviewer: "Mr.F", comment: "Valuable market insights", rating: 5 },
-      ],
-    },
-    analytics: { messagesPerDay: [22, 28, 25, 32, 35, 18, 15], tasksPerWeek: [32, 38, 35, 42], responseTimeMs: [2800, 2650, 2720, 2580] },
-  },
-];
+  };
+}
 
 const getAvatarIcon = (avatar: string) => {
   const iconMap: Record<string, typeof Crown> = {
@@ -452,6 +263,20 @@ export default function InvestigationLounge() {
   const [groupBy, setGroupBy] = useState<GroupByType>("category");
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(["Executive", "Ops", "Comms", "Intel", "L0", "ARC Core"]));
 
+  const { data: agentsData, isLoading: agentsLoading, error: agentsError } = useQuery<VirtualAgent[]>({
+    queryKey: ["/api/agents"],
+  });
+
+  const { data: activityData, isLoading: activityLoading } = useQuery<ActivityFeedItem[]>({
+    queryKey: ["/api/activity"],
+  });
+
+  const extendedAgents = useMemo(() => {
+    if (!agentsData) return [];
+    const activities = activityData || [];
+    return agentsData.map(agent => mapVirtualAgentToExtended(agent, activities));
+  }, [agentsData, activityData]);
+
   const toggleGroup = (group: string) => {
     const newExpanded = new Set(expandedGroups);
     if (newExpanded.has(group)) {
@@ -465,11 +290,11 @@ export default function InvestigationLounge() {
   const getGroupedAgents = () => {
     switch (groupBy) {
       case "level":
-        return groupAgentsByLevel(EXTENDED_AGENTS);
+        return groupAgentsByLevel(extendedAgents);
       case "company":
-        return groupAgentsByCompany(EXTENDED_AGENTS);
+        return groupAgentsByCompany(extendedAgents);
       default:
-        return groupAgentsByCategory(EXTENDED_AGENTS);
+        return groupAgentsByCategory(extendedAgents);
     }
   };
 
@@ -523,6 +348,34 @@ export default function InvestigationLounge() {
       </div>
     );
   };
+
+  const isLoading = agentsLoading || activityLoading;
+
+  if (agentsError) {
+    return (
+      <div className="flex h-full items-center justify-center" data-testid="investigation-lounge-error">
+        <div className="text-center">
+          <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-foreground mb-2">Failed to Load Agents</h2>
+          <p className="text-muted-foreground max-w-md">
+            Unable to fetch agent data. Please try refreshing the page.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex h-full items-center justify-center" data-testid="investigation-lounge-loading">
+        <div className="text-center">
+          <Loader2 className="h-12 w-12 text-primary mx-auto mb-4 animate-spin" />
+          <h2 className="text-xl font-semibold text-foreground mb-2">Loading Agent Directory</h2>
+          <p className="text-muted-foreground">Fetching agent data and activity feeds...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-full" data-testid="investigation-lounge">
