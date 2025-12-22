@@ -77,18 +77,20 @@
 
   function hasValidArcSecret(req: Request): boolean {
     const secret = getArcSecret(req);
-    const expectedSecret = process.env.ARC_BACKEND_SECRET;
+    // Support both X_ARC_SECRET (preferred) and ARC_BACKEND_SECRET (legacy)
+    const expectedSecret = process.env.X_ARC_SECRET || process.env.ARC_BACKEND_SECRET;
     if (!expectedSecret) return false;
     return secret === expectedSecret;
   }
 
   function authMiddleware(req: Request, res: Response, next: NextFunction) {
     const secret = getArcSecret(req);
-    const expectedSecret = process.env.ARC_BACKEND_SECRET;
+    // Support both X_ARC_SECRET (preferred) and ARC_BACKEND_SECRET (legacy)
+    const expectedSecret = process.env.X_ARC_SECRET || process.env.ARC_BACKEND_SECRET;
 
     if (!expectedSecret) {
       if (process.env.NODE_ENV === "production") {
-        return res.status(500).json({ status: "error", message: "Server missing ARC_BACKEND_SECRET" });
+        return res.status(500).json({ status: "error", message: "Server missing X_ARC_SECRET or ARC_BACKEND_SECRET" });
       }
       return next(); // Dev mode skip
     }

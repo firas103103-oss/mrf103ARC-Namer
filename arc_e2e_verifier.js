@@ -3,7 +3,7 @@
  * Verifies: Trigger → Receive → Execute → Proof → Daily Summary
  *
  * Usage:
- *   ARC_BASE_URL="http://127.0.0.1:5000" ARC_BACKEND_SECRET="..." node arc_e2e_verifier.js
+ *   ARC_BASE_URL="http://127.0.0.1:5000" X_ARC_SECRET="..." node arc_e2e_verifier.js
  *
  * Optional (for direct DB verification):
  *   DATABASE_URL="postgres://..." node arc_e2e_verifier.js
@@ -13,7 +13,7 @@ import fs from "fs";
 import crypto from "crypto";
 
 const BASE_URL = (process.env.ARC_BASE_URL || "http://127.0.0.1:5000").replace(/\/$/, "");
-const ARC_SECRET = process.env.ARC_BACKEND_SECRET || "";
+const ARC_SECRET = process.env.X_ARC_SECRET || process.env.ARC_BACKEND_SECRET || "";
 const DATABASE_URL = process.env.DATABASE_URL || "";
 
 function nowISO() {
