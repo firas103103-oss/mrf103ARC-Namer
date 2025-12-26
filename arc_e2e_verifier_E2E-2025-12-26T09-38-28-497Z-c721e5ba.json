@@ -1,0 +1,348 @@
+{
+  "run_id": "E2E-2025-12-26T09-38-28-497Z-c721e5ba",
+  "generated_at": "2025-12-26T09:38:28.498Z",
+  "base_url": "http://127.0.0.1:5000",
+  "env_presence": {
+    "ARC_BACKEND_SECRET_present": true,
+    "DATABASE_URL_present": true
+  },
+  "endpoints": {
+    "/api/health": {
+      "url": "http://127.0.0.1:5000/api/health",
+      "method": "GET",
+      "ok": true,
+      "status": 200,
+      "statusText": "OK",
+      "ms": 62,
+      "responseHeaders": {
+        "access-control-allow-origin": "*",
+        "connection": "keep-alive",
+        "content-length": "85",
+        "content-type": "application/json; charset=utf-8",
+        "date": "Fri, 26 Dec 2025 09:38:28 GMT",
+        "etag": "W/\"55-qg2t2dTMYo7pRISZgJDtn6lXEGE\"",
+        "keep-alive": "timeout=5",
+        "x-powered-by": "Express"
+      },
+      "bodyTextPreview": "{\"status\":\"ok\",\"service\":\"ARC Virtual Office\",\"timestamp\":\"2025-12-26T09:38:28.559Z\"}",
+      "bodyJson": {
+        "status": "ok",
+        "service": "ARC Virtual Office",
+        "timestamp": "2025-12-26T09:38:28.559Z"
+      }
+    },
+    "/ping": {
+      "url": "http://127.0.0.1:5000/ping",
+      "method": "GET",
+      "ok": true,
+      "status": 200,
+      "statusText": "OK",
+      "ms": 8,
+      "responseHeaders": {
+        "access-control-allow-origin": "*",
+        "connection": "keep-alive",
+        "content-length": "63",
+        "content-type": "application/json; charset=utf-8",
+        "date": "Fri, 26 Dec 2025 09:38:28 GMT",
+        "etag": "W/\"3f-XHuo0aT2IQlAySeQRGjYvkzIOdk\"",
+        "keep-alive": "timeout=5",
+        "x-powered-by": "Express"
+      },
+      "bodyTextPreview": "{\"status\":\"alive\",\"message\":\"✅ ARC Bridge Server is running\"}",
+      "bodyJson": {
+        "status": "alive",
+        "message": "✅ ARC Bridge Server is running"
+      }
+    },
+    "/api/arc/reality-report": {
+      "url": "http://127.0.0.1:5000/api/arc/reality-report",
+      "method": "GET",
+      "ok": true,
+      "status": 200,
+      "statusText": "OK",
+      "ms": 20,
+      "responseHeaders": {
+        "access-control-allow-origin": "*",
+        "connection": "keep-alive",
+        "content-length": "1696",
+        "content-type": "application/json; charset=utf-8",
+        "date": "Fri, 26 Dec 2025 09:38:28 GMT",
+        "etag": "W/\"6a0-qtNhEW8hfzZNJuw25tnRuxmXCog\"",
+        "keep-alive": "timeout=5",
+        "x-powered-by": "Express"
+      },
+      "bodyTextPreview": "{\"ok\":true,\"report\":{\"request_id\":\"get-1766741908582\",\"generated_at\":\"2025-12-26T09:38:28.582Z\",\"verbosity\":\"full\",\"env\":{\"NODE_ENV\":\"development\",\"DATABASE_URL\":\"SET\",\"OPENAI_API_KEY\":\"SET\",\"ELEVENLABS_API_KEY\":\"SET\",\"SUPABASE_URL\":\"SET\",\"SUPABASE_KEY\":\"SET\",\"X_ARC_SECRET\":\"SET\",\"ARC_BACKEND_SECRET\":\"SET\",\"N8N_WEBHOOK_URL\":\"SET\",\"TWILIO_ACCOUNT_SID\":\"SET\"},\"routes\":{\"health\":\"GET /api/health\",\"auth\":[\"GET /api/auth/user\",\"GET /api/login\",\"GET /api/logout\",\"GET /api/callback\"],\"arc_execute\":\"POST /arc/execute (X-ARC-TOKEN)\",\"arc_api\":[\"POST /api/arc/reality-report\",\"POST /api/arc/agents/mrf-brain\",\"POST /api/arc/agents/summary\",\"POST /api/arc/agent-events\",\"POST /api/arc/ceo-reminders\",\"POST /api/arc/executive-summary\",\"POST /api/arc/governance/notify\",\"POST /api/arc/rules/broadcast\",\"POST /api/arc/notifications/high\",\"POST /api/arc/receive\",\"POST /api/arc/command\",\"POST /api/arc/events\",\"GET /api/arc/brain/state\",\"GET /api/arc/brain/self-awareness\"],\"chat\":\"POST /api/chat\",\"tts\":\"POST /api/tts\",\"conversations\":[\"GET /api/conversations\",\"POST /api/conversations\",\"GET /api/conversations/:id/messages\"],\"dashboard\":[\"GET /api/dashboard/commands\",\"GET /api/dashboard/events\",\"GET /api/dashboard/feedback\",\"GET /api/dashboard/metrics\"],\"team\":[\"GET /api/team/tasks\",\"POST /api/team/tasks\",\"PATCH /api/team/tasks/:id\"],\"activity\":[\"GET /api/activity\",\"POST /api/activity\"],\"simulations\":[\"GET /api/simulations\",\"POST /api/simulations\",\"POST /api/simulations/:id/run\"],\"bio_sentinel\":[\"GET /api/bio-sentinel/profiles\",\"POST /api/bio-sentinel/profiles\",\"POST /api/bio-sentinel/chat\",\"WS /ws/bio-sentinel\"],\"android\":\"GET /api/android/download\"},\"db\":{\"status\":\"connected\",\"ping\":\"ok\"}}}",
+      "bodyJson": {
+        "ok": true,
+        "report": {
+          "request_id": "get-1766741908582",
+          "generated_at": "2025-12-26T09:38:28.582Z",
+          "verbosity": "full",
+          "env": {
+            "NODE_ENV": "development",
+            "DATABASE_URL": "SET",
+            "OPENAI_API_KEY": "SET",
+            "ELEVENLABS_API_KEY": "SET",
+            "SUPABASE_URL": "SET",
+            "SUPABASE_KEY": "SET",
+            "X_ARC_SECRET": "SET",
+            "ARC_BACKEND_SECRET": "SET",
+            "N8N_WEBHOOK_URL": "SET",
+            "TWILIO_ACCOUNT_SID": "SET"
+          },
+          "routes": {
+            "health": "GET /api/health",
+            "auth": [
+              "GET /api/auth/user",
+              "GET /api/login",
+              "GET /api/logout",
+              "GET /api/callback"
+            ],
+            "arc_execute": "POST /arc/execute (X-ARC-TOKEN)",
+            "arc_api": [
+              "POST /api/arc/reality-report",
+              "POST /api/arc/agents/mrf-brain",
+              "POST /api/arc/agents/summary",
+              "POST /api/arc/agent-events",
+              "POST /api/arc/ceo-reminders",
+              "POST /api/arc/executive-summary",
+              "POST /api/arc/governance/notify",
+              "POST /api/arc/rules/broadcast",
+              "POST /api/arc/notifications/high",
+              "POST /api/arc/receive",
+              "POST /api/arc/command",
+              "POST /api/arc/events",
+              "GET /api/arc/brain/state",
+              "GET /api/arc/brain/self-awareness"
+            ],
+            "chat": "POST /api/chat",
+            "tts": "POST /api/tts",
+            "conversations": [
+              "GET /api/conversations",
+              "POST /api/conversations",
+              "GET /api/conversations/:id/messages"
+            ],
+            "dashboard": [
+              "GET /api/dashboard/commands",
+              "GET /api/dashboard/events",
+              "GET /api/dashboard/feedback",
+              "GET /api/dashboard/metrics"
+            ],
+            "team": [
+              "GET /api/team/tasks",
+              "POST /api/team/tasks",
+              "PATCH /api/team/tasks/:id"
+            ],
+            "activity": [
+              "GET /api/activity",
+              "POST /api/activity"
+            ],
+            "simulations": [
+              "GET /api/simulations",
+              "POST /api/simulations",
+              "POST /api/simulations/:id/run"
+            ],
+            "bio_sentinel": [
+              "GET /api/bio-sentinel/profiles",
+              "POST /api/bio-sentinel/profiles",
+              "POST /api/bio-sentinel/chat",
+              "WS /ws/bio-sentinel"
+            ],
+            "android": "GET /api/android/download"
+          },
+          "db": {
+            "status": "connected",
+            "ping": "ok"
+          }
+        }
+      }
+    },
+    "/api/arc/status": {
+      "url": "http://127.0.0.1:5000/api/arc/status",
+      "method": "GET",
+      "ok": true,
+      "status": 200,
+      "statusText": "OK",
+      "ms": 4,
+      "responseHeaders": {
+        "access-control-allow-origin": "*",
+        "connection": "keep-alive",
+        "content-length": "377",
+        "content-type": "application/json; charset=utf-8",
+        "date": "Fri, 26 Dec 2025 09:38:28 GMT",
+        "etag": "W/\"179-DDtSdSkrhsVS5/uTD8GcbUreyHI\"",
+        "keep-alive": "timeout=5",
+        "x-powered-by": "Express"
+      },
+      "bodyTextPreview": "{\"status\":\"operational\",\"service\":\"ARC Intelligence Framework\",\"version\":\"2.0\",\"timestamp\":\"2025-12-26T09:38:28.601Z\",\"uptime_seconds\":7,\"uptime_formatted\":\"0h 0m 7s\",\"env\":{\"NODE_ENV\":\"development\",\"DATABASE_URL\":\"SET\",\"X_ARC_SECRET\":\"SET\",\"ARC_BACKEND_SECRET\":\"SET\",\"OPENAI_API_KEY\":\"SET\",\"ELEVENLABS_API_KEY\":\"SET\",\"N8N_WEBHOOK_URL\":\"SET\"},\"database\":{\"status\":\"connected\"}}",
+      "bodyJson": {
+        "status": "operational",
+        "service": "ARC Intelligence Framework",
+        "version": "2.0",
+        "timestamp": "2025-12-26T09:38:28.601Z",
+        "uptime_seconds": 7,
+        "uptime_formatted": "0h 0m 7s",
+        "env": {
+          "NODE_ENV": "development",
+          "DATABASE_URL": "SET",
+          "X_ARC_SECRET": "SET",
+          "ARC_BACKEND_SECRET": "SET",
+          "OPENAI_API_KEY": "SET",
+          "ELEVENLABS_API_KEY": "SET",
+          "N8N_WEBHOOK_URL": "SET"
+        },
+        "database": {
+          "status": "connected"
+        }
+      }
+    },
+    "/api/arc/agent-events": {
+      "url": "http://127.0.0.1:5000/api/arc/agent-events",
+      "method": "POST",
+      "ok": true,
+      "status": 200,
+      "statusText": "OK",
+      "ms": 51,
+      "responseHeaders": {
+        "access-control-allow-origin": "*",
+        "connection": "keep-alive",
+        "content-length": "83",
+        "content-type": "application/json; charset=utf-8",
+        "date": "Fri, 26 Dec 2025 09:38:28 GMT",
+        "etag": "W/\"53-4A7qKZw61dnLG+R6QP9Rx7RIC4M\"",
+        "keep-alive": "timeout=5",
+        "x-powered-by": "Express"
+      },
+      "bodyTextPreview": "{\"status\":\"ok\",\"id\":\"56595366-fd00-44ea-83b7-a9a20e8f8b71\",\"stored\":\"agent_events\"}",
+      "bodyJson": {
+        "status": "ok",
+        "id": "56595366-fd00-44ea-83b7-a9a20e8f8b71",
+        "stored": "agent_events"
+      }
+    },
+    "/api/arc/receive": {
+      "url": "http://127.0.0.1:5000/api/arc/receive",
+      "method": "POST",
+      "ok": true,
+      "status": 200,
+      "statusText": "OK",
+      "ms": 22,
+      "responseHeaders": {
+        "access-control-allow-origin": "*",
+        "connection": "keep-alive",
+        "content-length": "83",
+        "content-type": "application/json; charset=utf-8",
+        "date": "Fri, 26 Dec 2025 09:38:28 GMT",
+        "etag": "W/\"53-+n1xsvnNy+27LzT/JNieRMPK+UI\"",
+        "keep-alive": "timeout=5",
+        "x-powered-by": "Express"
+      },
+      "bodyTextPreview": "{\"status\":\"ok\",\"id\":\"3748e763-0cf2-4a39-a1cb-09884fb3fce5\",\"stored\":\"arc_feedback\"}",
+      "bodyJson": {
+        "status": "ok",
+        "id": "3748e763-0cf2-4a39-a1cb-09884fb3fce5",
+        "stored": "arc_feedback"
+      }
+    },
+    "/arc/execute": {
+      "url": "http://127.0.0.1:5000/arc/execute",
+      "method": "POST",
+      "ok": true,
+      "status": 200,
+      "statusText": "OK",
+      "ms": 5917,
+      "responseHeaders": {
+        "access-control-allow-origin": "*",
+        "connection": "keep-alive",
+        "content-length": "605",
+        "content-type": "application/json; charset=utf-8",
+        "date": "Fri, 26 Dec 2025 09:38:34 GMT",
+        "etag": "W/\"25d-HET96Clq4o+Kh/XxOGt2GbKwOZw\"",
+        "keep-alive": "timeout=5",
+        "x-powered-by": "Express"
+      },
+      "bodyTextPreview": "{\"ok\":true,\"execution_id\":\"exec-1766741908682-x2phhfj5\",\"job_id\":\"E2E-2025-12-26T09-38-28-497Z-c721e5ba\",\"external_trace\":\"replit-1766741908682\",\"duration_ms\":5902,\"stored_table\":\"arc_command_log\",\"stored_row_id\":\"16a1e105-47ec-4470-bcd8-13aaa853ac0c\",\"server_timestamp\":\"2025-12-26T09:38:34.593Z\",\"result\":{\"forwarded_to\":\"n8n\",\"n8n_status\":200,\"n8n_ok\":true,\"n8n_attempts\":1,\"n8n_error\":null,\"n8n_response\":{\"command_id\":\"17c80e7e-4a47-4c00-a415-9f11be0f5d7d\",\"status\":\"processed\",\"processed_at\":\"2025-12-26T12:38:34.521+03:00\"},\"command\":\"ARC>E2E_EXECUTE\",\"execution_id\":\"exec-1766741908682-x2phhfj5\"}}",
+      "bodyJson": {
+        "ok": true,
+        "execution_id": "exec-1766741908682-x2phhfj5",
+        "job_id": "E2E-2025-12-26T09-38-28-497Z-c721e5ba",
+        "external_trace": "replit-1766741908682",
+        "duration_ms": 5902,
+        "stored_table": "arc_command_log",
+        "stored_row_id": "16a1e105-47ec-4470-bcd8-13aaa853ac0c",
+        "server_timestamp": "2025-12-26T09:38:34.593Z",
+        "result": {
+          "forwarded_to": "n8n",
+          "n8n_status": 200,
+          "n8n_ok": true,
+          "n8n_attempts": 1,
+          "n8n_error": null,
+          "n8n_response": {
+            "command_id": "17c80e7e-4a47-4c00-a415-9f11be0f5d7d",
+            "status": "processed",
+            "processed_at": "2025-12-26T12:38:34.521+03:00"
+          },
+          "command": "ARC>E2E_EXECUTE",
+          "execution_id": "exec-1766741908682-x2phhfj5"
+        }
+      }
+    },
+    "/api/arc/generate-summary": {
+      "url": "http://127.0.0.1:5000/api/arc/generate-summary",
+      "method": "POST",
+      "ok": true,
+      "status": 200,
+      "statusText": "OK",
+      "ms": 1703,
+      "responseHeaders": {
+        "access-control-allow-origin": "*",
+        "connection": "keep-alive",
+        "content-length": "475",
+        "content-type": "application/json; charset=utf-8",
+        "date": "Fri, 26 Dec 2025 09:38:36 GMT",
+        "etag": "W/\"1db-z0RD75oRPOQzZafjXHi85OR8x8U\"",
+        "keep-alive": "timeout=5",
+        "x-powered-by": "Express"
+      },
+      "bodyTextPreview": "{\"ok\":true,\"summary_id\":\"summary-1766741914600-y7zf8k\",\"stored_id\":\"b9ff20c1-e690-4ecf-80bb-7b6169c98175\",\"stored\":true,\"date\":\"2025-12-26\",\"ai_generated\":true,\"events_processed\":9,\"commands_processed\":10,\"summary_preview\":\"The ARC system has demonstrated consistent operational activity over the past week, highlighted by multiple e2e_verifier and reality_probe events, indicating ongoing verification and testing processes\",\"run_id\":\"E2E-2025-12-26T09-38-28-497Z-c721e5ba\"}",
+      "bodyJson": {
+        "ok": true,
+        "summary_id": "summary-1766741914600-y7zf8k",
+        "stored_id": "b9ff20c1-e690-4ecf-80bb-7b6169c98175",
+        "stored": true,
+        "date": "2025-12-26",
+        "ai_generated": true,
+        "events_processed": 9,
+        "commands_processed": 10,
+        "summary_preview": "The ARC system has demonstrated consistent operational activity over the past week, highlighted by multiple e2e_verifier and reality_probe events, indicating ongoing verification and testing processes",
+        "run_id": "E2E-2025-12-26T09-38-28-497Z-c721e5ba"
+      }
+    }
+  },
+  "db_proof": {
+    "table_count": {
+      "count": 24
+    },
+    "event_verification": {
+      "found": true,
+      "rows": [
+        {
+          "id": "56595366-fd00-44ea-83b7-a9a20e8f8b71",
+          "agent_id": "e2e_verifier",
+          "type": "E2E_PROBE_EVENT",
+          "payload": {
+            "at": "2025-12-26T09:38:28.604Z",
+            "run_id": "E2E-2025-12-26T09-38-28-497Z-c721e5ba",
+            "source": "arc_e2e_verifier.js"
+          },
+          "created_at": null
+        }
+      ],
+      "count": 1
+    }
+  },
+  "verdict": {
+    "pass": true,
+    "reasons": []
+  }
+}
