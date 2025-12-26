@@ -11,6 +11,15 @@
   import OpenAI from "openai";
   import { createClient } from "@supabase/supabase-js";
   import { sql } from "drizzle-orm";
+  import { 
+    supabase, 
+    isSupabaseConfigured, 
+    insertCommandLog, 
+    updateCommandLog,
+    fetchAgentsFromSupabase,
+    fetchDepartmentsFromSupabase,
+    testSupabaseConnection 
+  } from "./supabase";
   import {
     agentEventSchema,
     ceoReminderSchema,
@@ -164,6 +173,8 @@
         env: {
           NODE_ENV: process.env.NODE_ENV || "development",
           DATABASE_URL: process.env.DATABASE_URL ? "SET" : "MISSING",
+          SUPABASE_URL: process.env.SUPABASE_URL ? "SET" : "MISSING",
+          SUPABASE_KEY: process.env.SUPABASE_KEY ? "SET" : "MISSING",
           X_ARC_SECRET: process.env.X_ARC_SECRET ? "SET" : "MISSING",
           ARC_BACKEND_SECRET: process.env.ARC_BACKEND_SECRET ? "SET" : "MISSING",
           OPENAI_API_KEY: process.env.OPENAI_API_KEY ? "SET" : "MISSING",
@@ -178,6 +189,17 @@
         status.database = { status: "connected" };
       } catch (e: any) {
         status.database = { status: "error", message: e.message };
+      }
+
+      // Check Supabase connection
+      if (isSupabaseConfigured()) {
+        const supabaseTest = await testSupabaseConnection();
+        status.supabase = { 
+          status: supabaseTest.connected ? "connected" : "error",
+          error: supabaseTest.error || null
+        };
+      } else {
+        status.supabase = { status: "not_configured" };
       }
 
       res.json(status);
@@ -654,6 +676,138 @@
 
     // ==================== AGENTS ====================
     app.get("/api/agents", (_req, res) => sendSuccess(res, VIRTUAL_AGENTS));
+
+    // ==================== SUPABASE AGENTS SYNC ====================
+    // Fetch agents from Supabase agents table
+    app.get("/api/arc/agents/sync", authMiddleware, async (_req, res) => {
+      if (!isSupabaseConfigured()) {
+        return sendError(res, 503, "Supabase not configured");
+      }
+
+      const result = await fetchAgentsFromSupabase();
+      if (!result.success) {
+        return sendError(res, 500, result.error || "Failed to fetch agents");
+      }
+
+      sendSuccess(res, {
+        source: "supabase",
+        table: "agents",
+        count: result.data?.length || 0,
+        agents: result.data
+      });
+    });
+
+    // Fetch departments from Supabase
+    app.get("/api/arc/departments", authMiddleware, async (_req, res) => {
+      if (!isSupabaseConfigured()) {
+        return sendError(res, 503, "Supabase not configured");
+      }
+
+      const result = await fetchDepartmentsFromSupabase();
+      if (!result.success) {
+        return sendError(res, 500, result.error || "Failed to fetch departments");
+      }
+
+      sendSuccess(res, {
+        source: "supabase",
+        table: "departments",
+        count: result.data?.length || 0,
+        departments: result.data
+      });
+    });
+
+    // ==================== N8N WEBHOOK RECEIVER ====================
+    // Receives commands from n8n and logs to Supabase command_logs table
+    app.post("/api/arc/webhook", authMiddleware, async (req: Request, res: Response) => {
+      const commandId = `cmd-${Date.now()}-${Math.random().toString(36).substr(2, 8)}`;
+      const startTime = Date.now();
+
+      try {
+        // Log received command to Supabase command_logs
+        if (isSupabaseConfigured()) {
+          const logResult = await insertCommandLog({
+            command_id: commandId,
+            payload: req.body,
+            status: "received"
+          });
+
+          if (!logResult.success) {
+            console.warn(`⚠️ Failed to log command to Supabase: ${logResult.error}`);
+          }
+        }
+
+        // Process the incoming command
+        const { command, payload, job_id } = req.body;
+
+        // Default response for webhook acknowledgment
+        const response = {
+          ok: true,
+          command_id: commandId,
+          job_id: job_id || null,
+          received_at: new Date().toISOString(),
+          logged_to: isSupabaseConfigured() ? "supabase.command_logs" : "local_only",
+          message: "Command received and logged"
+        };
+
+        // Update command status to processing if we have follow-up work
+        if (isSupabaseConfigured() && command) {
+          await updateCommandLog(commandId, { 
+            status: "processing",
+            result: { acknowledged: true, duration_ms: Date.now() - startTime }
+          });
+        }
+
+        res.json(response);
+      } catch (e: any) {
+        // Log failure to Supabase
+        if (isSupabaseConfigured()) {
+          await updateCommandLog(commandId, { 
+            status: "failed",
+            result: { error: e.message }
+          });
+        }
+
+        sendError(res, 500, e.message);
+      }
+    });
+
+    // Alternative n8n endpoint (alias)
+    app.post("/api/n8n", authMiddleware, async (req: Request, res: Response) => {
+      const commandId = `n8n-${Date.now()}-${Math.random().toString(36).substr(2, 8)}`;
+
+      try {
+        // Log to Supabase command_logs
+        if (isSupabaseConfigured()) {
+          await insertCommandLog({
+            command_id: commandId,
+            payload: { source: "n8n", ...req.body },
+            status: "received"
+          });
+        }
+
+        res.json({
+          ok: true,
+          command_id: commandId,
+          received_at: new Date().toISOString(),
+          logged_to: isSupabaseConfigured() ? "supabase.command_logs" : "local_only"
+        });
+      } catch (e: any) {
+        sendError(res, 500, e.message);
+      }
+    });
+
+    // ==================== SUPABASE STATUS ====================
+    app.get("/api/arc/supabase/status", authMiddleware, async (_req, res) => {
+      const connectionTest = await testSupabaseConnection();
+      
+      res.json({
+        configured: isSupabaseConfigured(),
+        connected: connectionTest.connected,
+        error: connectionTest.error || null,
+        tables: ["agents", "command_logs", "memories", "departments"],
+        timestamp: new Date().toISOString()
+      });
+    });
 
     // ==================== ARC REALITY REPORT ====================
     // Support both GET (simple status) and POST (detailed report)
