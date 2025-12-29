@@ -4,6 +4,9 @@ import path from "path";
 import runtimeErrorModal from "@replit/vite-plugin-runtime-error-modal";
 import { cartographer } from "@replit/vite-plugin-cartographer";
 import { devBanner } from "@replit/vite-plugin-dev-banner";
+import tailwindcss from "tailwindcss";
+import autoprefixer from "autoprefixer";
+import tailwindConfig from "./tailwind.config.ts";
 
 export default defineConfig({
   plugins: [
@@ -12,6 +15,11 @@ export default defineConfig({
     cartographer(),
     devBanner(),
   ],
+  css: {
+    postcss: {
+      plugins: [tailwindcss(tailwindConfig), autoprefixer],
+    },
+  },
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "client", "src"),

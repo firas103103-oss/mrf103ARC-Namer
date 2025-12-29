@@ -11,9 +11,9 @@
 
 // WebSocket Server Configuration
 #define WS_SERVER "x-bioai.com"
-#define WS_PORT 443
+#define WS_PORT 8080
 #define WS_PATH "/ws/bio-sentinel"
-#define WS_USE_SSL true
+#define WS_USE_SSL false
 
 // Device Configuration
 #define DEVICE_ID "xbs-esp32-001"

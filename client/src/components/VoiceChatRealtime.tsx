@@ -49,7 +49,8 @@ export default function VoiceChatRealtime() {
 
   useEffect(() => {
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const ws = new WebSocket(`${protocol}//${window.location.host}/realtime`);
+    const host = import.meta.env.VITE_WS_BACKEND_URL || window.location.host;
+    const ws = new WebSocket(`${protocol}//${host}/realtime`);
     
     ws.onopen = () => {
       setConnected(true);

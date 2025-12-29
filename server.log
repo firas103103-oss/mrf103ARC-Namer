@@ -1,0 +1,18 @@
+
+> rest-express@1.0.0 dev
+> NODE_ENV=development tsx server/index.ts
+
+⚠️ Supabase not configured: Missing SUPABASE_URL or SUPABASE_KEY
+/home/user/idx/node_modules/openai/src/client.ts:376
+      throw new Errors.OpenAIError(
+            ^
+
+
+OpenAIError: Missing credentials. Please pass an `apiKey`, or set the `OPENAI_API_KEY` environment variable.
+    at new OpenAI (/home/user/idx/node_modules/openai/src/client.ts:376:13)
+    at <anonymous> (/home/user/idx/server/routes.ts:71:18)
+    at ModuleJob.run (node:internal/modules/esm/module_job:234:25)
+    at async ModuleLoader.import (node:internal/modules/esm/loader:473:24)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:122:5)
+
+Node.js v20.18.1

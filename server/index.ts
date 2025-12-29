@@ -1,210 +1,49 @@
-// ==================== IMPORTS ====================
-import express, { type Request, Response, NextFunction } from "express";
+
 import { createServer } from "http";
-import cors from "cors";
-import fs from "fs";
+import express, { type Request, Response, NextFunction, type Express } from "express";
 import path from "path";
 import { registerRoutes } from "./routes";
+import { setupVite } from "./vite";
 
-// ==================== SERVER BASE ====================
+// This function will serve static files in a production environment
+function serveStatic(app: Express) {
+  const buildDir = path.resolve(import.meta.dirname, "..", "dist", "public");
+  app.use(express.static(buildDir));
+  // For any other request, serve the index.html file, so that client-side routing works
+  app.get('*', (req, res) => {
+    res.sendFile(path.resolve(buildDir, 'index.html'));
+  });
+}
+
 const app = express();
 const httpServer = createServer(app);
-app.use(cors());
+
 app.use(express.json());
-
-// ==================== LOGGER ====================
-export function log(message: string, source = "express") {
-  const formattedTime = new Date().toLocaleTimeString("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: true,
-  });
-  console.log(`${formattedTime} [${source}] ${message}`);
-}
-
-// ==================== VOICE MAP LOADING ====================
-const DEFAULT_VOICE_MAP: Record<string, string> = {
-  "Mr.F": "HRaipzPqzrU15BUS5ypU",
-  "L0-Comms": "0hJmISqttjKhoHxPrKoy",
-  "L0-Ops": "CxlDiOFUbSOiMn57bk3w",
-  "L0-Intel": "rFDdsCQRZCUL8cPOWtnP",
-  "Dr. Maya Quest": "PB6BdkFkZLbI39GHdnbQ",
-  "Jordan Spark": "jAAHNNqlbAX9iWjJPEtE",
-  "default": "pNInz6obpgDQGcFmaJgB"
-};
-
-let voiceMap: Record<string, string> = DEFAULT_VOICE_MAP;
-try {
-  const voiceMapPath = path.join(process.cwd(), "server", "config", "voiceMap.json");
-  if (fs.existsSync(voiceMapPath)) {
-    const jsonData = fs.readFileSync(voiceMapPath, "utf-8");
-    voiceMap = JSON.parse(jsonData);
-  }
-  log("🎙️ VoiceMap loaded successfully", "init");
-} catch (err: any) {
-  log("⚠️ Could not load voiceMap.json, using built-in voice map", "init");
-}
-
-// ==================== SECURITY PLACEHOLDER ====================
-let unauthorizedAttempts = 0;
-let lastUnauthorizedPath = "";
-
-// ==================== HEALTH CHECK ====================
-app.get("/ping", (_req: Request, res: Response) => {
-  res.json({ status: "alive", message: "✅ ARC Bridge Server is running" });
-});
-
-// ==================== ARC VOICE + GPT BRAIN ENDPOINT ====================
-app.post("/api/call_mrf_brain", async (req: Request, res: Response) => {
-  try {
-    const { from, free_text } = req.body;
-    log(`Incoming ARC voice-call from ${from} :: ${free_text}`, "bridge");
-
-    const OPENAI_KEY = process.env.OPENAI_API_KEY;
-    const ELEVEN_KEY = process.env.ELEVENLABS_API_KEY;
-    const SUPABASE_URL = process.env.SUPABASE_URL;
-    const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-    if (!OPENAI_KEY) throw new Error("Missing OPENAI_API_KEY");
-    if (!ELEVEN_KEY) throw new Error("Missing ELEVENLABS_API_KEY");
-
-    // 1️⃣ Step 1 – Generate response text using GPT
-    const gptRes = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${OPENAI_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        messages: [
-          {
-            role: "system",
-            content:
-              "You are Mr.F Brain — the executive AI agent of ARC Virtual Office. Respond in concise, intelligent Arabic.",
-          },
-          { role: "user", content: free_text },
-        ],
-      }),
-    });
-
-    const gptData = await gptRes.json();
-    const answer =
-      gptData.choices?.[0]?.message?.content || "لم أتمكن من فهم الطلب.";
-
-    // 2️⃣ Step 2 – Select Voice based on agent
-    const agentName = from || "default";
-    const VOICE_ID =
-      voiceMap[agentName] || process.env.MRF_VOICE_ID || voiceMap["default"];
-
-    // 3️⃣ Step 3 – Generate voice using ElevenLabs
-    let audioBuffer: Buffer | null = null;
-    try {
-      const voiceResponse = await fetch(
-        `https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`,
-        {
-          method: "POST",
-          headers: {
-            "xi-api-key": ELEVEN_KEY,
-            Accept: "audio/mpeg",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            text: answer,
-            voice_settings: { stability: 0.7, similarity_boost: 0.8 },
-          }),
-        }
-      );
-
-      if (voiceResponse.ok) {
-        audioBuffer = Buffer.from(await voiceResponse.arrayBuffer());
-        log(`🎧 Voice synthesis complete for ${agentName}`, "voice");
-      } else {
-        log(`⚠️ ElevenLabs error: ${voiceResponse.status}`, "voice");
-      }
-    } catch (err: any) {
-      log(`❌ ElevenLabs connection failed: ${err.message}`, "voice");
-    }
-
-    // 4️⃣ Step 4 – Log to Supabase (optional)
-    if (SUPABASE_URL && SUPABASE_KEY) {
-      try {
-        await fetch(`${SUPABASE_URL}/rest/v1/arc_logs`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            apikey: SUPABASE_KEY,
-            Authorization: `Bearer ${SUPABASE_KEY}`,
-          },
-          body: JSON.stringify({
-            from,
-            free_text,
-            gpt_response: answer,
-            status: "completed",
-            created_at: new Date().toISOString(),
-          }),
-        });
-      } catch (e: any) {
-        log(`⚠️ Failed to log to Supabase: ${e.message}`, "supabase");
-      }
-    }
-
-    // 5️⃣ Step 5 – Respond with text + voice
-    res.setHeader("Content-Type", "application/json");
-    res.json({
-      status: "ok",
-      from,
-      reply: answer,
-      voice: audioBuffer
-        ? `data:audio/mpeg;base64,${audioBuffer.toString("base64")}`
-        : null,
-      timestamp: new Date().toISOString(),
-    });
-
-    log(`✅ Voice+Brain response sent to ${from}`, "bridge");
-  } catch (err: any) {
-    console.error("ARC Voice Brain Error:", err);
-    res.status(500).json({ status: "error", message: err.message });
-  }
-});
-
-// ==================== ERROR HANDLER ====================
-app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-  const status = err.status || err.statusCode || 500;
-  const message = err.message || "Internal Server Error";
-  res.status(status).json({ message });
-  log(`Error: ${message}`, "error");
-});
-
-// ==================== START SERVER ====================
-const PORT = parseInt(process.env.PORT || "5000", 10);
+app.use(express.urlencoded({ extended: false }));
 
 (async () => {
-  // Register all API routes first
+  // Activate the router from routes.ts, providing both the http server and express app
   await registerRoutes(httpServer, app);
-  
-  // Setup Vite for frontend in development, static serving in production
-  if (process.env.NODE_ENV === "development") {
-    const { setupVite } = await import("./vite");
+
+  // Error handling
+  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+    const status = err.status || err.statusCode || 500;
+    const message = err.message || "Internal Server Error";
+    res.status(status).json({ message });
+    throw err;
+  });
+
+  // Environment settings (Vite for preview)
+  if (app.get("env") === "development") {
     await setupVite(httpServer, app);
   } else {
-    // Production: serve static files from dist/public
-    const distPath = path.resolve(process.cwd(), "dist", "public");
-    app.use(express.static(distPath));
-    app.get("*", (_req, res) => {
-      res.sendFile(path.join(distPath, "index.html"));
-    });
+    serveStatic(app);
   }
-  
-  httpServer.listen(
-    {
-      port: PORT,
-      host: "0.0.0.0",
-      reusePort: true,
-    },
-    () => {
-      log(`✅ ARC Bridge Server running on port ${PORT}`);
-    }
-  );
+
+  // Run the server on port 9002 (required for the agent)
+  // and use 0.0.0.0 to ensure external access in Replit/IDX environment
+  const PORT = 9002;
+  httpServer.listen(PORT, "0.0.0.0", () => {
+    console.log(`serving on port ${PORT}`);
+  });
 })();
