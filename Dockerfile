@@ -1,27 +1,25 @@
-# 1. نستخدم Node 20 لأنك تستخدم types/node:20
-FROM node:20-alpine
+# استخدام نسخة Debian Slim بدلاً من Alpine لتجنب مشاكل توافق المكتبات
+FROM node:20-slim
 
-# 2. مجلد العمل
+# تحديد مجلد العمل
 WORKDIR /app
 
-# 3. ننسخ ملفات تعريف المكتبات
+# نسخ ملفات تعريف المكتبات أولاً
 COPY package*.json ./
 
-# 4. تثبيت المكتبات (نحتاج devDependencies عشان tsx يشتغل في البناء)
+# تثبيت المكتبات (بما فيها devDependencies لأننا نحتاج tsx و vite)
 RUN npm install
 
-# 5. ننسخ باقي الكود
+# نسخ باقي ملفات المشروع
 COPY . .
 
-# 6. عملية البناء (هنا سيتم تشغيل script/build.ts وإنشاء مجلد dist)
+# بناء المشروع (Frontend + Backend)
+# هذا سيقوم بتشغيل script/build.ts كما هو محدد في مشروعك
 RUN npm run build
 
-# 7. تنظيف المكتبات غير الضرورية (اختياري لتخفيف الوزن، لكن خلنا نتركه الآن للأمان)
-# RUN npm prune --production 
-
-# 8. المنفذ
+# إعداد المنفذ (Cloud Run يتطلب هذا)
 ENV PORT=8080
 EXPOSE 8080
 
-# 9. التشغيل (سيقوم بتشغيل الأمر start الموجود في package.json)
+# تشغيل التطبيق
 CMD ["npm", "start"]

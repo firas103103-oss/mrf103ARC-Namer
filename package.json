@@ -1,10 +1,10 @@
 {
-  "name": "rest-express",
+  "name": "mimetic-cider-zpvm6",
   "version": "1.0.0",
   "type": "module",
   "license": "MIT",
   "scripts": {
-    "dev": "NODE_ENV=development PORT=5000 tsx -r dotenv/config server/index.ts",
+    "dev": "NODE_ENV=development PORT=5001 tsx -r dotenv/config server/index.ts",
     "build": "tsx script/build.ts",
     "start": "NODE_ENV=production node dist/index.cjs",
     "check": "tsc",
@@ -104,6 +104,7 @@
     "@types/node": "20.16.11",
     "@types/passport": "^1.0.16",
     "@types/passport-local": "^1.0.38",
+    "@types/pg": "^8.16.0",
     "@types/react": "^18.3.11",
     "@types/react-dom": "^18.3.1",
     "@types/ws": "^8.5.13",

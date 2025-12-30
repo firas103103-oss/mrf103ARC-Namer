@@ -4,6 +4,7 @@ import express, { type Request, Response, NextFunction, type Express } from "exp
 import path from "path";
 import { registerRoutes } from "./routes";
 import { setupVite } from "./vite";
+import { initializeRealtimeSubscriptions } from "./realtime"; // Import the new initializer
 
 // This function will serve static files in a production environment
 function serveStatic(app: Express) {
@@ -16,14 +17,16 @@ function serveStatic(app: Express) {
 }
 
 const app = express();
-const httpServer = createServer(app);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 (async () => {
-  // Activate the router from routes.ts, providing both the http server and express app
-  await registerRoutes(httpServer, app);
+  // Activate the router from routes.ts, providing the express app
+  const httpServer = await registerRoutes(app);
+
+  // Initialize the real-time subscription service
+  initializeRealtimeSubscriptions();
 
   // Error handling
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
@@ -40,10 +43,10 @@ app.use(express.urlencoded({ extended: false }));
     serveStatic(app);
   }
 
-  // Run the server on port 9002 (required for the agent)
-  // and use 0.0.0.0 to ensure external access in Replit/IDX environment
-  const PORT = 9002;
+  // Use the PORT environment variable if available, otherwise default to 9002.
+  // Use 0.0.0.0 to ensure external access in Replit/IDX environment.
+  const PORT = process.env.PORT || 9002;
   httpServer.listen(PORT, "0.0.0.0", () => {
-    console.log(`serving on port ${PORT}`);
+    console.log(`✅ Server is live and listening on port ${PORT}`);
   });
 })();
