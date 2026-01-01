@@ -6,3 +6,16 @@ vite.config.ts.*
 *.tar.gz
 *.code-profile
 docs/*.code-profile
+
+# Environment Variables (NEVER commit .env files)
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/settings.json
+.idea/
+
+# Logs
+*.log
+npm-debug.log*
