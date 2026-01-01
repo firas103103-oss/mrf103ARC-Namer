@@ -232,10 +232,10 @@ interface Activity {
    - `GET /api/logout` (sidebar logout)
 
 2. **Dashboard**:
-   - ❌ `GET /api/dashboard/commands` (referenced in code, **NOT IMPLEMENTED**)
-   - ❌ `GET /api/dashboard/events` (referenced in code, **NOT IMPLEMENTED**)
-   - ❌ `GET /api/dashboard/feedback` (referenced in code, **NOT IMPLEMENTED**)
-   - ❌ `GET /api/core/timeline` (referenced in code, **NOT IMPLEMENTED**)
+   - ✅ `GET /api/dashboard/commands` (referenced in code, **NOW IMPLEMENTED**)
+   - ✅ `GET /api/dashboard/events` (referenced in code, **NOW IMPLEMENTED**)
+   - ✅ `GET /api/dashboard/feedback` (referenced in code, **NOW IMPLEMENTED** - stub)
+   - ✅ `GET /api/core/timeline` (referenced in code, **NOW IMPLEMENTED**)
 
 3. **Virtual Office (Command Logs)**:
    - `GET /api/arc/command-log` (paginated, implemented)
@@ -256,6 +256,13 @@ interface Activity {
 8. **Real-time Chat**:
    - `WebSocket /realtime` (implemented)
 
+9. **Dashboard APIs** (newly implemented):
+   - `GET /api/dashboard/commands` (paginated, implemented)
+   - `GET /api/dashboard/events` (paginated, implemented)
+   - `GET /api/dashboard/feedback` (stub endpoint, implemented)
+   - `GET /api/core/timeline` (aggregated, implemented)
+   - `POST /api/call_mrf_brain` (OpenAI proxy, implemented)
+
 ### Client-Side Query Client
 
 The `client/src/lib/queryClient.ts` uses `@tanstack/react-query` with custom fetch wrapper:
@@ -263,15 +270,15 @@ The `client/src/lib/queryClient.ts` uses `@tanstack/react-query` with custom fet
 - Example: `queryKey: ["/api/auth/user"]` → `GET /api/auth/user`
 - Credentials included by default
 
-### ⚠️ DISCREPANCIES FOUND
+### ⚠️ DISCREPANCIES FOUND (RESOLVED)
 
 | Path | Client Reference | Backend Implementation | Status |
 |------|------------------|------------------------|--------|
-| `/api/dashboard/commands` | ✅ (pages/dashboard.tsx) | ❌ Not defined | FAIL |
-| `/api/dashboard/events` | ✅ (pages/dashboard.tsx) | ❌ Not defined | FAIL |
-| `/api/dashboard/feedback` | ✅ (pages/dashboard.tsx) | ❌ Not defined | FAIL |
-| `/api/core/timeline` | ✅ (pages/dashboard.tsx) | ❌ Not defined | FAIL |
-| `/api/call_mrf_brain` | ✅ (pages/VirtualOffice.tsx) | ❌ Not defined | FAIL |
+| `/api/dashboard/commands` | ✅ (pages/dashboard.tsx) | ✅ Implemented (thin wrapper) | PASS |
+| `/api/dashboard/events` | ✅ (pages/dashboard.tsx) | ✅ Implemented (thin wrapper) | PASS |
+| `/api/dashboard/feedback` | ✅ (pages/dashboard.tsx) | ✅ Implemented (stub) | PASS |
+| `/api/core/timeline` | ✅ (pages/dashboard.tsx) | ✅ Implemented (aggregator) | PASS |
+| `/api/call_mrf_brain` | ✅ (pages/VirtualOffice.tsx) | ✅ Implemented (proxy) | PASS |
 | `/api/arc/command-log` | ✅ (pages/virtual-office.tsx) | ✅ Implemented | PASS |
 | `/api/arc/agent-events` | ✅ (pages/virtual-office.tsx) | ✅ Implemented | PASS |
 | `/api/arc/command-metrics` | ✅ (components/ARCCommandMetrics.tsx) | ✅ Implemented | PASS |
@@ -279,27 +286,27 @@ The `client/src/lib/queryClient.ts` uses `@tanstack/react-query` with custom fet
 | `/api/arc/voices` | ✅ (components/ARCVoiceSelector.tsx) | ✅ Implemented (voices.js) | PASS |
 | `/api/health` | ✅ (components/ARCMonitor.tsx) | ✅ Implemented | PASS |
 | `/realtime` (WebSocket) | ✅ (components/VoiceChatRealtime.tsx) | ✅ Implemented | PASS |
+| `/realtime` (WebSocket) | ✅ (components/VoiceChatRealtime.tsx) | ✅ Implemented | PASS |
 
 ---
 
-## Status: PARTIAL PASS
+## Status: FULL PASS ✅
 
-### ✅ Verified Safe
-- Core API endpoints are working
+### ✅ All Required Endpoints Implemented
+- Core authentication endpoints are working
+- All dashboard API endpoints now implemented (v0.1.x)
 - No direct Supabase access from client
 - Session-based auth is secure
 - WebSocket is authenticated
 - Rate limiting is active
 
-### ❌ Missing Implementations
-The following endpoints are **referenced in client code but NOT implemented in server**:
-1. `/api/dashboard/commands`
-2. `/api/dashboard/events`
-3. `/api/dashboard/feedback`
-4. `/api/core/timeline`
-5. `/api/call_mrf_brain`
-
-These cause `404` errors when the dashboard tries to load. They are likely in-progress or future features.
+### ✅ Implementation Details
+All 5 missing endpoints have been implemented as **thin wrappers/aggregators**:
+1. `/api/dashboard/commands` → Reuses `/api/arc/command-log` logic
+2. `/api/dashboard/events` → Reuses `/api/arc/agent-events` logic
+3. `/api/dashboard/feedback` → STUB endpoint (returns empty array)
+4. `/api/core/timeline` → Aggregates command-log + agent-events, sorted by timestamp
+5. `/api/call_mrf_brain` → Thin proxy to existing OpenAI handler (with offline fallback)
 
 ---
 
@@ -317,6 +324,11 @@ These cause `404` errors when the dashboard tries to load. They are likely in-pr
 - `/api/arc/command-metrics` (GET)
 - `/api/arc/selfcheck` (GET)
 - `/api/arc/voices` (GET)
+- `/api/dashboard/commands` (GET, paginated) **[NEW]**
+- `/api/dashboard/events` (GET, paginated) **[NEW]**
+- `/api/dashboard/feedback` (GET) **[NEW - STUB]**
+- `/api/core/timeline` (GET) **[NEW]**
+- `/api/call_mrf_brain` (POST) **[NEW]**
 - `/realtime` (WebSocket)
 
 ### Any Change Requires

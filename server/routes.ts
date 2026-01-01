@@ -202,6 +202,130 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ reminders: remindersOut, summaries: summariesOut, events: eventsOut });
   });
 
+  // --- Dashboard API (thin wrappers/aggregators) ---
+  
+  // GET /api/dashboard/commands (reuse command-log logic)
+  app.get("/api/dashboard/commands", operatorLimiter, requireOperatorSession, async (req: any, res) => {
+    if (!isSupabaseConfigured() || !supabase) return res.status(503).json({ error: "supabase_not_configured" });
+
+    const page = Math.max(1, Number(req.query.page || 1));
+    const pageSize = Math.min(50, Math.max(1, Number(req.query.pageSize || 10)));
+    const offset = (page - 1) * pageSize;
+
+    const { data, error, count } = await supabase
+      .from("arc_command_log")
+      .select("*", { count: "exact" })
+      .order("created_at", { ascending: false })
+      .range(offset, offset + pageSize - 1);
+
+    if (error) return res.status(500).json({ error: "supabase_query_failed" });
+
+    const whitelisted = (data || []).map((row: any) =>
+      pick(row, ["id", "command_id", "command", "status", "created_at", "payload", "duration_ms"] as any),
+    );
+    res.json({ data: whitelisted, count: count ?? 0 });
+  });
+
+  // GET /api/dashboard/events (reuse agent-events logic)
+  app.get("/api/dashboard/events", operatorLimiter, requireOperatorSession, async (req: any, res) => {
+    if (!isSupabaseConfigured() || !supabase) return res.status(503).json({ error: "supabase_not_configured" });
+
+    const page = Math.max(1, Number(req.query.page || 1));
+    const pageSize = Math.min(50, Math.max(1, Number(req.query.pageSize || 10)));
+    const offset = (page - 1) * pageSize;
+
+    const { data, error, count } = await supabase
+      .from("agent_events")
+      .select("*", { count: "exact" })
+      .order("created_at", { ascending: false })
+      .range(offset, offset + pageSize - 1);
+
+    if (error) return res.status(500).json({ error: "supabase_query_failed" });
+
+    const whitelisted = (data || []).map((row: any) =>
+      pick(row, ["id", "agent_name", "event_type", "payload", "created_at"] as any),
+    );
+    res.json({ data: whitelisted, count: count ?? 0 });
+  });
+
+  // GET /api/dashboard/feedback (STUB: UI compatibility placeholder)
+  // NOTE: Returns empty array. Actual feedback/callback storage endpoint not yet defined.
+  app.get("/api/dashboard/feedback", operatorLimiter, requireOperatorSession, (_req: any, res) => {
+    res.json({ data: [], count: 0 });
+  });
+
+  // GET /api/core/timeline (aggregate command-log + agent-events, merged and sorted)
+  app.get("/api/core/timeline", operatorLimiter, requireOperatorSession, async (req: any, res) => {
+    if (!isSupabaseConfigured() || !supabase) return res.status(503).json({ error: "supabase_not_configured" });
+
+    // Fetch last 100 commands and events
+    const [cmdRes, evtRes] = await Promise.all([
+      supabase.from("arc_command_log").select("*").order("created_at", { ascending: false }).limit(100),
+      supabase.from("agent_events").select("*").order("created_at", { ascending: false }).limit(100),
+    ]);
+
+    if (cmdRes.error || evtRes.error) {
+      return res.status(500).json({ error: "supabase_query_failed" });
+    }
+
+    // Whitelisted command logs
+    const commands = (cmdRes.data || []).map((row: any) =>
+      pick(row, ["id", "command_id", "command", "status", "created_at", "payload", "duration_ms"] as any),
+    );
+
+    // Whitelisted agent events
+    const events = (evtRes.data || []).map((row: any) =>
+      pick(row, ["id", "agent_name", "event_type", "payload", "created_at"] as any),
+    );
+
+    // Merge and sort by created_at descending
+    const merged = [
+      ...commands.map((c: any) => ({ ...c, type: "command" })),
+      ...events.map((e: any) => ({ ...e, type: "event" })),
+    ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+    res.json({ data: merged, count: merged.length });
+  });
+
+  // POST /api/call_mrf_brain (thin proxy to OpenAI handler)
+  app.post("/api/call_mrf_brain", operatorLimiter, requireOperatorSession, async (req: any, res) => {
+    const { text } = req.body || {};
+    if (typeof text !== "string" || text.trim().length === 0) {
+      return res.status(400).json({ error: "missing_or_empty_text" });
+    }
+
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) {
+      // Offline response (no OpenAI key)
+      return res.json({ 
+        reply: `Mr.F (offline): I received: "${text.trim()}"`, 
+        offline: true 
+      });
+    }
+
+    try {
+      const client = new OpenAI({ apiKey });
+      const model = process.env.OPENAI_MODEL || "gpt-4o-mini";
+
+      const completion = await client.chat.completions.create({
+        model,
+        messages: [
+          {
+            role: "system",
+            content: "You are Mr.F, a single-operator ARC assistant. Respond concisely and clearly. Text-only.",
+          },
+          { role: "user", content: text },
+        ],
+      });
+
+      const reply = completion.choices?.[0]?.message?.content || "(no response)";
+      res.json({ reply: reply.trim(), offline: false });
+    } catch (error: any) {
+      console.error("[Mr.F Brain] OpenAI error:", error);
+      res.status(500).json({ error: "openai_request_failed" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
