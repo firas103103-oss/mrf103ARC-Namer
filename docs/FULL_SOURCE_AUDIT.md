@@ -1315,7 +1315,7 @@ This repository is a **production-grade AI orchestration platform** with:
 - **Recommended Destination:** arc-meta
 - **Action:** USE AS-IS (local configuration)
 
-#### `📄 client/src/components/VoiceChatRealtime.tsx`
+#### `archives/ui/📄 client/src/components/VoiceChatRealtime.tsx`
 - **Type:** INTERFACE / DUPLICATE
 - **Status:** Duplicate/variant of client/src/components/VoiceChatRealtime.tsx
 - **Note:** Emoji prefix in filename suggests alternate version
@@ -1483,7 +1483,7 @@ OpenAI API ↔ LLM Agent Brain
 
 | Item | Type | Action |
 |------|------|--------|
-| `client/` + `📄 client/` | Code | CONSOLIDATE (merge variants) |
+| `client/` + `archives/ui/📄 client/` | Code | CONSOLIDATE (merge variants) |
 | `firmware/README.md` + `docs/esp32-firmware-prompt.md` | Docs | CONSOLIDATE (merge specs) |
 | `x-bio-sentinel-spec.md` + `esp32-firmware-prompt.md` | Docs | CONSOLIDATE |
 | `ARC_FULL_MANIFEST_REPORT.md` + `ARC_Report_v14.6.txt` | Docs | CONSOLIDATE (keep one format) |
@@ -1751,7 +1751,7 @@ bash arc_deploy.sh (corrupted)
 npm install ws (captured output)
 server.log (generated)
 firebase-debug.log (generated)
-📄 client/ (merge with client/)
+archives/ui/📄 client/ (archived; do not import; merge with client/ if needed)
 arc_e2e_verifier_*.json (keep 1, archive rest)
 arc_reality_probe_*.json (keep 1, archive rest)
 ```

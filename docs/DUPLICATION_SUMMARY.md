@@ -10,7 +10,7 @@
 
 ## Overlapping Concerns
 - **firmware/README.md and docs/esp32-firmware-prompt.md**: Both contain documentation for ESP32 firmware. README.md is brief, while the prompt file is more detailed. Firmware README overlaps with main docs.
-- **client/ and 📄 client/**: Two client directories, likely representing different implementations or versions of the frontend. The emoji-named directory may be a variant or duplicate.
+- **client/ and archives/ui/📄 client/**: Two client directories existed; the emoji-named directory is now archived under archives/ui/ as a read-only snapshot.
 
 ## Partial Implementations
 - **README.md**: Empty file with no content. Should contain project overview but is incomplete.
@@ -34,7 +34,7 @@
 
 ### User Interface
 - client/ (React frontend)
-- 📄 client/ (alternate frontend)
+- archives/ui/📄 client/ (archived alternate frontend)
 - capacitor.config.ts (mobile config)
 - tailwind.config.ts (styling)
 - components.json (UI components)
@@ -74,7 +74,7 @@
 - Consolidate duplicate test outputs into a single archive or remove historical ones.
 - Merge overlapping documentation files.
 - Complete partial implementations like README.md.
-- Clarify relationship between client/ and 📄 client/ directories.
+- Clarify relationship between client/ and archives/ui/📄 client/ directories.
 - Archive ARC-Namer.zip if not needed for distribution.
 
 Current Date and Time (UTC - YYYY-MM-DD HH:MM:SS formatted): 2026-01-01 14:09:08

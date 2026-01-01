@@ -28,7 +28,7 @@
 | arc_replit_report.sh | Report generation | arc-ops | UNIQUE | ARC_FULL_MANIFEST_REPORT.md | Move to arc-ops | Report script |
 | bash arc_deploy.sh | Deployment log/error | arc-meta | UNIQUE | arc_deploy.sh | Move to arc-meta | Possibly corrupted file |
 | capacitor.config.ts | Mobile app config | arc-interface | UNIQUE | client/ | Move to arc-interface | Capacitor configuration |
-| client/ | Frontend application | arc-interface | UNIQUE | capacitor.config.ts, 📄 client/ | Move to arc-interface | React frontend |
+| client/ | Frontend application | arc-interface | UNIQUE | capacitor.config.ts, archives/ui/📄 client/ | Move to arc-interface | React frontend |
 | components.json | UI components config | arc-interface | UNIQUE | client/ | Move to arc-interface | Component library config |
 | deploy-web.sh | Web deployment | arc-ops | UNIQUE | arc_deploy.sh | Move to arc-ops | Web deployment script |
 | design_guidelines.md | Design documentation | arc-docs | UNIQUE | docs/ | Move to arc-docs | UI/UX guidelines |
@@ -65,7 +65,7 @@
 | tsconfig.json | TypeScript config | arc-meta | UNIQUE | package.json | Move to arc-meta | TS configuration |
 | uv.lock | Python lock | arc-meta | UNIQUE | pyproject.toml | Move to arc-meta | Python lock file |
 | vite.config.ts | Build tool config | arc-interface | UNIQUE | client/ | Move to arc-interface | Vite configuration |
-| 📄 client/ | Alternate client | arc-interface | OVERLAPPING | client/ | Move to arc-interface | Possibly duplicate or variant client |
+| archives/ui/📄 client/ | Archived alternate client | arc-interface | OVERLAPPING | client/ | Move to arc-interface | Archived snapshot of alternate/duplicate frontend |
 | .firebase/ | Firebase config | arc-meta | UNIQUE | firebase.json | Move to arc-meta | Firebase directory |
 | .idx/ | IDX config | arc-meta | UNIQUE |  | Move to arc-meta | Development config |
 | .vscode/ | VS Code config | arc-meta | UNIQUE |  | Move to arc-meta | IDE config |
