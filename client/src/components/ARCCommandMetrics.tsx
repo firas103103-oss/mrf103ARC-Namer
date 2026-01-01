@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { supabase, isSupabaseConfigured } from "../lib/supabaseClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart3, CheckCircle2, XCircle, Zap } from "lucide-react";
 
@@ -18,39 +17,16 @@ export default function ARCCommandMetrics() {
   }, []);
 
   const fetchMetrics = async () => {
-    if (!isSupabaseConfigured || !supabase) return;
-
-    const result = await supabase
-      .from("arc_command_log")
-      .select("*")
-      .limit(100);
-
-    const commands = result?.data;
-    if (!commands) return;
-
-    const total = commands.length;
-    const success = commands.filter((c) => c.status === "completed").length;
-    const failed = commands.filter((c) => c.status === "failed").length;
-    const avgResponse = commands.reduce((acc, c) => acc + (c.duration_ms || 0), 0) / (total || 1);
-
-    setMetrics({ total, success, failed, avgResponse });
+    const res = await fetch("/api/arc/command-metrics");
+    if (!res.ok) return;
+    const data = await res.json();
+    setMetrics({
+      total: Number(data.total) || 0,
+      success: Number(data.success) || 0,
+      failed: Number(data.failed) || 0,
+      avgResponse: Number(data.avgResponse) || 0,
+    });
   };
-
-  if (!isSupabaseConfigured) {
-    return (
-      <Card data-testid="card-metrics-error">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <BarChart3 className="h-5 w-5 text-primary" />
-            Command Metrics
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground text-sm">Supabase not configured</p>
-        </CardContent>
-      </Card>
-    );
-  }
 
   return (
     <Card data-testid="card-metrics">

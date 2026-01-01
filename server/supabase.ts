@@ -1,20 +1,9 @@
 
-// ==================== CONFIGURATION OVERRIDE ====================
-// This is a critical step to ensure the server and client use the same Supabase project.
-// It forces the server-side Supabase client to use the public-facing VITE_ variables.
-if (process.env.VITE_SUPABASE_URL && process.env.VITE_SUPABASE_KEY) {
-  process.env.SUPABASE_URL = process.env.VITE_SUPABASE_URL;
-  process.env.SUPABASE_KEY = process.env.VITE_SUPABASE_KEY;
-  console.log("✅ [Supabase Override] Server-side Supabase config aligned with client.");
-} else {
-  console.warn("⚠️ [Supabase Override] VITE_SUPABASE_URL or VITE_SUPABASE_KEY are not defined. Server may be using a different Supabase project than the client.");
-}
-
 // ==================== SUPABASE SERVER CLIENT ====================
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 
 const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_KEY;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY;
 
 let supabase: SupabaseClient | null = null;
 
@@ -22,7 +11,7 @@ if (supabaseUrl && supabaseKey) {
   supabase = createClient(supabaseUrl, supabaseKey);
   console.log("✅ Supabase client initialized");
 } else {
-  console.warn("⚠️ Supabase not configured: Missing SUPABASE_URL or SUPABASE_KEY");
+  console.warn("⚠️ Supabase not configured: Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY");
 }
 
 export { supabase };

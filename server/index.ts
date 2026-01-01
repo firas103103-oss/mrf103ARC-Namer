@@ -1,10 +1,12 @@
 
-import { createServer } from "http";
+import { createServer, ServerResponse } from "http";
 import express, { type Request, Response, NextFunction, type Express } from "express";
+import session from "express-session";
 import path from "path";
 import { registerRoutes } from "./routes";
 import { setupVite } from "./vite";
 import { initializeRealtimeSubscriptions } from "./realtime"; // Import the new initializer
+import { handleRealtimeChatUpgrade } from "./chatRealtime";
 
 // This function will serve static files in a production environment
 function serveStatic(app: Express) {
@@ -21,9 +23,44 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+const sessionMiddleware = session({
+  name: "arc.sid",
+  secret: process.env.SESSION_SECRET || process.env.ARC_BACKEND_SECRET || "dev-session-secret",
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: false,
+  },
+});
+
+app.use(sessionMiddleware);
+
 (async () => {
   // Activate the router from routes.ts, providing the express app
   const httpServer = await registerRoutes(app);
+
+  // Authenticated WebSocket upgrade (text chat only)
+  httpServer.on("upgrade", (request, socket, head) => {
+    const url = request.url || "";
+    if (!url.startsWith("/realtime")) {
+      socket.destroy();
+      return;
+    }
+
+    const res = new ServerResponse(request);
+    sessionMiddleware(request as any, res as any, () => {
+      const isAuthed = (request as any).session?.operatorAuthenticated;
+      if (!isAuthed) {
+        socket.write("HTTP/1.1 401 Unauthorized\r\n\r\n");
+        socket.destroy();
+        return;
+      }
+
+      handleRealtimeChatUpgrade(request, socket as any, head);
+    });
+  });
 
   // Initialize the real-time subscription service
   initializeRealtimeSubscriptions();

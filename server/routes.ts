@@ -3,6 +3,48 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import OpenAI from "openai";
+import { supabase, isSupabaseConfigured } from "./supabase";
+
+function getClientIp(req: any): string {
+  const xff = req.headers?.["x-forwarded-for"]; 
+  if (typeof xff === "string" && xff.length > 0) return xff.split(",")[0].trim();
+  return req.ip || req.connection?.remoteAddress || "unknown";
+}
+
+function createRateLimiter(options: { windowMs: number; max: number }) {
+  const hits = new Map<string, { resetAt: number; count: number }>();
+
+  return (req: any, res: any, next: any) => {
+    const now = Date.now();
+    const key = `${req.path}:${getClientIp(req)}`;
+    const entry = hits.get(key);
+
+    if (!entry || entry.resetAt <= now) {
+      hits.set(key, { resetAt: now + options.windowMs, count: 1 });
+      return next();
+    }
+
+    entry.count += 1;
+    if (entry.count > options.max) {
+      return res.status(429).json({ error: "rate_limited" });
+    }
+
+    return next();
+  };
+}
+
+function requireOperatorSession(req: any, res: any, next: any) {
+  if (req.session?.operatorAuthenticated) return next();
+  return res.status(401).json({ error: "unauthorized" });
+}
+
+const operatorLimiter = createRateLimiter({ windowMs: 60_000, max: 120 });
+
+function pick<T extends Record<string, any>, K extends keyof T>(obj: T, keys: K[]): Pick<T, K> {
+  const out: any = {};
+  for (const key of keys) out[key] = obj?.[key];
+  return out;
+}
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // --- KAYAN NEURAL BRIDGE (Webhook for n8n) ---
@@ -35,8 +77,129 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ status: "System Online", mode: "Horizontal Integration" });
   });
 
-  app.post("/api/login", (req, res) => {
-    res.json({ status: "Login Successful" });
+  // --- Minimal operator auth (server-side session cookie) ---
+  app.get("/api/auth/user", (req: any, res) => {
+    if (!req.session?.operatorAuthenticated) return res.status(401).json({ error: "unauthorized" });
+    res.json({ id: "operator", email: "operator@local", firstName: "Mr.", lastName: "F" });
+  });
+
+  app.post("/api/auth/login", operatorLimiter, async (req: any, res) => {
+    const expected = process.env.ARC_OPERATOR_PASSWORD || process.env.ARC_BACKEND_SECRET;
+    if (!expected) {
+      return res.status(500).json({ error: "missing_server_auth_secret" });
+    }
+
+    const { password } = req.body || {};
+    if (typeof password !== "string" || password.length === 0 || password !== expected) {
+      return res.status(401).json({ error: "invalid_credentials" });
+    }
+
+    req.session.operatorAuthenticated = true;
+    res.json({ ok: true });
+  });
+
+  app.post("/api/auth/logout", operatorLimiter, (req: any, res) => {
+    req.session?.destroy(() => {
+      res.json({ ok: true });
+    });
+  });
+
+  // Back-compat for existing UI buttons
+  app.post("/api/login", (req, res) => res.redirect(307, "/api/auth/login"));
+  app.get("/api/logout", (req: any, res) => {
+    req.session?.destroy(() => {
+      res.redirect("/");
+    });
+  });
+
+  // --- Secured data APIs (no direct Supabase from browser) ---
+  app.get("/api/arc/command-log", operatorLimiter, requireOperatorSession, async (req: any, res) => {
+    if (!isSupabaseConfigured() || !supabase) return res.status(503).json({ error: "supabase_not_configured" });
+
+    const page = Math.max(1, Number(req.query.page || 1));
+    const pageSize = Math.min(50, Math.max(1, Number(req.query.pageSize || 10)));
+    const offset = (page - 1) * pageSize;
+
+    const { data, error, count } = await supabase
+      .from("arc_command_log")
+      .select("*", { count: "exact" })
+      .order("created_at", { ascending: false })
+      .range(offset, offset + pageSize - 1);
+
+    if (error) return res.status(500).json({ error: "supabase_query_failed" });
+
+    const whitelisted = (data || []).map((row: any) =>
+      pick(row, ["id", "command_id", "command", "status", "created_at", "payload", "duration_ms"] as any),
+    );
+    res.json({ data: whitelisted, count: count ?? 0 });
+  });
+
+  app.get("/api/arc/agent-events", operatorLimiter, requireOperatorSession, async (req: any, res) => {
+    if (!isSupabaseConfigured() || !supabase) return res.status(503).json({ error: "supabase_not_configured" });
+
+    const page = Math.max(1, Number(req.query.page || 1));
+    const pageSize = Math.min(50, Math.max(1, Number(req.query.pageSize || 10)));
+    const offset = (page - 1) * pageSize;
+
+    const { data, error, count } = await supabase
+      .from("agent_events")
+      .select("*", { count: "exact" })
+      .order("created_at", { ascending: false })
+      .range(offset, offset + pageSize - 1);
+
+    if (error) return res.status(500).json({ error: "supabase_query_failed" });
+
+    const whitelisted = (data || []).map((row: any) =>
+      pick(row, ["id", "agent_name", "event_type", "payload", "created_at"] as any),
+    );
+    res.json({ data: whitelisted, count: count ?? 0 });
+  });
+
+  app.get("/api/arc/command-metrics", operatorLimiter, requireOperatorSession, async (_req: any, res) => {
+    if (!isSupabaseConfigured() || !supabase) return res.status(503).json({ error: "supabase_not_configured" });
+
+    const { data, error } = await supabase
+      .from("arc_command_log")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(100);
+
+    if (error) return res.status(500).json({ error: "supabase_query_failed" });
+
+    const commands = data || [];
+    const total = commands.length;
+    const success = commands.filter((c: any) => String(c.status).toLowerCase() === "completed").length;
+    const failed = commands.filter((c: any) => String(c.status).toLowerCase() === "failed").length;
+    const avgResponse =
+      commands.reduce((acc: number, c: any) => acc + (Number(c.duration_ms) || 0), 0) / (total || 1);
+
+    res.json({ total, success, failed, avgResponse });
+  });
+
+  app.get("/api/arc/selfcheck", operatorLimiter, requireOperatorSession, async (_req: any, res) => {
+    if (!isSupabaseConfigured() || !supabase) return res.status(503).json({ error: "supabase_not_configured" });
+
+    const [reminders, summaries, events] = await Promise.all([
+      supabase.from("ceo_reminders").select("*").order("created_at", { ascending: false }).limit(200),
+      supabase.from("executive_summaries").select("*").order("generated_at", { ascending: false }).limit(200),
+      supabase.from("agent_events").select("*").order("created_at", { ascending: false }).limit(200),
+    ]);
+
+    if (reminders.error || summaries.error || events.error) {
+      return res.status(500).json({ error: "supabase_query_failed" });
+    }
+
+    const remindersOut = (reminders.data || []).map((row: any) =>
+      pick(row, ["id", "title", "due_date", "priority", "created_at"] as any),
+    );
+    const summariesOut = (summaries.data || []).map((row: any) =>
+      pick(row, ["id", "summary_text", "generated_at", "sentiment"] as any),
+    );
+    const eventsOut = (events.data || []).map((row: any) =>
+      pick(row, ["id", "agent_name", "event_type", "payload", "created_at"] as any),
+    );
+
+    res.json({ reminders: remindersOut, summaries: summariesOut, events: eventsOut });
   });
 
   const httpServer = createServer(app);

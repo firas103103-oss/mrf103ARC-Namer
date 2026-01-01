@@ -1,6 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
 import { Link } from "wouter";
-import { supabase, isSupabaseConfigured } from "@/lib/supabaseClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -57,6 +56,8 @@ export default function VirtualOffice() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [authError, setAuthError] = useState(false);
+  const [backendError, setBackendError] = useState<string | null>(null);
   
   const [commandSearch, setCommandSearch] = useState("");
   const [agentSearch, setAgentSearch] = useState("");
@@ -75,51 +76,59 @@ export default function VirtualOffice() {
   const [totalAgents, setTotalAgents] = useState(0);
 
   const loadCommands = useCallback(async (page = 1, append = false) => {
-    if (!supabase) return;
     const limit = ITEMS_PER_PAGE;
-    const offset = (page - 1) * limit;
-    
-    const { data, count } = await supabase
-      .from("arc_command_log")
-      .select("*", { count: "exact" })
-      .order("id", { ascending: false })
-      .range(offset, offset + limit - 1);
-    
-    if (data) {
-      if (append) {
-        setCommands(prev => [...prev, ...data]);
-      } else {
-        setCommands(data);
-      }
-      setHasMoreCommands(data.length === limit);
+    setAuthError(false);
+    setBackendError(null);
+
+    const res = await fetch(`/api/arc/command-log?page=${page}&pageSize=${limit}`);
+    if (res.status === 401) {
+      setAuthError(true);
+      return;
     }
-    if (count !== null) {
-      setTotalCommands(count);
+    if (!res.ok) {
+      setBackendError(`Failed to load command log (${res.status})`);
+      return;
     }
+
+    const json = await res.json();
+    const data = Array.isArray(json.data) ? (json.data as CommandLog[]) : [];
+    const count = typeof json.count === "number" ? json.count : null;
+
+    if (append) {
+      setCommands((prev) => [...prev, ...data]);
+    } else {
+      setCommands(data);
+    }
+    setHasMoreCommands(data.length === limit);
+    if (count !== null) setTotalCommands(count);
   }, []);
 
   const loadAgents = useCallback(async (page = 1, append = false) => {
-    if (!supabase) return;
     const limit = ITEMS_PER_PAGE;
-    const offset = (page - 1) * limit;
-    
-    const { data, count } = await supabase
-      .from("agent_events")
-      .select("*", { count: "exact" })
-      .order("id", { ascending: false })
-      .range(offset, offset + limit - 1);
-    
-    if (data) {
-      if (append) {
-        setAgents(prev => [...prev, ...data]);
-      } else {
-        setAgents(data);
-      }
-      setHasMoreAgents(data.length === limit);
+    setAuthError(false);
+    setBackendError(null);
+
+    const res = await fetch(`/api/arc/agent-events?page=${page}&pageSize=${limit}`);
+    if (res.status === 401) {
+      setAuthError(true);
+      return;
     }
-    if (count !== null) {
-      setTotalAgents(count);
+    if (!res.ok) {
+      setBackendError(`Failed to load agent events (${res.status})`);
+      return;
     }
+
+    const json = await res.json();
+    const data = Array.isArray(json.data) ? (json.data as AgentEvent[]) : [];
+    const count = typeof json.count === "number" ? json.count : null;
+
+    if (append) {
+      setAgents((prev) => [...prev, ...data]);
+    } else {
+      setAgents(data);
+    }
+    setHasMoreAgents(data.length === limit);
+    if (count !== null) setTotalAgents(count);
   }, []);
 
   const loadData = useCallback(async () => {
@@ -154,43 +163,7 @@ export default function VirtualOffice() {
   };
 
   useEffect(() => {
-    if (!isSupabaseConfigured() || !supabase) {
-      setLoading(false);
-      return;
-    }
-
-    loadData();
-
-    const cmdChannel = supabase
-      .channel("arc_command_log_changes")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "arc_command_log" },
-        () => {
-          setCommandsPage(1);
-          loadCommands(1);
-          setLastUpdated(new Date());
-        }
-      )
-      .subscribe(() => setConnected(true));
-
-    const agentChannel = supabase
-      .channel("agent_events_changes")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "agent_events" },
-        () => {
-          setAgentsPage(1);
-          loadAgents(1);
-          setLastUpdated(new Date());
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase!.removeChannel(cmdChannel);
-      supabase!.removeChannel(agentChannel);
-    };
+    loadData().then(() => setConnected(true)).catch(() => setConnected(false));
   }, [loadData, loadCommands, loadAgents]);
 
   const toggleCommandExpanded = (id: string) => {
@@ -271,20 +244,38 @@ export default function VirtualOffice() {
     return created > hourAgo;
   }).length;
 
-  if (!isSupabaseConfigured()) {
+  if (authError) {
     return (
-      <div className="flex items-center justify-center min-h-screen p-6" data-testid="supabase-not-configured">
+      <div className="flex items-center justify-center min-h-screen p-6" data-testid="auth-not-configured">
         <Card className="max-w-md">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <WifiOff className="h-5 w-5" />
-              Supabase Not Configured
+              Not Authenticated
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground">
-              Please configure VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY environment variables to enable the Virtual Office dashboard.
+              Please login to access the Virtual Office dashboard.
             </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (backendError) {
+    return (
+      <div className="flex items-center justify-center min-h-screen p-6" data-testid="backend-error">
+        <Card className="max-w-md">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <WifiOff className="h-5 w-5" />
+              Backend Error
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground">{backendError}</p>
           </CardContent>
         </Card>
       </div>

@@ -13,30 +13,29 @@ export default function SelfCheck() {
   });
   const [loading, setLoading] = useState(true);
   const [healthScore, setHealthScore] = useState<number>(100);
+  const [authError, setAuthError] = useState(false);
 
   async function loadData() {
     try {
-      const base = import.meta.env.VITE_SUPABASE_URL;
-      const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
-      
-      if (!base || !key) {
+      setAuthError(false);
+      const res = await fetch("/api/arc/selfcheck");
+      if (res.status === 401) {
+        setAuthError(true);
         setLoading(false);
         return;
       }
-      
-      const headers = { apikey: key, Authorization: `Bearer ${key}` };
+      if (!res.ok) {
+        setHealthScore(50);
+        setLoading(false);
+        return;
+      }
 
-      const [reminders, summaries, events] = await Promise.all([
-        fetch(`${base}/rest/v1/ceo_reminders?select=*`, { headers }).then(r => r.json()).catch(() => []),
-        fetch(`${base}/rest/v1/executive_summaries?select=*`, { headers }).then(r => r.json()).catch(() => []),
-        fetch(`${base}/rest/v1/agent_events?select=*`, { headers }).then(r => r.json()).catch(() => []),
-      ]);
+      const json = await res.json();
+      const reminders = Array.isArray(json.reminders) ? json.reminders : [];
+      const summaries = Array.isArray(json.summaries) ? json.summaries : [];
+      const events = Array.isArray(json.events) ? json.events : [];
 
-      setData({ 
-        reminders: Array.isArray(reminders) ? reminders : [], 
-        summaries: Array.isArray(summaries) ? summaries : [], 
-        events: Array.isArray(events) ? events : [] 
-      });
+      setData({ reminders, summaries, events });
 
       const recentEvents = (Array.isArray(events) ? events : []).filter(
         (e: any) => new Date(e.created_at) > new Date(Date.now() - 3600 * 1000)
@@ -80,6 +79,21 @@ export default function SelfCheck() {
           <Skeleton className="h-64" />
           <Skeleton className="h-64" />
         </div>
+      </div>
+    );
+  }
+
+  if (authError) {
+    return (
+      <div className="p-6 space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-semibold text-foreground flex items-center gap-2" data-testid="text-page-title">
+            <Shield className="h-6 w-6 text-primary" />
+            ARC Self-Check
+          </h1>
+          <Badge variant="secondary" className="text-lg px-4 py-1">Not Authenticated</Badge>
+        </div>
+        <p className="text-muted-foreground">Please login to view system monitoring.</p>
       </div>
     );
   }
