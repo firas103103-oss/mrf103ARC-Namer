@@ -1,13 +1,12 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.xbioai.arc',
-  appName: 'ARC Intelligence',
+  appId: 'app.arc.operator',
+  appName: 'ARC',
   webDir: 'dist/public',
   server: {
-    androidScheme: 'https',
-    hostname: 'x-bioai.com',
-    allowNavigation: ['x-bioai.com', '*.x-bioai.com', 'api.openai.com'],
+    url: 'https://mrf103arc-namer-production-236c.up.railway.app',
+    cleartext: false
   },
   plugins: {
     CapacitorHttp: {
