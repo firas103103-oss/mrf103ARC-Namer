@@ -109,10 +109,13 @@ railway up
 انتظر دقيقة أو اثنتين حتى يكتمل النشر، ثم:
 
 ```bash
-curl -i https://mrf103arc-namer-production.up.railway.app/api/auth/login \
+curl -i https://<YOUR_RAILWAY_APP_URL>/api/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"password":"arc-dev-password-123"}'
+  -d '{"password":"<ARC_OPERATOR_PASSWORD>"}'
 ```
+
+ملاحظة: استبدل `https://<YOUR_RAILWAY_APP_URL>` برابط Railway الفعلي لتطبيقك.
+مثال (قد يتغير): `https://mrf103arc-namer-production-236c.up.railway.app`
 
 **النتيجة المتوقعة:**
 ```

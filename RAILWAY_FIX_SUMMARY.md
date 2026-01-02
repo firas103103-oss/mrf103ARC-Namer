@@ -81,9 +81,11 @@ Railway ستقوم بإعادة البناء والنشر تلقائيًا.
 ```bash
 curl -i -c arc-cookies.txt \
   -H "Content-Type: application/json" \
-  -d '{"password":"arc-dev-password-123"}' \
-  https://mrf103arc-namer-production.up.railway.app/api/auth/login
+  -d '{"password":"<ARC_OPERATOR_PASSWORD>"}' \
+  https://<YOUR_RAILWAY_APP_URL>/api/auth/login
 ```
+
+ملاحظة: رابط Railway يتغير أحيانًا. مثال (قد يتغير): `https://mrf103arc-namer-production-236c.up.railway.app`
 
 يجب أن تحصل على:
 ```
