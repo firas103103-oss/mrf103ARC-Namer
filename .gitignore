@@ -19,3 +19,7 @@ docs/*.code-profile
 # Logs
 *.log
 npm-debug.log*
+
+# Test files
+*-cookies.txt
+arc-cookies.txt
