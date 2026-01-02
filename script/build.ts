@@ -65,6 +65,7 @@ async function buildAll() {
     define: {
       "process.env.NODE_ENV": '"production"',
       "import.meta.url": "undefined",
+      "import.meta.dirname": "__dirname",
     },
     minify: true,
     external: [...externals, ...viteExternals],

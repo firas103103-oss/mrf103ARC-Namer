@@ -4,7 +4,6 @@ import express, { type Request, Response, NextFunction, type Express } from "exp
 import session from "express-session";
 import path from "path";
 import { registerRoutes } from "./routes";
-import { setupVite } from "./vite";
 import { initializeRealtimeSubscriptions } from "./realtime"; // Import the new initializer
 import { handleRealtimeChatUpgrade } from "./chatRealtime";
 
@@ -75,6 +74,7 @@ app.use(sessionMiddleware);
 
   // Environment settings (Vite for preview)
   if (app.get("env") === "development") {
+    const { setupVite } = await import("./vite");
     await setupVite(httpServer, app);
   } else {
     serveStatic(app);
