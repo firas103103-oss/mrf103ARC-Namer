@@ -37,6 +37,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import type { VirtualAgent } from "@shared/schema";
 import { useDashboard } from "@/hooks/useDashboard";
+import { useRealtimeEvents } from "@/hooks/useRealtimeEvents";
 
 type InvestigationMode = "view" | "modify" | "confidential";
 
@@ -260,6 +261,7 @@ type GroupByType = "category" | "level" | "company";
 
 export default function InvestigationLounge() {
   const { timeline, isLoading: timelineLoading, error: timelineError } = useDashboard();
+  const { realtimeTimeline } = useRealtimeEvents();
   const [selectedAgent, setSelectedAgent] = useState<ExtendedAgent | null>(null);
   const [mode, setMode] = useState<InvestigationMode>("view");
   const [groupBy, setGroupBy] = useState<GroupByType>("category");
@@ -460,7 +462,10 @@ export default function InvestigationLounge() {
               )}
               {!timelineLoading && !timelineError && timeline.length > 0 && (
                 <div className="space-y-1">
-                  {timeline.slice(0, 12).map((it: any) => (
+                  {[...timeline, ...(realtimeTimeline || [])]
+                    .sort((a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+                    .slice(-12)
+                    .map((it: any) => (
                     <div key={`${it.type}-${it.id}`} className="flex items-center justify-between gap-2">
                       <span className="text-foreground truncate">
                         {it.type === "command"

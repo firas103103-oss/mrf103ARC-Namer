@@ -4,7 +4,8 @@ import type { Server, IncomingMessage } from "http";
 import type { Socket } from "net";
 import { supabase, isSupabaseConfigured } from "./supabase";
 import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
-import type { Activity } from "@shared/schema";
+
+type Activity = { title?: string } & Record<string, any>;
 
 // Create a WebSocket server instance, but don't attach it to a server yet.
 const wss = new WebSocketServer({ noServer: true });
@@ -18,11 +19,9 @@ const clients = new Set<WebSocket>();
  */
 function broadcast(message: object) {
   const data = JSON.stringify(message);
-  for (const client of clients) {
-    if (client.readyState === WebSocket.OPEN) {
-      client.send(data);
-    }
-  }
+  clients.forEach((client) => {
+    if (client.readyState === WebSocket.OPEN) client.send(data);
+  });
 }
 
 /**
@@ -35,6 +34,8 @@ function setupSupabaseSubscription() {
     return;
   }
 
+  if (!supabase) return;
+
   console.log("Setting up Supabase real-time subscription for activity_feed...");
 
   supabase
@@ -43,11 +44,12 @@ function setupSupabaseSubscription() {
       "postgres_changes",
       { event: "INSERT", schema: "public", table: "activity_feed" },
       (payload: RealtimePostgresChangesPayload<Activity>) => {
-        console.log(`[Realtime] New activity detected: ${payload.new.title}`);
+        const row = payload.new as Activity;
+        console.log(`[Realtime] New activity detected: ${row?.title ?? "(no title)"}`);
         // Broadcast the new activity record to all connected clients.
         broadcast({
           type: "new_activity",
-          payload: payload.new,
+          payload: row,
         });
       }
     )

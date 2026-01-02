@@ -7,6 +7,14 @@ import { registerRoutes } from "./routes";
 import { initializeRealtimeSubscriptions } from "./realtime"; // Import the new initializer
 import { handleRealtimeChatUpgrade } from "./chatRealtime";
 
+export function log(message: unknown, scope?: string) {
+  if (scope) {
+    console.log(`[${scope}]`, message);
+    return;
+  }
+  console.log(message);
+}
+
 // This function will serve static files in a production environment
 function serveStatic(app: Express) {
   const buildDir = path.resolve(import.meta.dirname, "..", "dist", "public");
@@ -82,8 +90,8 @@ app.use(sessionMiddleware);
 
   // Use the PORT environment variable if available, otherwise default to 9002.
   // Use 0.0.0.0 to ensure external access in Replit/IDX environment.
-  const PORT = process.env.PORT || 9002;
-  httpServer.listen(PORT, "0.0.0.0", () => {
-    console.log(`✅ Server is live and listening on port ${PORT}`);
+    const port = Number(process.env.PORT) || 9002;
+    httpServer.listen(port, "0.0.0.0", () => {
+      console.log(`✅ Server is live and listening on port ${port}`);
   });
 })();

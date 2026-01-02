@@ -116,7 +116,7 @@ function generateDecisionTree(scenario: MissionScenario | undefined, teamSynergy
     };
   }
 
-  const riskLevel = scenario.risk_level || scenario.riskLevel || 50;
+  const riskLevel = scenario.riskLevel || 50;
   const stealthProb = Math.max(20, Math.min(85, 90 - riskLevel));
   const directProb = 100 - stealthProb;
   const synergyBonus = (teamSynergy - 50) / 100;
@@ -222,7 +222,7 @@ export default function QuantumWarRoom() {
       ? Math.round(selectedAgentData.reduce((sum, a) => sum + a.synergy, 0) / selectedAgentData.length)
       : 0;
 
-  const riskLevel = currentScenario?.risk_level ?? currentScenario?.riskLevel ?? 50;
+  const riskLevel = currentScenario?.riskLevel ?? 50;
   const successProbability = Math.min(
     95,
     Math.round(teamSynergy * 0.4 + (100 - riskLevel) * 0.3 + selectedAgentData.length * 5)

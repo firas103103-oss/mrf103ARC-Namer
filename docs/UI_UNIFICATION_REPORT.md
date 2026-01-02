@@ -1,6 +1,6 @@
-# UI Unification Report (Safe Mode)
+# UI Unification Report
 
-Date: 2026-01-01
+Date: 2026-01-02
 
 ## Goal
 Establish `client/` as the single source of truth for the frontend, while safely archiving the legacy/duplicate UI folder without refactoring or deleting content.
@@ -43,3 +43,13 @@ Establish `client/` as the single source of truth for the frontend, while safely
 - Archived snapshot: `archives/ui/📄 client/`
 - No build configuration behavior changes
 - No UI logic refactoring
+
+## Final Status (Operator Dashboard Wiring)
+
+The active UI in `client/` now includes:
+- **Auth gate (cookie-only):** operator login screen that uses `/api/auth/login` and `/api/auth/user`.
+- **Operator dashboard wiring:** reads secured server endpoints (no Supabase access from the browser).
+- **Realtime feed:** connects to server WebSocket at `/realtime` and surfaces `new_activity` events.
+- **Command/Execution console:** sends commands to `/api/call_mrf_brain` and displays responses.
+
+No additional frontend roots were introduced; `client/` remains the single source of truth.

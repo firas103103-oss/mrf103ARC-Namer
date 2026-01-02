@@ -8,6 +8,7 @@ import { format } from "date-fns";
 import { TerminalHeartbeat, type LogEvent } from "@/components/TerminalHeartbeat";
 import { EventTimeline, type TimelineEvent } from "@/components/EventTimeline";
 import { useDashboard } from "@/hooks/useDashboard";
+import { useRealtimeEvents } from "@/hooks/useRealtimeEvents";
 import RealtimeFeed from "@/components/RealtimeFeed";
 import CommandConsole from "@/components/CommandConsole";
 
@@ -39,6 +40,7 @@ interface ArcFeedback {
 
 export default function Dashboard() {
   const { commands: rawCommands, events: rawEvents, metrics, isLoading, error, refetchAll } = useDashboard();
+  const { realtimeTimeline } = useRealtimeEvents();
 
   const cmdLoading = isLoading;
   const evtLoading = isLoading;
@@ -60,6 +62,18 @@ export default function Dashboard() {
     payload: (e.payload || {}) as Record<string, unknown>,
     created_at: String(e.created_at || new Date().toISOString()),
   }));
+
+  const wsEvents: AgentEvent[] = (realtimeTimeline || []).map((it: any) => ({
+    id: String(it.id),
+    agent_id: String(it.agent_name || "ARC"),
+    type: String(it.event_type || "activity"),
+    payload: (it.payload || {}) as Record<string, unknown>,
+    created_at: String(it.created_at || new Date().toISOString()),
+  }));
+
+  const mergedEvents: AgentEvent[] = [...events, ...wsEvents].sort(
+    (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
+  );
 
   const feedback: ArcFeedback[] = [];
 
@@ -166,13 +180,13 @@ export default function Dashboard() {
 
   const terminalEvents: LogEvent[] = [
     ...commands.map(c => convertToTerminalEvent(c, 'command')),
-    ...events.map(e => convertToTerminalEvent(e, 'event')),
+    ...mergedEvents.map(e => convertToTerminalEvent(e, 'event')),
     ...feedback.map(f => convertToTerminalEvent(f, 'feedback')),
   ].sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
 
   const timelineEvents: TimelineEvent[] = [
     ...commands.map(c => convertToTimelineEvent(c, 'command')),
-    ...events.map(e => convertToTimelineEvent(e, 'event')),
+    ...mergedEvents.map(e => convertToTimelineEvent(e, 'event')),
     ...feedback.map(f => convertToTimelineEvent(f, 'feedback')),
   ].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
 

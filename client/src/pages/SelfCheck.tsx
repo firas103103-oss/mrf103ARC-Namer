@@ -198,7 +198,7 @@ export default function SelfCheck() {
                       <div className="flex items-center gap-2">
                         <Activity className="h-3 w-3 text-primary" />
                         <span className="font-medium text-primary">{e.agent_name}</span>
-                        <Badge variant="outline" size="sm">{e.event_type}</Badge>
+                        <Badge variant="outline">{e.event_type}</Badge>
                       </div>
                       <p className="text-muted-foreground text-xs mt-1">
                         {new Date(e.created_at).toLocaleTimeString()}
