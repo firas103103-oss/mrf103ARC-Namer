@@ -48,7 +48,7 @@ export default function VirtualOffice() {
   const { user } = useAuth();
   
   const handleLogout = () => {
-    window.location.href = "/api/logout";
+    window.location.href = "/api/auth/logout";
   };
   const [commands, setCommands] = useState<CommandLog[]>([]);
   const [agents, setAgents] = useState<AgentEvent[]>([]);
@@ -80,7 +80,7 @@ export default function VirtualOffice() {
     setAuthError(false);
     setBackendError(null);
 
-    const res = await fetch(`/api/arc/command-log?page=${page}&pageSize=${limit}`);
+    const res = await fetch(`/api/arc/command-log?page=${page}&pageSize=${limit}`, { credentials: "include" });
     if (res.status === 401) {
       setAuthError(true);
       return;
@@ -108,7 +108,7 @@ export default function VirtualOffice() {
     setAuthError(false);
     setBackendError(null);
 
-    const res = await fetch(`/api/arc/agent-events?page=${page}&pageSize=${limit}`);
+    const res = await fetch(`/api/arc/agent-events?page=${page}&pageSize=${limit}`, { credentials: "include" });
     if (res.status === 401) {
       setAuthError(true);
       return;

@@ -1,4 +1,3 @@
-import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -8,59 +7,25 @@ import { Brain, Activity, RefreshCw, AlertCircle, Zap, GitBranch, CheckCircle, X
 import { format } from "date-fns";
 import { TerminalHeartbeat, type LogEvent } from "@/components/TerminalHeartbeat";
 import { EventTimeline, type TimelineEvent } from "@/components/EventTimeline";
-import { queryClient } from "@/lib/queryClient";
-
-interface CausalTimelineAction {
-  id: string;
-  status: string | null;
-  cost_usd: number | null;
-  action_type: string;
-  action_target: string | null;
-}
-
-interface CausalTimelineResult {
-  id: string;
-  error: string | null;
-  latency_ms: number | null;
-}
-
-interface CausalTimelineImpact {
-  id: string;
-  impact_type: string;
-  impact_score: number | null;
-}
-
-interface CausalTimelineEntry {
-  intent_id: string;
-  intent_at: string;
-  actor_type: string;
-  actor_id: string | null;
-  intent_type: string;
-  intent_text: string;
-  actions: CausalTimelineAction[] | null;
-  results: CausalTimelineResult[] | null;
-  impacts: CausalTimelineImpact[] | null;
-}
+import { useDashboard } from "@/hooks/useDashboard";
+import RealtimeFeed from "@/components/RealtimeFeed";
+import CommandConsole from "@/components/CommandConsole";
 
 interface CommandLog {
   id: string;
   command: string;
-  payload: Record<string, unknown>;
+  payload?: Record<string, unknown>;
   status: string;
   duration_ms: number | null;
-  source: string | null;
   created_at: string;
-  completed_at: string | null;
 }
 
 interface AgentEvent {
   id: string;
-  event_id: string;
   agent_id: string;
   type: string;
-  payload: Record<string, unknown>;
+  payload?: Record<string, unknown>;
   created_at: string;
-  received_at: string;
 }
 
 interface ArcFeedback {
@@ -73,27 +38,34 @@ interface ArcFeedback {
 }
 
 export default function Dashboard() {
-  const { data: commands = [], isLoading: cmdLoading, refetch: refetchCommands } = useQuery<CommandLog[]>({
-    queryKey: ["/api/dashboard/commands"],
-  });
+  const { commands: rawCommands, events: rawEvents, metrics, isLoading, error, refetchAll } = useDashboard();
 
-  const { data: events = [], isLoading: evtLoading, refetch: refetchEvents } = useQuery<AgentEvent[]>({
-    queryKey: ["/api/dashboard/events"],
-  });
+  const cmdLoading = isLoading;
+  const evtLoading = isLoading;
+  const fbLoading = false;
 
-  const { data: feedback = [], isLoading: fbLoading, refetch: refetchFeedback } = useQuery<ArcFeedback[]>({
-    queryKey: ["/api/dashboard/feedback"],
-  });
+  const commands: CommandLog[] = (rawCommands || []).map((c: any) => ({
+    id: String(c.id),
+    command: String(c.command || ""),
+    payload: (c.payload || {}) as Record<string, unknown>,
+    status: String(c.status || ""),
+    duration_ms: typeof c.duration_ms === "number" ? c.duration_ms : (c.duration_ms ?? null),
+    created_at: String(c.created_at || new Date().toISOString()),
+  }));
 
-  const { data: causalTimeline = [], isLoading: causalLoading, refetch: refetchCausal } = useQuery<CausalTimelineEntry[]>({
-    queryKey: ["/api/core/timeline", { window_minutes: 60 }],
-  });
+  const events: AgentEvent[] = (rawEvents || []).map((e: any) => ({
+    id: String(e.id),
+    agent_id: String(e.agent_name || e.agent_id || "unknown"),
+    type: String(e.event_type || e.type || "event"),
+    payload: (e.payload || {}) as Record<string, unknown>,
+    created_at: String(e.created_at || new Date().toISOString()),
+  }));
 
-  const isLoading = cmdLoading || evtLoading || fbLoading || causalLoading;
+  const feedback: ArcFeedback[] = [];
 
   const convertToTerminalEvent = (data: CommandLog | AgentEvent | ArcFeedback, type: 'command' | 'event' | 'feedback'): LogEvent => {
     const timestampStr = type === 'event' 
-      ? (data as AgentEvent).received_at 
+      ? (data as AgentEvent).created_at 
       : (data as CommandLog | ArcFeedback).created_at;
     const timestamp = new Date(timestampStr);
     
@@ -129,7 +101,7 @@ export default function Dashboard() {
 
   const convertToTimelineEvent = (data: CommandLog | AgentEvent | ArcFeedback, type: 'command' | 'event' | 'feedback'): TimelineEvent => {
     const timestamp = type === 'event'
-      ? (data as AgentEvent).received_at
+      ? (data as AgentEvent).created_at
       : (data as CommandLog | ArcFeedback).created_at;
     
     if (type === 'command') {
@@ -163,10 +135,7 @@ export default function Dashboard() {
   };
 
   const handleRefresh = () => {
-    refetchCommands();
-    refetchEvents();
-    refetchFeedback();
-    refetchCausal();
+    void refetchAll();
   };
 
   const getActionStatusIcon = (status: string | null) => {
@@ -246,6 +215,46 @@ export default function Dashboard() {
           </Button>
         </div>
       </div>
+
+      {error && (
+        <Card className="border-destructive/30" data-testid="card-dashboard-error">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-destructive" />
+              Error
+            </CardTitle>
+            <CardDescription>
+              {error instanceof Error ? error.message : "Failed to load dashboard data."}
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <RealtimeFeed />
+        <CommandConsole onSent={refetchAll} />
+      </div>
+
+      {metrics && (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4" data-testid="metrics-strip">
+          <Card>
+            <CardHeader className="pb-2"><CardTitle className="text-sm">Total</CardTitle></CardHeader>
+            <CardContent className="text-2xl font-semibold">{metrics.total}</CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2"><CardTitle className="text-sm">Success</CardTitle></CardHeader>
+            <CardContent className="text-2xl font-semibold">{metrics.success}</CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2"><CardTitle className="text-sm">Failed</CardTitle></CardHeader>
+            <CardContent className="text-2xl font-semibold">{metrics.failed}</CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2"><CardTitle className="text-sm">Avg (ms)</CardTitle></CardHeader>
+            <CardContent className="text-2xl font-semibold">{Math.round(metrics.avgResponse)}</CardContent>
+          </Card>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <TerminalHeartbeat events={terminalEvents} maxEvents={30} />
@@ -350,7 +359,7 @@ export default function Dashboard() {
                         <Badge variant="outline">{evt.type}</Badge>
                       </div>
                       <p className="text-xs text-muted-foreground">
-                        {format(new Date(evt.received_at || evt.created_at), "MMM d, HH:mm:ss")}
+                        {format(new Date(evt.created_at), "MMM d, HH:mm:ss")}
                       </p>
                     </div>
                   ))}
@@ -411,134 +420,6 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      <Card data-testid="card-live-timeline">
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between gap-2">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <GitBranch className="h-5 w-5 text-primary" />
-              Live Timeline (Causal Memory)
-            </CardTitle>
-            <Badge variant="secondary">{causalTimeline.length} intents</Badge>
-          </div>
-          <CardDescription>Intent/Action/Result chains from the last 60 minutes</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ScrollArea className="h-[400px]">
-            {causalLoading ? (
-              <div className="space-y-4">
-                {[1, 2, 3].map((i) => (
-                  <Skeleton key={i} className="h-32" />
-                ))}
-              </div>
-            ) : causalTimeline.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                No causal events in the last 60 minutes
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {causalTimeline.map((entry) => (
-                  <div
-                    key={entry.intent_id}
-                    className="p-4 rounded-lg border bg-card space-y-3"
-                    data-testid={`timeline-intent-${entry.intent_id}`}
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="space-y-1 flex-1">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <Badge variant="outline">{entry.intent_type}</Badge>
-                          <span className="text-xs text-muted-foreground">
-                            {entry.actor_type}: {entry.actor_id || "unknown"}
-                          </span>
-                        </div>
-                        <p className="text-sm font-medium">{entry.intent_text}</p>
-                      </div>
-                      <span className="text-xs text-muted-foreground whitespace-nowrap">
-                        {format(new Date(entry.intent_at), "MMM d, HH:mm:ss")}
-                      </span>
-                    </div>
-
-                    {entry.actions && entry.actions.length > 0 && (
-                      <div className="pl-4 border-l-2 border-muted space-y-2">
-                        <span className="text-xs font-medium text-muted-foreground">Actions</span>
-                        {entry.actions.map((action) => (
-                          <div
-                            key={action.id}
-                            className="flex items-center justify-between gap-2 p-2 rounded bg-muted/50"
-                            data-testid={`timeline-action-${action.id}`}
-                          >
-                            <div className="flex items-center gap-2">
-                              {getActionStatusIcon(action.status)}
-                              <span className="text-sm">{action.action_type}</span>
-                              {action.action_target && (
-                                <span className="text-xs text-muted-foreground">
-                                  ({action.action_target})
-                                </span>
-                              )}
-                            </div>
-                            <Badge variant={getActionStatusBadge(action.status)}>
-                              {action.status || "queued"}
-                            </Badge>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {entry.results && entry.results.length > 0 && (
-                      <div className="pl-4 border-l-2 border-green-500/30 space-y-2">
-                        <span className="text-xs font-medium text-muted-foreground">Results</span>
-                        {entry.results.map((result) => (
-                          <div
-                            key={result.id}
-                            className="flex items-center justify-between gap-2 p-2 rounded bg-muted/50"
-                            data-testid={`timeline-result-${result.id}`}
-                          >
-                            <div className="flex items-center gap-2">
-                              {result.error ? (
-                                <XCircle className="h-4 w-4 text-red-500" />
-                              ) : (
-                                <CheckCircle className="h-4 w-4 text-green-500" />
-                              )}
-                              <span className="text-sm">
-                                {result.error ? `Error: ${result.error}` : "Completed"}
-                              </span>
-                            </div>
-                            {result.latency_ms && (
-                              <span className="text-xs text-muted-foreground">
-                                {result.latency_ms}ms
-                              </span>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {entry.impacts && entry.impacts.length > 0 && (
-                      <div className="pl-4 border-l-2 border-blue-500/30 space-y-2">
-                        <span className="text-xs font-medium text-muted-foreground">Impacts</span>
-                        {entry.impacts.map((impact) => (
-                          <div
-                            key={impact.id}
-                            className="flex items-center justify-between gap-2 p-2 rounded bg-muted/50"
-                            data-testid={`timeline-impact-${impact.id}`}
-                          >
-                            <div className="flex items-center gap-2">
-                              <Zap className="h-4 w-4 text-blue-500" />
-                              <span className="text-sm">{impact.impact_type}</span>
-                            </div>
-                            {impact.impact_score !== null && (
-                              <Badge variant="secondary">Score: {impact.impact_score}</Badge>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </ScrollArea>
-        </CardContent>
-      </Card>
     </div>
   );
 }

@@ -36,6 +36,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import type { VirtualAgent } from "@shared/schema";
+import { useDashboard } from "@/hooks/useDashboard";
 
 type InvestigationMode = "view" | "modify" | "confidential";
 
@@ -258,6 +259,7 @@ const groupAgentsByCompany = (agents: ExtendedAgent[]) => {
 type GroupByType = "category" | "level" | "company";
 
 export default function InvestigationLounge() {
+  const { timeline, isLoading: timelineLoading, error: timelineError } = useDashboard();
   const [selectedAgent, setSelectedAgent] = useState<ExtendedAgent | null>(null);
   const [mode, setMode] = useState<InvestigationMode>("view");
   const [groupBy, setGroupBy] = useState<GroupByType>("category");
@@ -437,6 +439,44 @@ export default function InvestigationLounge() {
       </div>
 
       <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="p-4 border-b border-border">
+          <Card data-testid="card-timeline-basic">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Activity className="h-4 w-4 text-primary" />
+                Timeline
+              </CardTitle>
+              <CardDescription>Latest merged command + event activity</CardDescription>
+            </CardHeader>
+            <CardContent className="text-sm">
+              {timelineLoading && <div className="text-muted-foreground">Loading...</div>}
+              {timelineError && (
+                <div className="text-destructive">
+                  {timelineError instanceof Error ? timelineError.message : "Failed to load timeline"}
+                </div>
+              )}
+              {!timelineLoading && !timelineError && timeline.length === 0 && (
+                <div className="text-muted-foreground">No timeline entries.</div>
+              )}
+              {!timelineLoading && !timelineError && timeline.length > 0 && (
+                <div className="space-y-1">
+                  {timeline.slice(0, 12).map((it: any) => (
+                    <div key={`${it.type}-${it.id}`} className="flex items-center justify-between gap-2">
+                      <span className="text-foreground truncate">
+                        {it.type === "command"
+                          ? `CMD: ${it.command || it.command_id || it.id}`
+                          : `EVT: ${it.agent_name || "agent"} / ${it.event_type || it.id}`}
+                      </span>
+                      <span className="text-muted-foreground whitespace-nowrap">
+                        {it.created_at ? new Date(it.created_at).toLocaleTimeString() : ""}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
         {selectedAgent ? (
           <>
             <div className="p-4 border-b border-border flex items-center justify-between gap-4 bg-card/30">

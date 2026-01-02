@@ -30,6 +30,7 @@ import SystemArchitecture from "@/pages/SystemArchitecture";
 import { Shield, Activity, Lock } from "lucide-react";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { useTranslation } from "react-i18next";
+import OperatorLogin from "@/components/OperatorLogin";
 
 function CommandLogsPage() {
   return <CommandLogsView />;
@@ -156,7 +157,7 @@ function Router() {
   }
 
   if (!isAuthenticated) {
-    return <Landing />;
+    return <OperatorLogin />;
   }
 
   return <AuthenticatedLayout />;
