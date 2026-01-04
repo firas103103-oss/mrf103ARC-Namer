@@ -47,7 +47,7 @@ Body: { "username": "admin", "password": "your-password" }
       `,
       contact: {
         name: "ARC System Support",
-        email: "support@arc-system.com",
+        email: "support@mrf103.com",
       },
       license: {
         name: "MIT",
@@ -57,7 +57,7 @@ Body: { "username": "admin", "password": "your-password" }
     servers: [
       {
         url: process.env.NODE_ENV === "production" 
-          ? "https://your-production-url.com" 
+          ? "https://app.mrf103.com" 
           : "http://localhost:5001",
         description: process.env.NODE_ENV === "production" ? "Production" : "Development",
       },
