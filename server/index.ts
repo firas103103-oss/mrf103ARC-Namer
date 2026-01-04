@@ -2,6 +2,8 @@
 import { createServer, ServerResponse } from "http";
 import express, { type Request, Response, NextFunction, type Express } from "express";
 import session from "express-session";
+import connectPgSimple from "connect-pg-simple";
+import pg from "pg";
 import path from "path";
 import { registerRoutes } from "./routes";
 import { initializeRealtimeSubscriptions } from "./realtime"; // Import the new initializer
@@ -30,15 +32,27 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+// PostgreSQL Session Store (production-ready)
+const PgStore = connectPgSimple(session);
+const pgPool = new pg.Pool({
+  connectionString: process.env.DATABASE_URL,
+});
+
 const sessionMiddleware = session({
   name: "arc.sid",
   secret: process.env.SESSION_SECRET || process.env.ARC_BACKEND_SECRET || "dev-session-secret",
   resave: false,
   saveUninitialized: false,
+  store: new PgStore({
+    pool: pgPool,
+    tableName: "session", // Will auto-create table
+    createTableIfMissing: true,
+  }),
   cookie: {
     httpOnly: true,
     sameSite: "lax",
-    secure: false,
+    secure: process.env.NODE_ENV === "production",
+    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
   },
 });
 
