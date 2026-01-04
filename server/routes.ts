@@ -4,6 +4,8 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import OpenAI from "openai";
 import { supabase, isSupabaseConfigured } from "./supabase";
+import voiceRouter from "./routes/voice";
+import { AGENT_PROFILES, getAgentProfile, getAgentSystemPrompt } from "./agents/profiles";
 
 function getClientIp(req: any): string {
   const xff = req.headers?.["x-forwarded-for"]; 
@@ -776,6 +778,90 @@ export async function registerRoutes(app: Express): Promise<Server> {
       activeAgents: 10,
       avgResponseTime: commands.reduce((acc: number, c: any) => acc + (c.duration_ms || 0), 0) / (commands.length || 1)
     });
+  });
+
+  // ==========================================
+  // Voice & Agent Endpoints
+  // ==========================================
+
+  // Mount voice routes
+  app.use("/api/voice", voiceRouter);
+
+  // 25. GET /api/agents/profiles - Get all agent profiles
+  app.get("/api/agents/profiles", operatorLimiter, requireOperatorSession, (_req: any, res) => {
+    const profiles = Object.values(AGENT_PROFILES).map(p => ({
+      id: p.id,
+      name: p.name,
+      arabicName: p.arabicName,
+      role: p.role,
+      personality: p.personality,
+      voiceId: p.voiceId,
+      capabilities: p.capabilities,
+      specialties: p.specialties,
+      communicationStyle: p.communicationStyle,
+      active: p.active
+    }));
+    res.json(profiles);
+  });
+
+  // 26. GET /api/agents/:id/profile - Get specific agent profile
+  app.get("/api/agents/:id/profile", operatorLimiter, requireOperatorSession, (req: any, res) => {
+    const profile = getAgentProfile(req.params.id);
+    if (!profile) {
+      return res.status(404).json({ error: "agent_not_found" });
+    }
+    res.json(profile);
+  });
+
+  // 27. POST /api/agents/:id/chat - Chat with specific agent
+  app.post("/api/agents/:id/chat", operatorLimiter, requireOperatorSession, async (req: any, res) => {
+    const { id } = req.params;
+    const { message } = req.body;
+
+    if (!message || typeof message !== "string") {
+      return res.status(400).json({ error: "message_required" });
+    }
+
+    const profile = getAgentProfile(id);
+    if (!profile) {
+      return res.status(404).json({ error: "agent_not_found" });
+    }
+
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) {
+      return res.json({
+        reply: `${profile.name} (offline): تلقيت رسالتك: "${message.trim()}"`,
+        offline: true,
+        agent: profile.name
+      });
+    }
+
+    try {
+      const client = new OpenAI({ apiKey });
+      const model = process.env.OPENAI_MODEL || "gpt-4o-mini";
+
+      const completion = await client.chat.completions.create({
+        model,
+        messages: [
+          {
+            role: "system",
+            content: getAgentSystemPrompt(id),
+          },
+          { role: "user", content: message },
+        ],
+      });
+
+      const reply = completion.choices?.[0]?.message?.content || "(no response)";
+      res.json({ 
+        reply: reply.trim(), 
+        offline: false,
+        agent: profile.name,
+        agentId: id
+      });
+    } catch (error: any) {
+      console.error(`[${profile.name} Chat] OpenAI error:`, error);
+      res.status(500).json({ error: "chat_failed" });
+    }
   });
 
   const httpServer = createServer(app);
