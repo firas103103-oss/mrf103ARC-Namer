@@ -8,7 +8,8 @@ WORKDIR /app
 COPY package*.json ./
 
 # تثبيت المكتبات (بما فيها devDependencies لأننا نحتاج tsx و vite)
-RUN npm install
+# استخدام --legacy-peer-deps لحل تعارضات الإصدارات
+RUN npm install --legacy-peer-deps
 
 # نسخ باقي ملفات المشروع
 COPY . .
@@ -17,9 +18,10 @@ COPY . .
 # هذا سيقوم بتشغيل script/build.ts كما هو محدد في مشروعك
 RUN npm run build
 
-# إعداد المنفذ (Cloud Run يتطلب هذا)
-ENV PORT=8080
-EXPOSE 8080
+# إعداد المنفذ
+# Railway سيحدد PORT تلقائياً، لكن نضع default
+ENV PORT=9002
+EXPOSE 9002
 
 # تشغيل التطبيق
 CMD ["npm", "start"]
