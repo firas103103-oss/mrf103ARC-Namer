@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import CommandLogsView from "@/pages/virtual-office";
 import Landing from "@/pages/landing";
+import MatrixLogin from "@/pages/MatrixLogin";
 import Dashboard from "@/pages/dashboard";
 import Home from "@/pages/Home";
 import SelfCheck from "@/pages/SelfCheck";
@@ -157,7 +158,7 @@ function Router() {
   }
 
   if (!isAuthenticated) {
-    return <OperatorLogin />;
+    return <MatrixLogin />;
   }
 
   return <AuthenticatedLayout />;
