@@ -540,6 +540,244 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ agents, chartData, metrics: metrics || [] });
   });
 
+  // ==========================================
+  // Missing Frontend-Requested Endpoints
+  // ==========================================
+
+  // 9. GET /api/agents - List all available agents
+  app.get("/api/agents", operatorLimiter, requireOperatorSession, async (_req: any, res) => {
+    // Return static list of 10 agents from the system
+    const agents = [
+      { id: "mrf", name: "Mr.F", role: "CEO", status: "active", capabilities: ["strategic", "coordination"] },
+      { id: "l0-ops", name: "L0-Ops", role: "Operations", status: "active", capabilities: ["execution", "monitoring"] },
+      { id: "l0-comms", name: "L0-Comms", role: "Communications", status: "active", capabilities: ["messaging", "notifications"] },
+      { id: "l0-intel", name: "L0-Intel", role: "Intelligence", status: "active", capabilities: ["analysis", "research"] },
+      { id: "dr-maya", name: "Dr. Maya", role: "Medical", status: "active", capabilities: ["health", "bio-analysis"] },
+      { id: "jordan-spark", name: "Jordan Spark", role: "Creative", status: "active", capabilities: ["ideation", "design"] },
+      { id: "sentinel", name: "Sentinel", role: "Security", status: "active", capabilities: ["monitoring", "protection"] },
+      { id: "quantum", name: "Quantum", role: "Analytics", status: "active", capabilities: ["prediction", "simulation"] },
+      { id: "oracle", name: "Oracle", role: "Knowledge", status: "active", capabilities: ["learning", "memory"] },
+      { id: "nexus", name: "Nexus", role: "Integration", status: "active", capabilities: ["connection", "sync"] }
+    ];
+    res.json(agents);
+  });
+
+  // 10. POST /api/chat - Send message to agents
+  app.post("/api/chat", operatorLimiter, requireOperatorSession, async (req: any, res) => {
+    const { message, agentId, conversationId } = req.body;
+    
+    if (!message || typeof message !== "string") {
+      return res.status(400).json({ error: "message_required" });
+    }
+
+    // For now, echo back a simple response
+    // TODO: Integrate with actual agent routing system
+    const reply = `Received your message: "${message}". Agent routing system under development.`;
+    
+    res.json({ 
+      id: Date.now().toString(),
+      message: reply, 
+      agentId: agentId || "mrf",
+      conversationId: conversationId || "default",
+      timestamp: new Date().toISOString()
+    });
+  });
+
+  // 11. GET /api/conversations - List all conversations
+  app.get("/api/conversations", operatorLimiter, requireOperatorSession, async (_req: any, res) => {
+    // Return empty array for now - conversations will be stored in Supabase later
+    res.json([]);
+  });
+
+  // 12. POST /api/conversations - Create new conversation
+  app.post("/api/conversations", operatorLimiter, requireOperatorSession, async (req: any, res) => {
+    const { title, agentId } = req.body;
+    
+    const newConversation = {
+      id: Date.now().toString(),
+      title: title || "New Conversation",
+      agentId: agentId || "mrf",
+      createdAt: new Date().toISOString(),
+      messageCount: 0
+    };
+    
+    res.json(newConversation);
+  });
+
+  // 13. GET /api/conversations/:id - Get specific conversation
+  app.get("/api/conversations/:id", operatorLimiter, requireOperatorSession, async (req: any, res) => {
+    const { id } = req.params;
+    
+    res.json({
+      id,
+      title: "Conversation " + id,
+      createdAt: new Date().toISOString(),
+      messages: []
+    });
+  });
+
+  // 14. GET /api/conversations/:id/messages - Get conversation messages
+  app.get("/api/conversations/:id/messages", operatorLimiter, requireOperatorSession, async (req: any, res) => {
+    res.json([]);
+  });
+
+  // 15. GET /api/activity - Get activity feed
+  app.get("/api/activity", operatorLimiter, requireOperatorSession, async (_req: any, res) => {
+    if (!isSupabaseConfigured() || !supabase) {
+      // Return mock data if Supabase not configured
+      return res.json([
+        { id: "1", type: "agent", description: "Mr.F started analysis", timestamp: new Date().toISOString() },
+        { id: "2", type: "task", description: "L0-Ops completed deployment", timestamp: new Date().toISOString() }
+      ]);
+    }
+    
+    // Fetch from agent_events
+    const { data, error } = await supabase
+      .from("agent_events")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(50);
+      
+    if (error) return res.status(500).json({ error: error.message });
+    
+    const activity = (data || []).map((evt: any) => ({
+      id: evt.id,
+      type: evt.event_type,
+      description: `${evt.agent_name}: ${evt.event_type}`,
+      timestamp: evt.created_at
+    }));
+    
+    res.json(activity);
+  });
+
+  // 16. POST /api/activity - Log new activity
+  app.post("/api/activity", operatorLimiter, requireOperatorSession, async (req: any, res) => {
+    const { type, description, agentId } = req.body;
+    
+    if (!isSupabaseConfigured() || !supabase) {
+      return res.json({ id: Date.now().toString(), ok: true });
+    }
+    
+    const { data, error } = await supabase
+      .from("agent_events")
+      .insert([{
+        agent_name: agentId || "system",
+        event_type: type || "activity",
+        payload: { description }
+      }])
+      .select()
+      .single();
+      
+    if (error) return res.status(500).json({ error: error.message });
+    res.json(data);
+  });
+
+  // 17. GET /api/simulations - List all simulations/workflows
+  app.get("/api/simulations", operatorLimiter, requireOperatorSession, async (_req: any, res) => {
+    // Return mock data for now
+    res.json([]);
+  });
+
+  // 18. POST /api/simulations - Create new simulation
+  app.post("/api/simulations", operatorLimiter, requireOperatorSession, async (req: any, res) => {
+    const { name, description, steps } = req.body;
+    
+    if (!name) return res.status(400).json({ error: "name_required" });
+    
+    const newSim = {
+      id: Date.now().toString(),
+      name,
+      description: description || "",
+      steps: steps || [],
+      status: "pending",
+      createdAt: new Date().toISOString()
+    };
+    
+    res.json(newSim);
+  });
+
+  // 19. PATCH /api/simulations/:id - Update simulation
+  app.patch("/api/simulations/:id", operatorLimiter, requireOperatorSession, async (req: any, res) => {
+    const { id } = req.params;
+    const updates = req.body;
+    
+    res.json({ id, ...updates, updatedAt: new Date().toISOString() });
+  });
+
+  // 20. POST /api/simulations/:id/run - Execute simulation
+  app.post("/api/simulations/:id/run", operatorLimiter, requireOperatorSession, async (req: any, res) => {
+    const { id } = req.params;
+    
+    res.json({ 
+      id, 
+      status: "running", 
+      startedAt: new Date().toISOString(),
+      message: "Simulation execution started"
+    });
+  });
+
+  // 21. GET /api/bio-sentinel/profiles - List bio profiles
+  app.get("/api/bio-sentinel/profiles", operatorLimiter, requireOperatorSession, async (_req: any, res) => {
+    res.json([]);
+  });
+
+  // 22. POST /api/bio-sentinel/profiles - Create bio profile
+  app.post("/api/bio-sentinel/profiles", operatorLimiter, requireOperatorSession, async (req: any, res) => {
+    const { name, age, conditions } = req.body;
+    
+    if (!name) return res.status(400).json({ error: "name_required" });
+    
+    const profile = {
+      id: Date.now().toString(),
+      name,
+      age: age || 0,
+      conditions: conditions || [],
+      createdAt: new Date().toISOString()
+    };
+    
+    res.json(profile);
+  });
+
+  // 23. POST /api/bio-sentinel/chat - Bio-Sentinel chat
+  app.post("/api/bio-sentinel/chat", operatorLimiter, requireOperatorSession, async (req: any, res) => {
+    const { message, profileId } = req.body;
+    
+    if (!message) return res.status(400).json({ error: "message_required" });
+    
+    res.json({
+      id: Date.now().toString(),
+      message: `Dr. Maya: I understand you mentioned "${message}". Let me analyze that for profile ${profileId || 'default'}.`,
+      timestamp: new Date().toISOString()
+    });
+  });
+
+  // 24. GET /api/dashboard/metrics - Dashboard metrics summary
+  app.get("/api/dashboard/metrics", operatorLimiter, requireOperatorSession, async (_req: any, res) => {
+    if (!isSupabaseConfigured() || !supabase) {
+      return res.json({
+        totalCommands: 0,
+        successRate: 0,
+        activeAgents: 10,
+        avgResponseTime: 0
+      });
+    }
+    
+    const [cmdRes, evtRes] = await Promise.all([
+      supabase.from("arc_command_log").select("*", { count: "exact" }).limit(100),
+      supabase.from("agent_events").select("*", { count: "exact" }).limit(100)
+    ]);
+    
+    const commands = cmdRes.data || [];
+    const successCount = commands.filter((c: any) => c.status === "completed").length;
+    
+    res.json({
+      totalCommands: cmdRes.count || 0,
+      successRate: commands.length > 0 ? (successCount / commands.length) * 100 : 0,
+      activeAgents: 10,
+      avgResponseTime: commands.reduce((acc: number, c: any) => acc + (c.duration_ms || 0), 0) / (commands.length || 1)
+    });
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
