@@ -20,9 +20,17 @@ export function log(message: unknown, scope?: string) {
 // This function will serve static files in a production environment
 function serveStatic(app: Express) {
   const buildDir = path.resolve(import.meta.dirname, "..", "dist", "public");
+  
+  // Serve static files (CSS, JS, images, etc)
   app.use(express.static(buildDir));
-  // For any other request, serve the index.html file, so that client-side routing works
-  app.get('*', (req, res) => {
+  
+  // IMPORTANT: This catch-all route should be LAST
+  // It will serve index.html for all non-API routes (for React Router)
+  app.get('*', (req, res, next) => {
+    // Skip if this is an API route
+    if (req.path.startsWith('/api/')) {
+      return next();
+    }
     res.sendFile(path.resolve(buildDir, 'index.html'));
   });
 }
@@ -86,21 +94,23 @@ app.use(sessionMiddleware);
   // Initialize the real-time subscription service
   initializeRealtimeSubscriptions();
 
-  // Error handling
+  // Environment settings (Vite for preview)
+  if (app.get("env") === "development") {
+    const { setupVite } = await import("./vite");
+    await setupVite(httpServer, app);
+  } else {
+    // IMPORTANT: serveStatic must come AFTER registerRoutes
+    // So API routes are registered first
+    serveStatic(app);
+  }
+
+  // Error handling (should be last)
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
     res.status(status).json({ message });
     throw err;
   });
-
-  // Environment settings (Vite for preview)
-  if (app.get("env") === "development") {
-    const { setupVite } = await import("./vite");
-    await setupVite(httpServer, app);
-  } else {
-    serveStatic(app);
-  }
 
   // Use the PORT environment variable if available, otherwise default to 9002.
   // Use 0.0.0.0 to ensure external access in Replit/IDX environment.
