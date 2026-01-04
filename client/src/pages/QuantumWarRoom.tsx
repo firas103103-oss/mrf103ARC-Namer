@@ -248,7 +248,7 @@ export default function QuantumWarRoom() {
 
     try {
       const response = await apiRequest("POST", "/api/chat", {
-        message: `Based on the mission "${currentScenario.name}" with risk level ${riskLevel}% and team consisting of ${selectedAgentData.map((a) => a.name).join(", ")}, provide 5 concise tactical recommendations. Each recommendation should be one sentence. Focus on how to optimize team deployment, risk mitigation, and mission success. Format as a numbered list.`,
+        message: `Based on the mission "${currentScenario.title}" with risk level ${riskLevel}% and team consisting of ${selectedAgentData.map((a) => a.name).join(", ")}, provide 5 concise tactical recommendations. Each recommendation should be one sentence. Focus on how to optimize team deployment, risk mitigation, and mission success. Format as a numbered list.`,
         activeAgents: ["l0-intel"],
       });
 
@@ -489,7 +489,7 @@ export default function QuantumWarRoom() {
                     {scenarios.map((scenario) => (
                       <SelectItem key={scenario.id} value={scenario.id}>
                         <div className="flex items-center gap-2">
-                          <span>{scenario.name}</span>
+                          <span>{scenario.title}</span>
                           {scenario.category && (
                             <Badge variant="secondary" className="text-xs">
                               {scenario.category}

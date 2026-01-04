@@ -19,14 +19,6 @@ export function initSentry(app: Express) {
     environment: process.env.NODE_ENV || "development",
     tracesSampleRate: 1.0, // 100% of transactions for performance monitoring
     
-    // Performance Monitoring
-    integrations: [
-      // HTTP instrumentation
-      new Sentry.Integrations.Http({ tracing: true }),
-      // Express instrumentation
-      new Sentry.Integrations.Express({ app }),
-    ],
-
     // Release tracking
     release: process.env.npm_package_version,
 
@@ -45,11 +37,11 @@ export function initSentry(app: Express) {
 }
 
 /**
- * Sentry Middlewares for Express
+ * Setup Sentry Express Error Handler
  */
-export const sentryRequestHandler = () => Sentry.Handlers.requestHandler();
-export const sentryTracingHandler = () => Sentry.Handlers.tracingHandler();
-export const sentryErrorHandler = () => Sentry.Handlers.errorHandler();
+export function setupSentryErrorHandler(app: Express) {
+  Sentry.setupExpressErrorHandler(app);
+}
 
 /**
  * Capture custom exceptions
