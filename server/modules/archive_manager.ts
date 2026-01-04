@@ -78,7 +78,7 @@ function generateEncryptionKey(): string {
 function encryptFile(filePath: string, key: string): string {
   const algorithm = ARCHIVE_CONFIG.encryptionAlgorithm;
   const iv = crypto.randomBytes(16);
-  const cipher = crypto.createCipheriv(algorithm, Buffer.from(key, "hex"), iv);
+  const cipher = crypto.createCipheriv(algorithm, Buffer.from(key, "hex"), iv) as crypto.CipherGCM;
   
   const input = fs.readFileSync(filePath);
   const encrypted = Buffer.concat([cipher.update(input), cipher.final()]);
