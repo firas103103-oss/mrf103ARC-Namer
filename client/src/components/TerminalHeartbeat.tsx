@@ -41,38 +41,13 @@ function formatTimestamp(date: Date): string {
   }) + "." + date.getMilliseconds().toString().padStart(3, "0");
 }
 
-function generateMockEvents(): LogEvent[] {
-  const eventTypes = ["SYSTEM", "AUTH", "API", "DB", "AGENT", "NETWORK", "CACHE"];
-  const messages = [
-    "Connection established to primary server",
-    "Agent workflow initialized successfully",
-    "Database query completed in 45ms",
-    "API rate limit approaching threshold",
-    "Cache invalidation triggered",
-    "Authentication token refreshed",
-    "WebSocket connection stable",
-    "Memory usage within normal parameters",
-    "Backup process initiated",
-    "Load balancer health check passed",
-  ];
-  const severities: EventSeverity[] = ["info", "success", "warning", "error"];
-  
-  return Array.from({ length: 5 }, (_, i) => ({
-    id: `initial-${i}`,
-    timestamp: new Date(Date.now() - (5 - i) * 2000),
-    message: messages[Math.floor(Math.random() * messages.length)],
-    severity: severities[Math.floor(Math.random() * 3)],
-    eventType: eventTypes[Math.floor(Math.random() * eventTypes.length)],
-  }));
-}
-
 export function TerminalHeartbeat({ 
   events: externalEvents, 
   maxEvents = 50,
   className 
 }: TerminalHeartbeatProps) {
   const [events, setEvents] = useState<LogEvent[]>(() => 
-    externalEvents || generateMockEvents()
+    externalEvents || []
   );
   const [isPulsing, setIsPulsing] = useState(false);
   const [lastEventId, setLastEventId] = useState<string | null>(null);
@@ -86,57 +61,10 @@ export function TerminalHeartbeat({
   }, [events]);
 
   useEffect(() => {
-    if (externalEvents) return;
-
-    const eventTypes = ["SYSTEM", "AUTH", "API", "DB", "AGENT", "NETWORK", "CACHE", "HEARTBEAT"];
-    const messages = [
-      "Health check completed successfully",
-      "Agent status: All systems operational",
-      "Memory pool reallocated",
-      "Request processed: /api/agents/status",
-      "Task queue length: 3 pending",
-      "Websocket ping: 12ms latency",
-      "Session token validated",
-      "Background job completed",
-      "Metrics exported to monitoring",
-      "Configuration reloaded",
-      "Connection pool: 8/20 active",
-      "Cache hit ratio: 94.2%",
-    ];
-    const severities: EventSeverity[] = ["info", "success", "warning", "error"];
-    const weights = [0.5, 0.3, 0.15, 0.05];
-
-    const interval = setInterval(() => {
-      const random = Math.random();
-      let severityIndex = 0;
-      let cumulative = 0;
-      for (let i = 0; i < weights.length; i++) {
-        cumulative += weights[i];
-        if (random < cumulative) {
-          severityIndex = i;
-          break;
-        }
-      }
-
-      const newEvent: LogEvent = {
-        id: `event-${Date.now()}-${eventCountRef.current++}`,
-        timestamp: new Date(),
-        message: messages[Math.floor(Math.random() * messages.length)],
-        severity: severities[severityIndex],
-        eventType: eventTypes[Math.floor(Math.random() * eventTypes.length)],
-      };
-
-      setEvents(prev => {
-        const updated = [...prev, newEvent];
-        return updated.slice(-maxEvents);
-      });
-      setLastEventId(newEvent.id);
-      
-      setIsPulsing(true);
-      setTimeout(() => setIsPulsing(false), 600);
-    }, 1500 + Math.random() * 2000);
-
-    return () => clearInterval(interval);
+    // No mock events - only show real data from externalEvents prop
+    if (!externalEvents || externalEvents.length === 0) return;
+    
+    setEvents(externalEvents);
   }, [externalEvents, maxEvents]);
 
   return (

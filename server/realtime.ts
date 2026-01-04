@@ -60,6 +60,101 @@ function setupSupabaseSubscription() {
         console.error("❌ Real-time subscription to activity_feed failed:", err);
       }
     });
+
+  // Subscribe to anomalies table
+  console.log("Setting up Supabase real-time subscription for anomalies...");
+  supabase
+    .channel("dashboard-anomalies")
+    .on(
+      "postgres_changes",
+      { event: "*", schema: "public", table: "anomalies" },
+      (payload: RealtimePostgresChangesPayload<any>) => {
+        console.log(`[Realtime] Anomaly event: ${payload.eventType}`);
+        broadcast({
+          type: "anomaly_update",
+          event: payload.eventType,
+          payload: payload.eventType === "DELETE" ? payload.old : payload.new,
+        });
+      }
+    )
+    .subscribe((status, err) => {
+      if (status === "SUBSCRIBED") {
+        console.log("✅ Real-time subscription to anomalies established.");
+      } else if (status === "CHANNEL_ERROR") {
+        console.error("❌ Real-time subscription to anomalies failed:", err);
+      }
+    });
+
+  // Subscribe to mission_scenarios table
+  console.log("Setting up Supabase real-time subscription for mission_scenarios...");
+  supabase
+    .channel("dashboard-scenarios")
+    .on(
+      "postgres_changes",
+      { event: "*", schema: "public", table: "mission_scenarios" },
+      (payload: RealtimePostgresChangesPayload<any>) => {
+        console.log(`[Realtime] Scenario event: ${payload.eventType}`);
+        broadcast({
+          type: "scenario_update",
+          event: payload.eventType,
+          payload: payload.eventType === "DELETE" ? payload.old : payload.new,
+        });
+      }
+    )
+    .subscribe((status, err) => {
+      if (status === "SUBSCRIBED") {
+        console.log("✅ Real-time subscription to mission_scenarios established.");
+      } else if (status === "CHANNEL_ERROR") {
+        console.error("❌ Real-time subscription to mission_scenarios failed:", err);
+      }
+    });
+
+  // Subscribe to team_tasks table
+  console.log("Setting up Supabase real-time subscription for team_tasks...");
+  supabase
+    .channel("dashboard-tasks")
+    .on(
+      "postgres_changes",
+      { event: "*", schema: "public", table: "team_tasks" },
+      (payload: RealtimePostgresChangesPayload<any>) => {
+        console.log(`[Realtime] Task event: ${payload.eventType}`);
+        broadcast({
+          type: "task_update",
+          event: payload.eventType,
+          payload: payload.eventType === "DELETE" ? payload.old : payload.new,
+        });
+      }
+    )
+    .subscribe((status, err) => {
+      if (status === "SUBSCRIBED") {
+        console.log("✅ Real-time subscription to team_tasks established.");
+      } else if (status === "CHANNEL_ERROR") {
+        console.error("❌ Real-time subscription to team_tasks failed:", err);
+      }
+    });
+
+  // Subscribe to agent_performance table
+  console.log("Setting up Supabase real-time subscription for agent_performance...");
+  supabase
+    .channel("dashboard-performance")
+    .on(
+      "postgres_changes",
+      { event: "INSERT", schema: "public", table: "agent_performance" },
+      (payload: RealtimePostgresChangesPayload<any>) => {
+        console.log(`[Realtime] Agent performance update`);
+        broadcast({
+          type: "performance_update",
+          payload: payload.new,
+        });
+      }
+    )
+    .subscribe((status, err) => {
+      if (status === "SUBSCRIBED") {
+        console.log("✅ Real-time subscription to agent_performance established.");
+      } else if (status === "CHANNEL_ERROR") {
+        console.error("❌ Real-time subscription to agent_performance failed:", err);
+      }
+    });
 }
 
 // Set up the WebSocket server event listeners.

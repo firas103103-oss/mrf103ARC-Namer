@@ -168,7 +168,7 @@ export default function QuantumWarRoom() {
   });
 
   const { data: scenariosData, isLoading: scenariosLoading } = useQuery<MissionScenario[]>({
-    queryKey: ["/api/scenarios"],
+    queryKey: ['/api/scenarios'],
   });
 
   const { data: agentsData, isLoading: agentsLoading } = useQuery<VirtualAgent[]>({

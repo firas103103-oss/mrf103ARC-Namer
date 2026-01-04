@@ -326,6 +326,220 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ==========================================
+  // Live System APIs - Real Data Endpoints
+  // ==========================================
+
+  // 1. Anomalies API
+  app.get("/api/agents/anomalies", operatorLimiter, requireOperatorSession, async (req: any, res) => {
+    if (!isSupabaseConfigured() || !supabase) return res.status(503).json({ error: "supabase_not_configured" });
+    
+    const timeRange = req.query.timeRange || '7d';
+    const daysAgo = timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : 90;
+    const since = new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000).toISOString();
+    
+    const { data, error } = await supabase
+      .from("anomalies")
+      .select("*")
+      .gte("detected_at", since)
+      .order("detected_at", { ascending: false });
+      
+    if (error) return res.status(500).json({ error: error.message });
+    res.json(data || []);
+  });
+
+  // 2. Mission Scenarios API - GET
+  app.get("/api/scenarios", operatorLimiter, requireOperatorSession, async (req: any, res) => {
+    if (!isSupabaseConfigured() || !supabase) return res.status(503).json({ error: "supabase_not_configured" });
+    
+    const { data, error } = await supabase
+      .from("mission_scenarios")
+      .select("*")
+      .order("created_at", { ascending: false });
+      
+    if (error) return res.status(500).json({ error: error.message });
+    res.json(data || []);
+  });
+
+  // 3. Mission Scenarios API - POST
+  app.post("/api/scenarios", operatorLimiter, requireOperatorSession, async (req: any, res) => {
+    if (!isSupabaseConfigured() || !supabase) return res.status(503).json({ error: "supabase_not_configured" });
+    
+    const { title, description, category, riskLevel, objectives, assignedAgents } = req.body;
+    
+    if (!title) return res.status(400).json({ error: "title_required" });
+    
+    const { data, error } = await supabase
+      .from("mission_scenarios")
+      .insert([{
+        title,
+        description: description || null,
+        category: category || 'Intelligence',
+        risk_level: riskLevel || 50,
+        objectives: objectives || [],
+        assigned_agents: assignedAgents || []
+      }])
+      .select()
+      .single();
+      
+    if (error) return res.status(500).json({ error: error.message });
+    res.json(data);
+  });
+
+  // 4. Team Tasks API - GET
+  app.get("/api/team/tasks", operatorLimiter, requireOperatorSession, async (req: any, res) => {
+    if (!isSupabaseConfigured() || !supabase) return res.status(503).json({ error: "supabase_not_configured" });
+    
+    const { data, error } = await supabase
+      .from("team_tasks")
+      .select("*")
+      .order("created_at", { ascending: false });
+      
+    if (error) return res.status(500).json({ error: error.message });
+    res.json(data || []);
+  });
+
+  // 5. Team Tasks API - POST
+  app.post("/api/team/tasks", operatorLimiter, requireOperatorSession, async (req: any, res) => {
+    if (!isSupabaseConfigured() || !supabase) return res.status(503).json({ error: "supabase_not_configured" });
+    
+    const { title, description, assignedAgent, priority, tags } = req.body;
+    
+    if (!title) return res.status(400).json({ error: "title_required" });
+    
+    const { data, error } = await supabase
+      .from("team_tasks")
+      .insert([{
+        title,
+        description: description || null,
+        assigned_agent: assignedAgent || null,
+        priority: priority || 'medium',
+        tags: tags || []
+      }])
+      .select()
+      .single();
+      
+    if (error) return res.status(500).json({ error: error.message });
+    res.json(data);
+  });
+
+  // 6. Team Tasks API - PATCH (Update)
+  app.patch("/api/team/tasks/:id", operatorLimiter, requireOperatorSession, async (req: any, res) => {
+    if (!isSupabaseConfigured() || !supabase) return res.status(503).json({ error: "supabase_not_configured" });
+    
+    const { id } = req.params;
+    const updates = req.body;
+    
+    const { data, error } = await supabase
+      .from("team_tasks")
+      .update(updates)
+      .eq("id", id)
+      .select()
+      .single();
+      
+    if (error) return res.status(500).json({ error: error.message });
+    res.json(data);
+  });
+
+  // 7. Agent Analytics API
+  app.get("/api/agents/analytics", operatorLimiter, requireOperatorSession, async (req: any, res) => {
+    if (!isSupabaseConfigured() || !supabase) return res.status(503).json({ error: "supabase_not_configured" });
+    
+    // Fetch recent interactions per agent
+    const { data: interactions, error } = await supabase
+      .from("agent_interactions")
+      .select("agent_id, created_at, duration_ms, success")
+      .order("created_at", { ascending: false })
+      .limit(1000);
+      
+    if (error) return res.status(500).json({ error: error.message });
+    
+    // Group by agent
+    const agentStats: Record<string, any> = {};
+    (interactions || []).forEach((int: any) => {
+      if (!agentStats[int.agent_id]) {
+        agentStats[int.agent_id] = {
+          id: int.agent_id,
+          total: 0,
+          successful: 0,
+          avgResponseTime: 0,
+          totalTime: 0
+        };
+      }
+      agentStats[int.agent_id].total++;
+      if (int.success) agentStats[int.agent_id].successful++;
+      agentStats[int.agent_id].totalTime += int.duration_ms || 0;
+    });
+    
+    const result = Object.values(agentStats).map((stats: any) => ({
+      ...stats,
+      successRate: stats.total > 0 ? (stats.successful / stats.total) * 100 : 0,
+      avgResponseTime: stats.total > 0 ? stats.totalTime / stats.total : 0
+    }));
+    
+    res.json(result);
+  });
+
+  // 8. Agent Performance Metrics API
+  app.get("/api/agents/performance", operatorLimiter, requireOperatorSession, async (req: any, res) => {
+    if (!isSupabaseConfigured() || !supabase) return res.status(503).json({ error: "supabase_not_configured" });
+    
+    const timeRange = req.query.timeRange || '7d';
+    const daysAgo = timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : 90;
+    const since = new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000).toISOString();
+    
+    const { data: metrics, error: metricsError } = await supabase
+      .from("agent_performance")
+      .select("*")
+      .gte("timestamp", since)
+      .order("timestamp", { ascending: false });
+      
+    const { data: interactions, error: intError } = await supabase
+      .from("agent_interactions")
+      .select("agent_id, success, duration_ms, created_at")
+      .gte("created_at", since)
+      .order("created_at", { ascending: false });
+      
+    if (metricsError || intError) {
+      return res.status(500).json({ error: metricsError?.message || intError?.message });
+    }
+    
+    // Aggregate by agent
+    const agentData: Record<string, any> = {};
+    (interactions || []).forEach((int: any) => {
+      if (!agentData[int.agent_id]) {
+        agentData[int.agent_id] = {
+          id: int.agent_id,
+          calls: 0,
+          successRate: 0,
+          avgLatency: 0,
+          totalDuration: 0,
+          successful: 0
+        };
+      }
+      agentData[int.agent_id].calls++;
+      agentData[int.agent_id].totalDuration += int.duration_ms || 0;
+      if (int.success) agentData[int.agent_id].successful++;
+    });
+    
+    const agents = Object.values(agentData).map((a: any) => ({
+      ...a,
+      successRate: a.calls > 0 ? (a.successful / a.calls) * 100 : 0,
+      avgLatency: a.calls > 0 ? a.totalDuration / a.calls : 0
+    }));
+    
+    // Create chart data
+    const chartData = (interactions || [])
+      .slice(0, 50)
+      .reverse()
+      .map((int: any) => ({
+        timestamp: new Date(int.created_at).toISOString(),
+        [int.agent_id]: int.duration_ms || 0
+      }));
+    
+    res.json({ agents, chartData, metrics: metrics || [] });
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

@@ -494,18 +494,18 @@ export type InsertArcFeedback = typeof arcFeedback.$inferInsert;
 // ============================================
 export const teamTasks = pgTable("team_tasks", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  title: varchar("title", { length: 500 }).notNull(),
+  title: text("title").notNull(),
   description: text("description"),
-  assignedAgent: varchar("assigned_agent", { length: 50 }),
-  priority: varchar("priority", { length: 20 }).default("medium"),
-  status: varchar("status", { length: 50 }).default("pending"),
+  assignedAgent: text("assigned_agent"),
+  priority: text("priority").default("medium"),
+  status: text("status").default("pending"),
+  tags: text("tags").array().default(sql`'{}'`),
   dueDate: timestamp("due_date"),
-  createdBy: varchar("created_by"),
-  tags: text("tags").array(),
-  metadata: jsonb("metadata").default({}),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
   completedAt: timestamp("completed_at"),
+  estimatedDuration: integer("estimated_duration"),
+  actualDuration: integer("actual_duration"),
 });
 
 export type TeamTask = typeof teamTasks.$inferSelect;
@@ -561,14 +561,18 @@ export type SimulationUpdate = z.infer<typeof simulationUpdateSchema>;
 // ============================================
 export const missionScenarios = pgTable("mission_scenarios", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  name: varchar("name", { length: 255 }).notNull(),
+  title: text("title").notNull(),
   description: text("description"),
-  objectives: jsonb("objectives").default([]),
-  riskLevel: integer("risk_level").default(1),
-  category: varchar("category", { length: 100 }),
-  status: varchar("status", { length: 50 }).default("draft"),
+  category: text("category").default("Intelligence"),
+  riskLevel: integer("risk_level").default(50),
+  objectives: text("objectives").array().default(sql`'{}'`),
+  assignedAgents: text("assigned_agents").array().default(sql`'{}'`),
+  status: text("status").default("pending"),
+  priority: text("priority").default("medium"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
+  startedAt: timestamp("started_at"),
+  completedAt: timestamp("completed_at"),
 });
 
 export type MissionScenario = typeof missionScenarios.$inferSelect;
@@ -997,4 +1001,172 @@ export const createImpactSchema = z.object({
   impact_type: z.string(),
   impact_score: z.number().optional(),
   impact: z.record(z.unknown()).optional(),
+});
+
+// ============================================
+// ARC Archive System Tables
+// ============================================
+
+// Archive storage metadata
+export const arcArchives = pgTable("arc_archives", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  archiveName: varchar("archive_name", { length: 255 }).notNull(),
+  archiveType: varchar("archive_type", { length: 50 }).notNull(), // logs, reports, agent_data, system_backup, full_snapshot
+  filePath: text("file_path").notNull(),
+  fileSizeBytes: integer("file_size_bytes").notNull(),
+  compressionRatio: numeric("compression_ratio"),
+  encrypted: varchar("encrypted", { length: 10 }).default("false").notNull(),
+  encryptionKeyId: varchar("encryption_key_id", { length: 50 }),
+  sourceAgent: varchar("source_agent", { length: 100 }),
+  retentionDays: integer("retention_days").default(90),
+  accessLevel: varchar("access_level", { length: 50 }).default("internal"), // public, internal, confidential, restricted
+  metadata: jsonb("metadata").default({}),
+  createdAt: timestamp("created_at").defaultNow(),
+  expiresAt: timestamp("expires_at"),
+});
+
+export type ArcArchive = typeof arcArchives.$inferSelect;
+export type InsertArcArchive = typeof arcArchives.$inferInsert;
+
+// Archive encryption keys (stored securely)
+export const archiveEncryptionKeys = pgTable("archive_encryption_keys", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  keyId: varchar("key_id", { length: 50 }).notNull().unique(),
+  encryptedKey: text("encrypted_key").notNull(), // In production, encrypt this!
+  algorithm: varchar("algorithm", { length: 50 }).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  lastUsedAt: timestamp("last_used_at"),
+});
+
+export type ArchiveEncryptionKey = typeof archiveEncryptionKeys.$inferSelect;
+export type InsertArchiveEncryptionKey = typeof archiveEncryptionKeys.$inferInsert;
+
+// Access control for resources
+export const arcAccessControl = pgTable("arc_access_control", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  agentId: varchar("agent_id", { length: 100 }).notNull(),
+  resourceType: varchar("resource_type", { length: 50 }).notNull(), // archive, agent_data, system_logs
+  resourceId: varchar("resource_id", { length: 100 }).notNull(),
+  permissions: text("permissions").array().notNull(), // read, write, delete, share
+  grantedBy: varchar("granted_by", { length: 100 }).notNull(),
+  grantedAt: timestamp("granted_at").defaultNow(),
+  expiresAt: timestamp("expires_at"),
+});
+
+export type ArcAccessControl = typeof arcAccessControl.$inferSelect;
+export type InsertArcAccessControl = typeof arcAccessControl.$inferInsert;
+
+// ============================================
+// Agent Task Management Tables
+// ============================================
+
+// Agent tasks with full lifecycle tracking
+export const agentTasks = pgTable("agent_tasks", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  agentId: varchar("agent_id", { length: 100 }).notNull(),
+  taskType: varchar("task_type", { length: 50 }).notNull(), // analysis, research, communication, monitoring, execution
+  title: text("title").notNull(),
+  description: text("description"),
+  priority: varchar("priority", { length: 20 }).default("medium"), // low, medium, high, critical
+  status: varchar("status", { length: 50 }).default("pending"), // pending, in_progress, completed, failed, blocked
+  progress: integer("progress").default(0), // 0-100%
+  assignedBy: varchar("assigned_by", { length: 100 }),
+  dependencies: text("dependencies").array().default(sql`'{}'`), // IDs of dependent tasks
+  tags: text("tags").array().default(sql`'{}'`),
+  estimatedDurationMs: integer("estimated_duration_ms"),
+  actualDurationMs: integer("actual_duration_ms"),
+  input: jsonb("input").default({}),
+  output: jsonb("output").default({}),
+  errorMessage: text("error_message"),
+  retryCount: integer("retry_count").default(0),
+  maxRetries: integer("max_retries").default(3),
+  createdAt: timestamp("created_at").defaultNow(),
+  startedAt: timestamp("started_at"),
+  completedAt: timestamp("completed_at"),
+  dueDate: timestamp("due_date"),
+});
+
+export type AgentTask = typeof agentTasks.$inferSelect;
+export type InsertAgentTask = typeof agentTasks.$inferInsert;
+
+// Agent learning and analysis data
+export const agentLearning = pgTable("agent_learning", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  agentId: varchar("agent_id", { length: 100 }).notNull(),
+  learningType: varchar("learning_type", { length: 50 }).notNull(), // pattern_recognition, performance_optimization, user_preference, error_correction
+  context: text("context"),
+  inputData: jsonb("input_data").default({}),
+  analysis: jsonb("analysis").default({}),
+  insights: text("insights").array().default(sql`'{}'`),
+  confidence: integer("confidence").default(50), // 0-100%
+  applied: varchar("applied", { length: 10 }).default("false"),
+  appliedAt: timestamp("applied_at"),
+  validatedBy: varchar("validated_by", { length: 100 }),
+  validatedAt: timestamp("validated_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export type AgentLearning = typeof agentLearning.$inferSelect;
+export type InsertAgentLearning = typeof agentLearning.$inferInsert;
+
+// Agent performance metrics
+export const agentPerformance = pgTable("agent_performance", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  agentId: varchar("agent_id", { length: 100 }).notNull(),
+  metricType: varchar("metric_type", { length: 50 }).notNull(), // response_time, success_rate, task_completion, quality_score
+  value: numeric("value").notNull(),
+  unit: varchar("unit", { length: 50 }),
+  context: jsonb("context").default({}),
+  periodStart: timestamp("period_start"),
+  periodEnd: timestamp("period_end"),
+  recordedAt: timestamp("recorded_at").defaultNow(),
+});
+
+export type AgentPerformance = typeof agentPerformance.$inferSelect;
+export type InsertAgentPerformance = typeof agentPerformance.$inferInsert;
+
+// ============================================
+// Integration Logs (n8n, ElevenLabs, etc.)
+// ============================================
+
+export const integrationLogs = pgTable("integration_logs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  integrationName: varchar("integration_name", { length: 100 }).notNull(), // n8n, elevenlabs, openai, anthropic, gemini
+  eventType: varchar("event_type", { length: 50 }).notNull(), // webhook_sent, webhook_received, api_call, tts_generated
+  direction: varchar("direction", { length: 20 }).notNull(), // inbound, outbound
+  requestPayload: jsonb("request_payload").default({}),
+  responsePayload: jsonb("response_payload").default({}),
+  statusCode: integer("status_code"),
+  success: varchar("success", { length: 10 }).default("true"),
+  errorMessage: text("error_message"),
+  latencyMs: integer("latency_ms"),
+  metadata: jsonb("metadata").default({}),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export type IntegrationLog = typeof integrationLogs.$inferSelect;
+export type InsertIntegrationLog = typeof integrationLogs.$inferInsert;
+
+// ============================================
+// Zod Validation Schemas
+// ============================================
+
+export const agentTaskSchema = z.object({
+  agentId: z.string(),
+  taskType: z.enum(["analysis", "research", "communication", "monitoring", "execution"]),
+  title: z.string(),
+  description: z.string().optional(),
+  priority: z.enum(["low", "medium", "high", "critical"]).optional(),
+  input: z.record(z.unknown()).optional(),
+  dueDate: z.string().datetime().optional(),
+});
+
+export const agentLearningSchema = z.object({
+  agentId: z.string(),
+  learningType: z.enum(["pattern_recognition", "performance_optimization", "user_preference", "error_correction"]),
+  context: z.string().optional(),
+  inputData: z.record(z.unknown()).optional(),
+  analysis: z.record(z.unknown()).optional(),
+  insights: z.array(z.string()).optional(),
+  confidence: z.number().min(0).max(100).optional(),
 });

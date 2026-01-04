@@ -13,16 +13,6 @@ const config: CapacitorConfig = {
       enabled: true,
     },
   },
-  android: {
-    buildOptions: {
-      keystorePath: undefined,
-      keystoreAlias: undefined,
-      keystorePassword: undefined,
-      keystoreAliasPassword: undefined,
-    },
-    allowMixedContent: true,
-    webContentsDebuggingEnabled: true,
-  },
 };
 
 export default config;
