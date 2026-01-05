@@ -19,6 +19,9 @@ import {
   Workflow,
   TrendingUp,
   Network,
+  Settings,
+  Brain,
+  Rocket,
 } from "lucide-react";
 import {
   Sidebar,
@@ -69,6 +72,12 @@ export function AppSidebar() {
 
   const bioSentinelItems = [
     { titleKey: "nav.bioSentinel", url: "/bio-sentinel", icon: Zap, testId: "link-bio-sentinel", description: "المراقبة البيولوجية" },
+  ];
+
+  const adminItems = [
+    { titleKey: "nav.adminPanel", url: "/admin", icon: Settings, testId: "link-admin", description: "لوحة التحكم الإدارية" },
+    { titleKey: "nav.masterAgent", url: "/master-agent", icon: Brain, testId: "link-master-agent", description: "وكيل التحكم الرئيسي" },
+    { titleKey: "nav.growthRoadmap", url: "/growth-roadmap", icon: Rocket, testId: "link-growth-roadmap", description: "خارطة الطريق 90 يوم" },
   ];
 
   const handleLogout = () => {
@@ -210,6 +219,35 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {bioSentinelItems.map((item) => (
+                <SidebarMenuItem key={item.titleKey}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={location === item.url}
+                    data-testid={item.testId}
+                    title={item.description}
+                    className="group relative"
+                  >
+                    <Link href={item.url}>
+                      <item.icon className="h-4 w-4" />
+                      <span>{t(item.titleKey)}</span>
+                      <span className="text-[10px] text-muted-foreground/60 hidden group-hover:inline ml-2">
+                        ({item.description})
+                      </span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel data-testid="label-administration">
+            {t('nav.administration')}
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {adminItems.map((item) => (
                 <SidebarMenuItem key={item.titleKey}>
                   <SidebarMenuButton
                     asChild
