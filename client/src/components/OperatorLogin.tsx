@@ -1,90 +1,85 @@
-import * as React from "react";
-import { login, me } from "@/lib/api";
+import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
+import { SiMatrix } from "react-icons/si";
+import { useLocation } from "wouter"; // ضروري للتوجيه
 
-export default function OperatorLogin() {
-  const [password, setPassword] = React.useState("");
-  const [status, setStatus] = React.useState<"idle" | "loading" | "ok" | "error">("idle");
-  const [error, setError] = React.useState<string | null>(null);
-  const [userEmail, setUserEmail] = React.useState<string | null>(null);
+export function OperatorLogin() {
+  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const { loginMutation } = useAuth();
+  const { toast } = useToast();
+  const [, setLocation] = useLocation();
 
-  const checkMe = React.useCallback(async () => {
-    try {
-      const user = await me();
-      setUserEmail(user.email);
-      setStatus("ok");
-      setError(null);
-    } catch {
-      setUserEmail(null);
-    }
-  }, []);
-
-  React.useEffect(() => {
-    void checkMe();
-  }, [checkMe]);
-
-  const onSubmit = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setStatus("loading");
-    setError(null);
+    if (!password) return;
 
+    setIsLoading(true);
     try {
-      await login(password);
-      // Force a full page reload to refresh authentication state
-      window.location.reload();
-    } catch (err: any) {
-      setStatus("error");
-      setError(err?.message || "Login failed");
+      await loginMutation.mutateAsync({ password });
+      
+      toast({
+        title: "Access Granted",
+        description: "Welcome back, Operator.",
+        variant: "default",
+      });
+
+      console.log("Login success, redirecting to /virtual-office");
+      setLocation("/virtual-office");
+
+    } catch (error) {
+      toast({
+        title: "Access Denied",
+        description: "Invalid operator credentials.",
+        variant: "destructive",
+      });
+      console.error("Login failed:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-6">
-      <div className="w-full max-w-md border border-border rounded-md p-6 bg-card">
-        <h1 className="text-lg font-semibold text-foreground">Operator Login</h1>
-        <p className="text-sm text-muted-foreground mt-1">Enter operator password to access ARC dashboard.</p>
-
-        {userEmail && (
-          <div className="mt-4 text-sm text-green-500" data-testid="status-logged-in">
-            Logged in as {userEmail}
+    <div className="min-h-screen flex items-center justify-center bg-black/95 text-green-500 font-mono p-4">
+      <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1518544806352-a228605200bd?q=80&w=2069&auto=format&fit=crop')] opacity-10 bg-cover bg-center pointer-events-none" />
+      
+      <Card className="w-full max-w-md border-green-500/30 bg-black/80 backdrop-blur-md shadow-[0_0_30px_rgba(34,197,94,0.2)]">
+        <CardHeader className="text-center space-y-4">
+          <div className="mx-auto bg-green-900/20 p-4 rounded-full w-20 h-20 flex items-center justify-center border border-green-500/50 animate-pulse">
+            <SiMatrix className="w-10 h-10 text-green-500" />
           </div>
-        )}
-
-        {!userEmail && (
-          <form className="mt-4 space-y-3" onSubmit={onSubmit}>
-            <label className="block text-sm text-foreground">
-              Password
-              <input
+          <CardTitle className="text-2xl text-green-400 tracking-wider">SYSTEM ACCESS</CardTitle>
+          <CardDescription className="text-green-600/80">
+            Enter ARC Operator Credentials
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleLogin} className="space-y-6">
+            <div className="space-y-2">
+              <Input
                 type="password"
+                placeholder="Enter Passkey..."
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground"
-                placeholder="••••••••"
-                autoComplete="current-password"
-                data-testid="input-password"
+                className="bg-black/50 border-green-500/30 text-green-400 placeholder:text-green-800 text-center tracking-widest text-lg focus:border-green-400 focus:ring-green-400/20"
+                autoFocus
               />
-            </label>
-
-            <button
-              type="submit"
-              disabled={status === "loading" || password.length === 0}
-              className="w-full rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
-              data-testid="button-login"
+            </div>
+            <Button 
+              type="submit" 
+              className="w-full bg-green-600/20 hover:bg-green-600/40 text-green-400 border border-green-500/50 hover:shadow-[0_0_20px_rgba(34,197,94,0.4)] transition-all duration-300"
+              disabled={isLoading}
             >
-              {status === "loading" ? "Logging in..." : "Login"}
-            </button>
-
-            {status === "error" && error && (
-              <div className="text-sm text-destructive" data-testid="text-login-error">
-                {error}
-              </div>
-            )}
+              {isLoading ? "AUTHENTICATING..." : "INITIALIZE SESSION"}
+            </Button>
           </form>
-        )}
-
-        <div className="mt-4 text-xs text-muted-foreground">
-          Tip: the session cookie is stored automatically by the browser.
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
