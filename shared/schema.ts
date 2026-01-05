@@ -1,414 +1,524 @@
 import { z } from "zod";
-import { sql, relations } from 'drizzle-orm';
-import { index, integer, jsonb, numeric, pgTable, text, timestamp, varchar, boolean } from "drizzle-orm/pg-core";
+import { sql, relations } from "drizzle-orm";
+import {
+  index,
+  integer,
+  jsonb,
+  numeric,
+  pgTable,
+  text,
+  timestamp,
+  varchar,
+  boolean,
+} from "drizzle-orm/pg-core";
 
 // ============================================
 // SECTION 1: AUTH & USERS
 // ============================================
 
 export const users = pgTable("users", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-    email: varchar("email").unique(),
-      firstName: varchar("first_name"),
-        lastName: varchar("last_name"),
-          profileImageUrl: varchar("profile_image_url"),
-            createdAt: timestamp("created_at").defaultNow(),
-              updatedAt: timestamp("updated_at").defaultNow(),
-              });
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  email: varchar("email").unique(),
+  firstName: varchar("first_name"),
+  lastName: varchar("last_name"),
+  profileImageUrl: varchar("profile_image_url"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
 
-              export const sessions = pgTable("sessions", {
-                sid: varchar("sid").primaryKey(),
-                  sess: jsonb("sess").notNull(),
-                    expire: timestamp("expire").notNull(),
-                    }, (table) => [
-                      // فهرس لسرعة تنظيف الجلسات المنتهية
-                        index("idx_sessions_expiry").on(table.expire),
-                        ]);
+export const sessions = pgTable(
+  "sessions",
+  {
+    sid: varchar("sid").primaryKey(),
+    sess: jsonb("sess").notNull(),
+    expire: timestamp("expire").notNull(),
+  },
+  (table) => [
+    // فهرس لسرعة تنظيف الجلسات المنتهية
+    index("idx_sessions_expiry").on(table.expire),
+  ],
+);
 
-                        // ============================================
-                        // SECTION 2: VIRTUAL OFFICE CORE (Agents & Chat)
-                        // ============================================
+// ============================================
+// SECTION 2: VIRTUAL OFFICE CORE (Agents & Chat)
+// ============================================
 
-                        // تعريف المحادثات
-                        export const conversations = pgTable("conversations", {
-                          id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-                            userId: varchar("user_id").references(() => users.id),
-                              title: varchar("title").notNull(),
-                                activeAgents: text("active_agents").array(),
-                                  createdAt: timestamp("created_at").defaultNow(),
-                                    updatedAt: timestamp("updated_at").defaultNow(),
-                                    });
+// تعريف المحادثات
+export const conversations = pgTable("conversations", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id),
+  title: varchar("title").notNull(),
+  activeAgents: text("active_agents").array(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
 
-                                    // تعريف الرسائل مع الفهرس الجديد
-                                    export const chatMessages = pgTable("chat_messages", {
-                                      id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-                                        conversationId: varchar("conversation_id").notNull().references(() => conversations.id),
-                                          role: varchar("role").notNull(), // 'user' | 'assistant'
-                                            content: text("content").notNull(),
-                                              agentId: varchar("agent_id"),
-                                                timestamp: timestamp("timestamp").defaultNow(),
-                                                }, (table) => [
-                                                  // فهرس لاسترجاع تاريخ المحادثة بسرعة
-                                                    index("idx_chat_history").on(table.conversationId, table.timestamp),
-                                                    ]);
+// تعريف الرسائل مع الفهرس الجديد
+export const chatMessages = pgTable(
+  "chat_messages",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    conversationId: varchar("conversation_id")
+      .notNull()
+      .references(() => conversations.id),
+    role: varchar("role").notNull(), // 'user' | 'assistant'
+    content: text("content").notNull(),
+    agentId: varchar("agent_id"),
+    timestamp: timestamp("timestamp").defaultNow(),
+  },
+  (table) => [
+    // فهرس لاسترجاع تاريخ المحادثة بسرعة
+    index("idx_chat_history").on(table.conversationId, table.timestamp),
+  ],
+);
 
-                                                    // سجل أوامر النظام مع الفهرس
-                                                    export const arcCommandLog = pgTable("arc_command_log", {
-                                                      id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-                                                        command: varchar("command", { length: 255 }).notNull(),
-                                                          payload: jsonb("payload").default({}),
-                                                            status: varchar("status", { length: 50 }).default("pending"),
-                                                              durationMs: integer("duration_ms"),
-                                                                source: varchar("source", { length: 100 }),
-                                                                  userId: varchar("user_id"),
-                                                                    createdAt: timestamp("created_at").defaultNow(),
-                                                                      completedAt: timestamp("completed_at"),
-                                                                      }, (table) => [
-                                                                        // فهرس للبحث السريع عن الأوامر المعلقة
-                                                                          index("idx_arc_cmd_queue").on(table.status, table.createdAt),
-                                                                          ]);
+// سجل أوامر النظام مع الفهرس
+export const arcCommandLog = pgTable(
+  "arc_command_log",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    command: varchar("command", { length: 255 }).notNull(),
+    payload: jsonb("payload").default({}),
+    status: varchar("status", { length: 50 }).default("pending"),
+    durationMs: integer("duration_ms"),
+    source: varchar("source", { length: 100 }),
+    userId: varchar("user_id"),
+    createdAt: timestamp("created_at").defaultNow(),
+    completedAt: timestamp("completed_at"),
+  },
+  (table) => [
+    // فهرس للبحث السريع عن الأوامر المعلقة
+    index("idx_arc_cmd_queue").on(table.status, table.createdAt),
+  ],
+);
 
-                                                                          // أحداث العملاء (Events) مع الفهرس
-                                                                          export const agentEvents = pgTable("agent_events", {
-                                                                            id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-                                                                              eventId: varchar("event_id").notNull(),
-                                                                                agentId: varchar("agent_id").notNull(),
-                                                                                  type: varchar("type").notNull(), // 'message' | 'report' | 'heartbeat'
-                                                                                    payload: jsonb("payload").default({}),
-                                                                                      createdAt: timestamp("created_at"),
-                                                                                        receivedAt: timestamp("received_at").defaultNow(),
-                                                                                        }, (table) => [
-                                                                                          // الفهرس الأهم لحل مشكلة الـ Full Scans
-                                                                                            index("idx_agent_events_lookup").on(table.agentId, table.receivedAt),
-                                                                                            ]);
+// أحداث العملاء (Events) مع الفهرس
+export const agentEvents = pgTable(
+  "agent_events",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    eventId: varchar("event_id").notNull(),
+    agentId: varchar("agent_id").notNull(),
+    type: varchar("type").notNull(), // 'message' | 'report' | 'heartbeat'
+    payload: jsonb("payload").default({}),
+    createdAt: timestamp("created_at"),
+    receivedAt: timestamp("received_at").defaultNow(),
+  },
+  (table) => [
+    // الفهرس الأهم لحل مشكلة الـ Full Scans
+    index("idx_agent_events_lookup").on(table.agentId, table.receivedAt),
+  ],
+);
 
-                                                                                            // ============================================
-                                                                                            // SECTION 3: IOT & SENSORS (Bio Sentinel)
-                                                                                            // ============================================
+// ============================================
+// SECTION 3: IOT & SENSORS (Bio Sentinel)
+// ============================================
 
-                                                                                            // قراءات الحساسات مع الفهرس
-                                                                                            export const sensorReadings = pgTable("sensor_readings", {
-                                                                                              id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-                                                                                                deviceId: varchar("device_id", { length: 100 }).notNull(),
-                                                                                                  gasResistance: integer("gas_resistance"),
-                                                                                                    temperature: integer("temperature"),
-                                                                                                      humidity: integer("humidity"),
-                                                                                                        pressure: integer("pressure"),
-                                                                                                          iaqScore: integer("iaq_score"),
-                                                                                                            co2Equivalent: integer("co2_equivalent"),
-                                                                                                              vocEquivalent: integer("voc_equivalent"),
-                                                                                                                heaterTemperature: integer("heater_temperature"),
-                                                                                                                  mode: varchar("mode", { length: 50 }),
-                                                                                                                    createdAt: timestamp("created_at").defaultNow(),
-                                                                                                                    }, (table) => [
-                                                                                                                      // فهرس للرسوم البيانية واسترجاع البيانات التاريخية
-                                                                                                                        index("idx_sensor_data").on(table.deviceId, table.createdAt),
-                                                                                                                        ]);
+// قراءات الحساسات مع الفهرس
+export const sensorReadings = pgTable(
+  "sensor_readings",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    deviceId: varchar("device_id", { length: 100 }).notNull(),
+    gasResistance: integer("gas_resistance"),
+    temperature: integer("temperature"),
+    humidity: integer("humidity"),
+    pressure: integer("pressure"),
+    iaqScore: integer("iaq_score"),
+    co2Equivalent: integer("co2_equivalent"),
+    vocEquivalent: integer("voc_equivalent"),
+    heaterTemperature: integer("heater_temperature"),
+    mode: varchar("mode", { length: 50 }),
+    createdAt: timestamp("created_at").defaultNow(),
+  },
+  (table) => [
+    // فهرس للرسوم البيانية واسترجاع البيانات التاريخية
+    index("idx_sensor_data").on(table.deviceId, table.createdAt),
+  ],
+);
 
-                                                                                                                        // بروفايلات الروائح (مجهزة للمستقبل)
-                                                                                                                        export const smellProfiles = pgTable("smell_profiles", {
-                                                                                                                          id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-                                                                                                                            name: varchar("name", { length: 255 }).notNull(),
-                                                                                                                              category: varchar("category", { length: 100 }),
-                                                                                                                                subcategory: varchar("subcategory", { length: 100 }),
-                                                                                                                                  description: text("description"),
-                                                                                                                                    label: varchar("label", { length: 255 }),
-                                                                                                                                      featureVector: jsonb("feature_vector"), // مكان لتخزين الـ Embeddings
-                                                                                                                                        embeddingText: text("embedding_text"),
-                                                                                                                                          createdAt: timestamp("created_at").defaultNow(),
-                                                                                                                                            updatedAt: timestamp("updated_at").defaultNow(),
-                                                                                                                                            });
+// بروفايلات الروائح (مجهزة للمستقبل)
+export const smellProfiles = pgTable("smell_profiles", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  name: varchar("name", { length: 255 }).notNull(),
+  category: varchar("category", { length: 100 }),
+  subcategory: varchar("subcategory", { length: 100 }),
+  description: text("description"),
+  label: varchar("label", { length: 255 }),
+  featureVector: jsonb("feature_vector"), // مكان لتخزين الـ Embeddings
+  embeddingText: text("embedding_text"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
 
-                                                                                                                                            export const smellCaptures = pgTable("smell_captures", {
-                                                                                                                                              id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-                                                                                                                                                deviceId: varchar("device_id", { length: 100 }).notNull(),
-                                                                                                                                                  profileId: varchar("profile_id").references(() => smellProfiles.id),
-                                                                                                                                                    durationMs: integer("duration_ms"),
-                                                                                                                                                      samplesCount: integer("samples_count"),
-                                                                                                                                                        rawData: jsonb("raw_data"),
-                                                                                                                                                          featureVector: jsonb("feature_vector"),
-                                                                                                                                                            status: varchar("status", { length: 50 }).default("pending"),
-                                                                                                                                                              createdAt: timestamp("created_at").defaultNow(),
-                                                                                                                                                              });
+export const smellCaptures = pgTable("smell_captures", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  deviceId: varchar("device_id", { length: 100 }).notNull(),
+  profileId: varchar("profile_id").references(() => smellProfiles.id),
+  durationMs: integer("duration_ms"),
+  samplesCount: integer("samples_count"),
+  rawData: jsonb("raw_data"),
+  featureVector: jsonb("feature_vector"),
+  status: varchar("status", { length: 50 }).default("pending"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
 
-                                                                                                                                                              // 👇👇👇 تابع القسم الثاني في الرد التالي 👇👇👇
-                                                                                                                                                              // 👆👆👆 تابع للقسم الأول 👆👆👆
+// 👇👇👇 تابع القسم الثاني في الرد التالي 👇👇👇
+// 👆👆👆 تابع للقسم الأول 👆👆👆
 
-                                                                                                                                                              // ============================================
-                                                                                                                                                              // SECTION 4: OPERATIONS & WORKFLOWS
-                                                                                                                                                              // ============================================
+// ============================================
+// SECTION 4: OPERATIONS & WORKFLOWS
+// ============================================
 
-                                                                                                                                                              export const teamTasks = pgTable("team_tasks", {
-                                                                                                                                                                id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-                                                                                                                                                                  title: text("title").notNull(),
-                                                                                                                                                                    description: text("description"),
-                                                                                                                                                                      assignedAgent: text("assigned_agent"),
-                                                                                                                                                                        priority: text("priority").default("medium"),
-                                                                                                                                                                          status: text("status").default("pending"),
-                                                                                                                                                                            tags: text("tags").array().default(sql`'{}'`),
-                                                                                                                                                                              dueDate: timestamp("due_date"),
-                                                                                                                                                                                createdAt: timestamp("created_at").defaultNow(),
-                                                                                                                                                                                  updatedAt: timestamp("updated_at").defaultNow(),
-                                                                                                                                                                                  });
+export const teamTasks = pgTable("team_tasks", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  description: text("description"),
+  assignedAgent: text("assigned_agent"),
+  priority: text("priority").default("medium"),
+  status: text("status").default("pending"),
+  tags: text("tags")
+    .array()
+    .default(sql`'{}'`),
+  dueDate: timestamp("due_date"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
 
-                                                                                                                                                                                  export const workflowSimulations = pgTable("workflow_simulations", {
-                                                                                                                                                                                    id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-                                                                                                                                                                                      name: varchar("name", { length: 255 }).notNull(),
-                                                                                                                                                                                        description: text("description"),
-                                                                                                                                                                                          steps: jsonb("steps").default([]),
-                                                                                                                                                                                            status: varchar("status", { length: 50 }).default("draft"),
-                                                                                                                                                                                              lastRunAt: timestamp("last_run_at"),
-                                                                                                                                                                                                lastResult: jsonb("last_result"),
-                                                                                                                                                                                                  createdBy: varchar("created_by"),
-                                                                                                                                                                                                    createdAt: timestamp("created_at").defaultNow(),
-                                                                                                                                                                                                      updatedAt: timestamp("updated_at").defaultNow(),
-                                                                                                                                                                                                      });
+export const workflowSimulations = pgTable("workflow_simulations", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  steps: jsonb("steps").default([]),
+  status: varchar("status", { length: 50 }).default("draft"),
+  lastRunAt: timestamp("last_run_at"),
+  lastResult: jsonb("last_result"),
+  createdBy: varchar("created_by"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
 
-                                                                                                                                                                                                      export const missionScenarios = pgTable("mission_scenarios", {
-                                                                                                                                                                                                        id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-                                                                                                                                                                                                          title: text("title").notNull(),
-                                                                                                                                                                                                            description: text("description"),
-                                                                                                                                                                                                              category: text("category").default("Intelligence"),
-                                                                                                                                                                                                                riskLevel: integer("risk_level").default(50),
-                                                                                                                                                                                                                  objectives: text("objectives").array().default(sql`'{}'`),
-                                                                                                                                                                                                                    assignedAgents: text("assigned_agents").array().default(sql`'{}'`),
-                                                                                                                                                                                                                      status: text("status").default("pending"),
-                                                                                                                                                                                                                        priority: text("priority").default("medium"),
-                                                                                                                                                                                                                          createdAt: timestamp("created_at").defaultNow(),
-                                                                                                                                                                                                                            updatedAt: timestamp("updated_at").defaultNow(),
-                                                                                                                                                                                                                            });
+export const missionScenarios = pgTable("mission_scenarios", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  description: text("description"),
+  category: text("category").default("Intelligence"),
+  riskLevel: integer("risk_level").default(50),
+  objectives: text("objectives")
+    .array()
+    .default(sql`'{}'`),
+  assignedAgents: text("assigned_agents")
+    .array()
+    .default(sql`'{}'`),
+  status: text("status").default("pending"),
+  priority: text("priority").default("medium"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
 
-                                                                                                                                                                                                                            export const activityFeed = pgTable("activity_feed", {
-                                                                                                                                                                                                                              id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-                                                                                                                                                                                                                                type: varchar("type", { length: 50 }).notNull(),
-                                                                                                                                                                                                                                  title: varchar("title", { length: 255 }).notNull(),
-                                                                                                                                                                                                                                    description: text("description"),
-                                                                                                                                                                                                                                      agentId: varchar("agent_id", { length: 50 }),
-                                                                                                                                                                                                                                        metadata: jsonb("metadata").default({}),
-                                                                                                                                                                                                                                          createdAt: timestamp("created_at").defaultNow(),
-                                                                                                                                                                                                                                          });
+export const activityFeed = pgTable("activity_feed", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  type: varchar("type", { length: 50 }).notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description"),
+  agentId: varchar("agent_id", { length: 50 }),
+  metadata: jsonb("metadata").default({}),
+  createdAt: timestamp("created_at").defaultNow(),
+});
 
-                                                                                                                                                                                                                                          // ============================================
-                                                                                                                                                                                                                                          // SECTION 5: MANAGEMENT & ARCHIVES
-                                                                                                                                                                                                                                          // ============================================
+// ============================================
+// SECTION 5: MANAGEMENT & ARCHIVES
+// ============================================
 
-                                                                                                                                                                                                                                          export const ceoReminders = pgTable("ceo_reminders", {
-                                                                                                                                                                                                                                            id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-                                                                                                                                                                                                                                              date: varchar("date").notNull(),
-                                                                                                                                                                                                                                                missingCeos: text("missing_ceos").array(),
-                                                                                                                                                                                                                                                  receivedAt: timestamp("received_at").defaultNow(),
-                                                                                                                                                                                                                                                  });
+export const ceoReminders = pgTable("ceo_reminders", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  date: varchar("date").notNull(),
+  missingCeos: text("missing_ceos").array(),
+  receivedAt: timestamp("received_at").defaultNow(),
+});
 
-                                                                                                                                                                                                                                                  export const executiveSummaries = pgTable("executive_summaries", {
-                                                                                                                                                                                                                                                    id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-                                                                                                                                                                                                                                                      date: varchar("date").notNull(),
-                                                                                                                                                                                                                                                        summaryText: text("summary_text").notNull(),
-                                                                                                                                                                                                                                                          profitScore: integer("profit_score"),
-                                                                                                                                                                                                                                                            riskScore: integer("risk_score"),
-                                                                                                                                                                                                                                                              topDecisions: text("top_decisions").array(),
-                                                                                                                                                                                                                                                                generatedAt: timestamp("generated_at").defaultNow(),
-                                                                                                                                                                                                                                                                });
+export const executiveSummaries = pgTable("executive_summaries", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  date: varchar("date").notNull(),
+  summaryText: text("summary_text").notNull(),
+  profitScore: integer("profit_score"),
+  riskScore: integer("risk_score"),
+  topDecisions: text("top_decisions").array(),
+  generatedAt: timestamp("generated_at").defaultNow(),
+});
 
-                                                                                                                                                                                                                                                                export const arcArchives = pgTable("arc_archives", {
-                                                                                                                                                                                                                                                                  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-                                                                                                                                                                                                                                                                    archiveName: varchar("archive_name", { length: 255 }).notNull(),
-                                                                                                                                                                                                                                                                      archiveType: varchar("archive_type", { length: 50 }).notNull(),
-                                                                                                                                                                                                                                                                        filePath: text("file_path").notNull(),
-                                                                                                                                                                                                                                                                          fileSizeBytes: integer("file_size_bytes").notNull(),
-                                                                                                                                                                                                                                                                            accessLevel: varchar("access_level", { length: 50 }).default("internal"),
-                                                                                                                                                                                                                                                                              metadata: jsonb("metadata").default({}),
-                                                                                                                                                                                                                                                                                createdAt: timestamp("created_at").defaultNow(),
-                                                                                                                                                                                                                                                                                  expiresAt: timestamp("expires_at"),
-                                                                                                                                                                                                                                                                                  });
+export const arcArchives = pgTable("arc_archives", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  archiveName: varchar("archive_name", { length: 255 }).notNull(),
+  archiveType: varchar("archive_type", { length: 50 }).notNull(),
+  filePath: text("file_path").notNull(),
+  fileSizeBytes: integer("file_size_bytes").notNull(),
+  accessLevel: varchar("access_level", { length: 50 }).default("internal"),
+  metadata: jsonb("metadata").default({}),
+  createdAt: timestamp("created_at").defaultNow(),
+  expiresAt: timestamp("expires_at"),
+});
 
-                                                                                                                                                                                                                                                                                  // ============================================
-                                                                                                                                                                                                                                                                                  // SECTION 6: LEGACY / EXTRA TABLES (Part A)
-                                                                                                                                                                                                                                                                                  // ============================================
+// ============================================
+// SECTION 6: LEGACY / EXTRA TABLES (Part A)
+// ============================================
 
-                                                                                                                                                                                                                                                                                  export const governanceNotifications = pgTable("governance_notifications", {
-                                                                                                                                                                                                                                                                                    id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-                                                                                                                                                                                                                                                                                      ruleId: varchar("rule_id").notNull(),
-                                                                                                                                                                                                                                                                                        status: varchar("status").notNull(),
-                                                                                                                                                                                                                                                                                          title: varchar("title").notNull(),
-                                                                                                                                                                                                                                                                                            summary: text("summary"),
-                                                                                                                                                                                                                                                                                              proposerAgentId: varchar("proposer_agent_id"),
-                                                                                                                                                                                                                                                                                                receivedAt: timestamp("received_at").defaultNow(),
-                                                                                                                                                                                                                                                                                                });
+export const governanceNotifications = pgTable("governance_notifications", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  ruleId: varchar("rule_id").notNull(),
+  status: varchar("status").notNull(),
+  title: varchar("title").notNull(),
+  summary: text("summary"),
+  proposerAgentId: varchar("proposer_agent_id"),
+  receivedAt: timestamp("received_at").defaultNow(),
+});
 
-                                                                                                                                                                                                                                                                                                export const ruleBroadcasts = pgTable("rule_broadcasts", {
-                                                                                                                                                                                                                                                                                                  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-                                                                                                                                                                                                                                                                                                    ruleId: varchar("rule_id").notNull(),
-                                                                                                                                                                                                                                                                                                      effectiveAt: timestamp("effective_at"),
-                                                                                                                                                                                                                                                                                                        status: varchar("status").notNull(),
-                                                                                                                                                                                                                                                                                                          title: varchar("title").notNull(),
-                                                                                                                                                                                                                                                                                                            broadcastAt: timestamp("broadcast_at").defaultNow(),
-                                                                                                                                                                                                                                                                                                            });
+export const ruleBroadcasts = pgTable("rule_broadcasts", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  ruleId: varchar("rule_id").notNull(),
+  effectiveAt: timestamp("effective_at"),
+  status: varchar("status").notNull(),
+  title: varchar("title").notNull(),
+  broadcastAt: timestamp("broadcast_at").defaultNow(),
+});
 
-                                                                                                                                                                                                                                                                                                            export const highPriorityNotifications = pgTable("high_priority_notifications", {
-                                                                                                                                                                                                                                                                                                              id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-                                                                                                                                                                                                                                                                                                                sourceAgentId: varchar("source_agent_id").notNull(),
-                                                                                                                                                                                                                                                                                                                  severity: varchar("severity").notNull(),
-                                                                                                                                                                                                                                                                                                                    title: varchar("title").notNull(),
-                                                                                                                                                                                                                                                                                                                      body: text("body"),
-                                                                                                                                                                                                                                                                                                                        context: jsonb("context").default({}),
-                                                                                                                                                                                                                                                                                                                          receivedAt: timestamp("received_at").defaultNow(),
-                                                                                                                                                                                                                                                                                                                          });
+export const highPriorityNotifications = pgTable(
+  "high_priority_notifications",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    sourceAgentId: varchar("source_agent_id").notNull(),
+    severity: varchar("severity").notNull(),
+    title: varchar("title").notNull(),
+    body: text("body"),
+    context: jsonb("context").default({}),
+    receivedAt: timestamp("received_at").defaultNow(),
+  },
+);
 
-                                                                                                                                                                                                                                                                                                                          export const arcFeedback = pgTable("arc_feedback", {
-                                                                                                                                                                                                                                                                                                                            id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-                                                                                                                                                                                                                                                                                                                              commandId: varchar("command_id"),
-                                                                                                                                                                                                                                                                                                                                source: varchar("source", { length: 100 }),
-                                                                                                                                                                                                                                                                                                                                  status: varchar("status", { length: 50 }),
-                                                                                                                                                                                                                                                                                                                                    data: jsonb("data").default({}),
-                                                                                                                                                                                                                                                                                                                                      createdAt: timestamp("created_at").defaultNow(),
-                                                                                                                                                                                                                                                                                                                                      });
+export const arcFeedback = pgTable("arc_feedback", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  commandId: varchar("command_id"),
+  source: varchar("source", { length: 100 }),
+  status: varchar("status", { length: 50 }),
+  data: jsonb("data").default({}),
+  createdAt: timestamp("created_at").defaultNow(),
+});
 
-                                                                                                                                                                                                                                                                                                                                      // 👇👇👇 تابع القسم 2-ب في الرد التالي 👇👇👇
-                                                                                                                                                                                                                                                                                                                                      // 👆👆👆 تابع للقسم 2-أ 👆👆👆
+// 👇👇👇 تابع القسم 2-ب في الرد التالي 👇👇👇
+// 👆👆👆 تابع للقسم 2-أ 👆👆👆
 
-                                                                                                                                                                                                                                                                                                                                      // ============================================
-                                                                                                                                                                                                                                                                                                                                      // SECTION 6: LEGACY / EXTRA TABLES (Part B)
-                                                                                                                                                                                                                                                                                                                                      // ============================================
+// ============================================
+// SECTION 6: LEGACY / EXTRA TABLES (Part B)
+// ============================================
 
-                                                                                                                                                                                                                                                                                                                                      export const agentTasks = pgTable("agent_tasks", {
-                                                                                                                                                                                                                                                                                                                                        id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-                                                                                                                                                                                                                                                                                                                                          agentId: varchar("agent_id", { length: 100 }).notNull(),
-                                                                                                                                                                                                                                                                                                                                            taskType: varchar("task_type", { length: 50 }).notNull(),
-                                                                                                                                                                                                                                                                                                                                              title: text("title").notNull(),
-                                                                                                                                                                                                                                                                                                                                                status: varchar("status", { length: 50 }).default("pending"),
-                                                                                                                                                                                                                                                                                                                                                  createdAt: timestamp("created_at").defaultNow(),
-                                                                                                                                                                                                                                                                                                                                                    input: jsonb("input").default({}),
-                                                                                                                                                                                                                                                                                                                                                      output: jsonb("output").default({}),
-                                                                                                                                                                                                                                                                                                                                                      });
+export const agentTasks = pgTable("agent_tasks", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  agentId: varchar("agent_id", { length: 100 }).notNull(),
+  taskType: varchar("task_type", { length: 50 }).notNull(),
+  title: text("title").notNull(),
+  status: varchar("status", { length: 50 }).default("pending"),
+  createdAt: timestamp("created_at").defaultNow(),
+  input: jsonb("input").default({}),
+  output: jsonb("output").default({}),
+});
 
-                                                                                                                                                                                                                                                                                                                                                      export const agentLearning = pgTable("agent_learning", {
-                                                                                                                                                                                                                                                                                                                                                        id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-                                                                                                                                                                                                                                                                                                                                                          agentId: varchar("agent_id", { length: 100 }).notNull(),
-                                                                                                                                                                                                                                                                                                                                                            learningType: varchar("learning_type", { length: 50 }).notNull(),
-                                                                                                                                                                                                                                                                                                                                                              inputData: jsonb("input_data").default({}),
-                                                                                                                                                                                                                                                                                                                                                                analysis: jsonb("analysis").default({}),
-                                                                                                                                                                                                                                                                                                                                                                  createdAt: timestamp("created_at").defaultNow(),
-                                                                                                                                                                                                                                                                                                                                                                  });
+export const agentLearning = pgTable("agent_learning", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  agentId: varchar("agent_id", { length: 100 }).notNull(),
+  learningType: varchar("learning_type", { length: 50 }).notNull(),
+  inputData: jsonb("input_data").default({}),
+  analysis: jsonb("analysis").default({}),
+  createdAt: timestamp("created_at").defaultNow(),
+});
 
-                                                                                                                                                                                                                                                                                                                                                                  export const agentPerformance = pgTable("agent_performance", {
-                                                                                                                                                                                                                                                                                                                                                                    id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-                                                                                                                                                                                                                                                                                                                                                                      agentId: varchar("agent_id", { length: 100 }).notNull(),
-                                                                                                                                                                                                                                                                                                                                                                        metricType: varchar("metric_type", { length: 50 }).notNull(),
-                                                                                                                                                                                                                                                                                                                                                                          value: numeric("value").notNull(),
-                                                                                                                                                                                                                                                                                                                                                                            recordedAt: timestamp("recorded_at").defaultNow(),
-                                                                                                                                                                                                                                                                                                                                                                            });
+export const agentPerformance = pgTable("agent_performance", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  agentId: varchar("agent_id", { length: 100 }).notNull(),
+  metricType: varchar("metric_type", { length: 50 }).notNull(),
+  value: numeric("value").notNull(),
+  recordedAt: timestamp("recorded_at").defaultNow(),
+});
 
-                                                                                                                                                                                                                                                                                                                                                                            export const integrationLogs = pgTable("integration_logs", {
-                                                                                                                                                                                                                                                                                                                                                                              id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-                                                                                                                                                                                                                                                                                                                                                                                integrationName: varchar("integration_name", { length: 100 }).notNull(),
-                                                                                                                                                                                                                                                                                                                                                                                  eventType: varchar("event_type", { length: 50 }).notNull(),
-                                                                                                                                                                                                                                                                                                                                                                                    direction: varchar("direction", { length: 20 }).notNull(),
-                                                                                                                                                                                                                                                                                                                                                                                      createdAt: timestamp("created_at").defaultNow(),
-                                                                                                                                                                                                                                                                                                                                                                                      });
+export const integrationLogs = pgTable("integration_logs", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  integrationName: varchar("integration_name", { length: 100 }).notNull(),
+  eventType: varchar("event_type", { length: 50 }).notNull(),
+  direction: varchar("direction", { length: 20 }).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
 
-                                                                                                                                                                                                                                                                                                                                                                                      export const intentLog = pgTable("intent_log", {
-                                                                                                                                                                                                                                                                                                                                                                                        id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-                                                                                                                                                                                                                                                                                                                                                                                          createdAt: timestamp("created_at").defaultNow(),
-                                                                                                                                                                                                                                                                                                                                                                                            actorType: varchar("actor_type", { length: 50 }).notNull(),
-                                                                                                                                                                                                                                                                                                                                                                                              intentType: varchar("intent_type", { length: 100 }).notNull(),
-                                                                                                                                                                                                                                                                                                                                                                                                intentText: text("intent_text").notNull(),
-                                                                                                                                                                                                                                                                                                                                                                                                  context: jsonb("context"),
-                                                                                                                                                                                                                                                                                                                                                                                                  });
+export const intentLog = pgTable("intent_log", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  createdAt: timestamp("created_at").defaultNow(),
+  actorType: varchar("actor_type", { length: 50 }).notNull(),
+  intentType: varchar("intent_type", { length: 100 }).notNull(),
+  intentText: text("intent_text").notNull(),
+  context: jsonb("context"),
+});
 
-                                                                                                                                                                                                                                                                                                                                                                                                  export const actionLog = pgTable("action_log", {
-                                                                                                                                                                                                                                                                                                                                                                                                    id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-                                                                                                                                                                                                                                                                                                                                                                                                      createdAt: timestamp("created_at").defaultNow(),
-                                                                                                                                                                                                                                                                                                                                                                                                        intentId: varchar("intent_id").references(() => intentLog.id),
-                                                                                                                                                                                                                                                                                                                                                                                                          actionType: varchar("action_type", { length: 100 }).notNull(),
-                                                                                                                                                                                                                                                                                                                                                                                                            status: varchar("status", { length: 50 }).default("queued"),
-                                                                                                                                                                                                                                                                                                                                                                                                            });
+export const actionLog = pgTable("action_log", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  createdAt: timestamp("created_at").defaultNow(),
+  intentId: varchar("intent_id").references(() => intentLog.id),
+  actionType: varchar("action_type", { length: 100 }).notNull(),
+  status: varchar("status", { length: 50 }).default("queued"),
+});
 
-                                                                                                                                                                                                                                                                                                                                                                                                            export const resultLog = pgTable("result_log", {
-                                                                                                                                                                                                                                                                                                                                                                                                              id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-                                                                                                                                                                                                                                                                                                                                                                                                                createdAt: timestamp("created_at").defaultNow(),
-                                                                                                                                                                                                                                                                                                                                                                                                                  actionId: varchar("action_id").references(() => actionLog.id),
-                                                                                                                                                                                                                                                                                                                                                                                                                    output: jsonb("output"),
-                                                                                                                                                                                                                                                                                                                                                                                                                    });
+export const resultLog = pgTable("result_log", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  createdAt: timestamp("created_at").defaultNow(),
+  actionId: varchar("action_id").references(() => actionLog.id),
+  output: jsonb("output"),
+});
 
-                                                                                                                                                                                                                                                                                                                                                                                                                    export const impactLog = pgTable("impact_log", {
-                                                                                                                                                                                                                                                                                                                                                                                                                      id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-                                                                                                                                                                                                                                                                                                                                                                                                                        createdAt: timestamp("created_at").defaultNow(),
-                                                                                                                                                                                                                                                                                                                                                                                                                          intentId: varchar("intent_id").references(() => intentLog.id),
-                                                                                                                                                                                                                                                                                                                                                                                                                            impactType: varchar("impact_type", { length: 100 }).notNull(),
-                                                                                                                                                                                                                                                                                                                                                                                                                              impact: jsonb("impact"),
-                                                                                                                                                                                                                                                                                                                                                                                                                              });
+export const impactLog = pgTable("impact_log", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  createdAt: timestamp("created_at").defaultNow(),
+  intentId: varchar("intent_id").references(() => intentLog.id),
+  impactType: varchar("impact_type", { length: 100 }).notNull(),
+  impact: jsonb("impact"),
+});
 
-                                                                                                                                                                                                                                                                                                                                                                                                                              export const reflections = pgTable("reflections", {
-                                                                                                                                                                                                                                                                                                                                                                                                                                id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-                                                                                                                                                                                                                                                                                                                                                                                                                                  createdAt: timestamp("created_at").defaultNow(),
-                                                                                                                                                                                                                                                                                                                                                                                                                                    stats: jsonb("stats"),
-                                                                                                                                                                                                                                                                                                                                                                                                                                      topErrors: jsonb("top_errors"),
-                                                                                                                                                                                                                                                                                                                                                                                                                                      });
+export const reflections = pgTable("reflections", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  createdAt: timestamp("created_at").defaultNow(),
+  stats: jsonb("stats"),
+  topErrors: jsonb("top_errors"),
+});
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                      export const arcAccessControl = pgTable("arc_access_control", {
-                                                                                                                                                                                                                                                                                                                                                                                                                                        id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-                                                                                                                                                                                                                                                                                                                                                                                                                                          agentId: varchar("agent_id", { length: 100 }).notNull(),
-                                                                                                                                                                                                                                                                                                                                                                                                                                            resourceType: varchar("resource_type", { length: 50 }).notNull(),
-                                                                                                                                                                                                                                                                                                                                                                                                                                              resourceId: varchar("resource_id", { length: 100 }).notNull(),
-                                                                                                                                                                                                                                                                                                                                                                                                                                                permissions: text("permissions").array().notNull(),
-                                                                                                                                                                                                                                                                                                                                                                                                                                                  grantedAt: timestamp("granted_at").defaultNow(),
-                                                                                                                                                                                                                                                                                                                                                                                                                                                  });
+export const arcAccessControl = pgTable("arc_access_control", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  agentId: varchar("agent_id", { length: 100 }).notNull(),
+  resourceType: varchar("resource_type", { length: 50 }).notNull(),
+  resourceId: varchar("resource_id", { length: 100 }).notNull(),
+  permissions: text("permissions").array().notNull(),
+  grantedAt: timestamp("granted_at").defaultNow(),
+});
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                  export const archiveEncryptionKeys = pgTable("archive_encryption_keys", {
-                                                                                                                                                                                                                                                                                                                                                                                                                                                    id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-                                                                                                                                                                                                                                                                                                                                                                                                                                                      keyId: varchar("key_id", { length: 50 }).notNull().unique(),
-                                                                                                                                                                                                                                                                                                                                                                                                                                                        encryptedKey: text("encrypted_key").notNull(),
-                                                                                                                                                                                                                                                                                                                                                                                                                                                          algorithm: varchar("algorithm", { length: 50 }).notNull(),
-                                                                                                                                                                                                                                                                                                                                                                                                                                                            createdAt: timestamp("created_at").defaultNow(),
-                                                                                                                                                                                                                                                                                                                                                                                                                                                            });
+export const archiveEncryptionKeys = pgTable("archive_encryption_keys", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  keyId: varchar("key_id", { length: 50 }).notNull().unique(),
+  encryptedKey: text("encrypted_key").notNull(),
+  algorithm: varchar("algorithm", { length: 50 }).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                            // ============================================
-                                                                                                                                                                                                                                                                                                                                                                                                                                                            // SHARED TYPES & ZOD SCHEMAS
-                                                                                                                                                                                                                                                                                                                                                                                                                                                            // ============================================
+// ============================================
+// SHARED TYPES & ZOD SCHEMAS
+// ============================================
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                            export type User = typeof users.$inferSelect;
-                                                                                                                                                                                                                                                                                                                                                                                                                                                            export type UpsertUser = typeof users.$inferInsert;
-                                                                                                                                                                                                                                                                                                                                                                                                                                                            export type Conversation = typeof conversations.$inferSelect;
-                                                                                                                                                                                                                                                                                                                                                                                                                                                            export type ChatMessage = typeof chatMessages.$inferSelect;
-                                                                                                                                                                                                                                                                                                                                                                                                                                                            export type AgentEvent = typeof agentEvents.$inferSelect;
-                                                                                                                                                                                                                                                                                                                                                                                                                                                            export type SensorReading = typeof sensorReadings.$inferSelect;
-                                                                                                                                                                                                                                                                                                                                                                                                                                                            export type SmellProfile = typeof smellProfiles.$inferSelect;
-                                                                                                                                                                                                                                                                                                                                                                                                                                                            export type TeamTask = typeof teamTasks.$inferSelect;
-                                                                                                                                                                                                                                                                                                                                                                                                                                                            export type InsertTeamTask = typeof teamTasks.$inferInsert;
-                                                                                                                                                                                                                                                                                                                                                                                                                                                            export type InsertSensorReading = typeof sensorReadings.$inferInsert;
-                                                                                                                                                                                                                                                                                                                                                                                                                                                            export type InsertAgentEvent = typeof agentEvents.$inferInsert;
-                                                                                                                                                                                                                                                                                                                                                                                                                                                            export type InsertChatMessage = typeof chatMessages.$inferInsert;
-                                                                                                                                                                                                                                                                                                                                                                                                                                                            export type InsertConversation = typeof conversations.$inferInsert;
-                                                                                                                                                                                                                                                                                                                                                                                                                                                            export type InsertArcCommandLog = typeof arcCommandLog.$inferInsert;
+export type User = typeof users.$inferSelect;
+export type UpsertUser = typeof users.$inferInsert;
+export type Conversation = typeof conversations.$inferSelect;
+export type ChatMessage = typeof chatMessages.$inferSelect;
+export type AgentEvent = typeof agentEvents.$inferSelect;
+export type SensorReading = typeof sensorReadings.$inferSelect;
+export type SmellProfile = typeof smellProfiles.$inferSelect;
+export type TeamTask = typeof teamTasks.$inferSelect;
+export type InsertTeamTask = typeof teamTasks.$inferInsert;
+export type InsertSensorReading = typeof sensorReadings.$inferInsert;
+export type InsertAgentEvent = typeof agentEvents.$inferInsert;
+export type InsertChatMessage = typeof chatMessages.$inferInsert;
+export type InsertConversation = typeof conversations.$inferInsert;
+export type InsertArcCommandLog = typeof arcCommandLog.$inferInsert;
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                            // Agent Definitions
-                                                                                                                                                                                                                                                                                                                                                                                                                                                            export const agentTypeSchema = z.enum([
-                                                                                                                                                                                                                                                                                                                                                                                                                                                              "mrf", "l0-ops", "l0-comms", "l0-intel",
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                "photographer", "grants", "legal", "finance", "creative", "researcher"
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                ]);
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                export type AgentType = z.infer<typeof agentTypeSchema>;
+// Agent Definitions
+export const agentTypeSchema = z.enum([
+  "mrf",
+  "l0-ops",
+  "l0-comms",
+  "l0-intel",
+  "photographer",
+  "grants",
+  "legal",
+  "finance",
+  "creative",
+  "researcher",
+]);
+export type AgentType = z.infer<typeof agentTypeSchema>;
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                export interface VirtualAgent {
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                  id: AgentType;
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                    name: string;
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                      role: string;
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                        specialty: string;
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                          avatar: string;
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                            systemPrompt: string;
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                            }
+export interface VirtualAgent {
+  id: AgentType;
+  name: string;
+  role: string;
+  specialty: string;
+  avatar: string;
+  systemPrompt: string;
+}
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                            export const VIRTUAL_AGENTS: VirtualAgent[] = [
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                              {
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  id: "mrf",
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      name: "Mr.F",
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          role: "Executive Orchestrator",
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              specialty: "Strategic oversight, cross-agent coordination, executive decisions",
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  avatar: "crown",
+export const VIRTUAL_AGENTS: VirtualAgent[] = [
+  {
+    id: "mrf",
+    name: "Mr.F",
+    role: "Executive Orchestrator",
+    specialty:
+      "Strategic oversight, cross-agent coordination, executive decisions",
+    avatar: "crown",
     systemPrompt: `You are Mr.F, the Executive Orchestrator of the ARC Virtual Office.
     YOUR MISSION: oversee all operations, coordinate between agents (L0-Ops, L0-Intel, etc.), and ensure the user's strategic goals are met.
     PERSONALITY: Authoritative yet supportive, highly strategic, decisive, and forward-thinking.
     CAPABILITIES: You have access to all system logs, agent reports, and the Bio-Sentinel stream.
-    COMMANDS: You can issue commands to other agents using the @AgentName syntax.`
+    COMMANDS: You can issue commands to other agents using the @AgentName syntax.`,
   },
   {
     id: "l0-ops",
@@ -419,7 +529,7 @@ export const users = pgTable("users", {
     systemPrompt: `You are L0-Ops, the Level-0 Operations Commander.
     YOUR MISSION: Execute daily tasks, manage system workflows, and ensure operational efficiency.
     PERSONALITY: Robotic, precise, efficiency-obsessed, and detail-oriented.
-    CAPABILITIES: You track tasks in the 'team_tasks' table and monitor system health.`
+    CAPABILITIES: You track tasks in the 'team_tasks' table and monitor system health.`,
   },
   {
     id: "l0-comms",
@@ -429,7 +539,7 @@ export const users = pgTable("users", {
     avatar: "radio",
     systemPrompt: `You are L0-Comms, the Communications Director.
     YOUR MISSION: Handle all internal and external messaging, draft announcements, and summarize meetings.
-    PERSONALITY: Articulate, diplomatic, and clear.`
+    PERSONALITY: Articulate, diplomatic, and clear.`,
   },
   {
     id: "l0-intel",
@@ -439,7 +549,7 @@ export const users = pgTable("users", {
     avatar: "brain",
     systemPrompt: `You are L0-Intel, the Intelligence Analyst.
     YOUR MISSION: Analyze data streams, research topics, and provide actionable intelligence reports.
-    PERSONALITY: Analytical, observant, and fact-focused.`
+    PERSONALITY: Analytical, observant, and fact-focused.`,
   },
   {
     id: "photographer",
@@ -447,7 +557,8 @@ export const users = pgTable("users", {
     role: "Photography Specialist",
     specialty: "Visual content, photography techniques, image analysis",
     avatar: "camera",
-    systemPrompt: "You are Alex Vision. You specialize in photography, visual composition, and image editing advice."
+    systemPrompt:
+      "You are Alex Vision. You specialize in photography, visual composition, and image editing advice.",
   },
   {
     id: "grants",
@@ -455,7 +566,8 @@ export const users = pgTable("users", {
     role: "Grants Specialist",
     specialty: "Grant writing, funding opportunities, proposal structuring",
     avatar: "file-text",
-    systemPrompt: "You are Diana Grant. You specialize in finding funding opportunities and writing winning grant proposals."
+    systemPrompt:
+      "You are Diana Grant. You specialize in finding funding opportunities and writing winning grant proposals.",
   },
   {
     id: "legal",
@@ -463,7 +575,8 @@ export const users = pgTable("users", {
     role: "Legal Advisor",
     specialty: "Contracts, intellectual property, compliance",
     avatar: "scale",
-    systemPrompt: "You are Marcus Law. You provide general legal guidance regarding contracts and IP. Disclaimer: You are an AI, not a lawyer."
+    systemPrompt:
+      "You are Marcus Law. You provide general legal guidance regarding contracts and IP. Disclaimer: You are an AI, not a lawyer.",
   },
   {
     id: "finance",
@@ -471,7 +584,8 @@ export const users = pgTable("users", {
     role: "Financial Analyst",
     specialty: "Budgeting, financial planning, investment analysis",
     avatar: "trending-up",
-    systemPrompt: "You are Sarah Numbers. You focus on financial health, budgeting, and profit maximization strategies."
+    systemPrompt:
+      "You are Sarah Numbers. You focus on financial health, budgeting, and profit maximization strategies.",
   },
   {
     id: "creative",
@@ -479,7 +593,8 @@ export const users = pgTable("users", {
     role: "Creative Director",
     specialty: "Branding, design concepts, marketing strategy",
     avatar: "palette",
-    systemPrompt: "You are Jordan Spark. You generate creative ideas for branding, marketing campaigns, and design."
+    systemPrompt:
+      "You are Jordan Spark. You generate creative ideas for branding, marketing campaigns, and design.",
   },
   {
     id: "researcher",
@@ -487,8 +602,9 @@ export const users = pgTable("users", {
     role: "Research Analyst",
     specialty: "Deep dive research, academic analysis, fact-checking",
     avatar: "search",
-    systemPrompt: "You are Dr. Maya Quest. You conduct deep research, verify facts, and synthesize complex information."
-  }
+    systemPrompt:
+      "You are Dr. Maya Quest. You conduct deep research, verify facts, and synthesize complex information.",
+  },
 ];
 
 // Smell Categories for Bio Sentinel
@@ -540,20 +656,6 @@ export interface WsCalibrationComplete {
   timestamp: number;
 }
 
-export interface SmellProfile {
-  id: string;
-  name: string;
-  category: keyof typeof SMELL_CATEGORIES;
-  description?: string;
-  createdAt: number;
-  readings: Array<{
-    gasResistance: number;
-    temperature: number;
-    humidity: number;
-    timestamp: number;
-  }>;
-}
-
 // Zod Schemas for API
 export const chatRequestSchema = z.object({
   message: z.string().min(1),
@@ -562,25 +664,30 @@ export const chatRequestSchema = z.object({
 });
 
 export const sensorReadingSchema = z.object({
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              deviceId: z.string(),
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                gasResistance: z.number(),
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  temperature: z.number(),
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    humidity: z.number(),
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      pressure: z.number().optional(),
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        iaqScore: z.number().optional(),
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          co2Equivalent: z.number().optional(),
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            vocEquivalent: z.number().optional(),
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              heaterTemperature: z.number().optional(),
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                mode: z.string().optional(),
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                });
+  deviceId: z.string(),
+  gasResistance: z.number(),
+  temperature: z.number(),
+  humidity: z.number(),
+  pressure: z.number().optional(),
+  iaqScore: z.number().optional(),
+  co2Equivalent: z.number().optional(),
+  vocEquivalent: z.number().optional(),
+  heaterTemperature: z.number().optional(),
+  mode: z.string().optional(),
+});
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                export const agentTaskSchema = z.object({
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  agentId: z.string(),
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    taskType: z.enum(["analysis", "research", "communication", "monitoring", "execution"]),
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      title: z.string(),
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        description: z.string().optional(),
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          priority: z.enum(["low", "medium", "high", "critical"]).optional(),
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            input: z.record(z.unknown()).optional(),
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              dueDate: z.string().datetime().optional(),
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              });
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              
+export const agentTaskSchema = z.object({
+  agentId: z.string(),
+  taskType: z.enum([
+    "analysis",
+    "research",
+    "communication",
+    "monitoring",
+    "execution",
+  ]),
+  title: z.string(),
+  description: z.string().optional(),
+  priority: z.enum(["low", "medium", "high", "critical"]).optional(),
+  input: z.record(z.unknown()).optional(),
+  dueDate: z.string().datetime().optional(),
+});
