@@ -101,18 +101,41 @@ interface DailyCheckIn {
   notes: string;
 }
 
+interface GrowthOverview {
+  phases: GrowthPhase[];
+  weeks: any[];
+  stats: {
+    totalTasks: number;
+    completedTasks: number;
+    inProgressTasks: number;
+    blockedTasks: number;
+    totalHours: number;
+    totalCost: number;
+  };
+  currentScore: number;
+  targetScore: number;
+}
+
+interface TodayData {
+  currentDay: number;
+  todaysTasks: GrowthTask[];
+  inProgressTasks: GrowthTask[];
+  weekNumber: number;
+  phaseName: string;
+}
+
 export default function GrowthRoadmap() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("overview");
 
   // Fetch overview data
-  const { data: overview } = useQuery({
+  const { data: overview } = useQuery<GrowthOverview>({
     queryKey: ["/api/growth-roadmap/overview"],
   });
 
   // Fetch today's tasks
-  const { data: todayData } = useQuery({
+  const { data: todayData } = useQuery<TodayData>({
     queryKey: ["/api/growth-roadmap/today"],
   });
 
@@ -475,7 +498,7 @@ export default function GrowthRoadmap() {
                 ))}
 
                 {/* In Progress Tasks */}
-                {todayData?.inProgressTasks?.length > 0 && (
+                {todayData?.inProgressTasks && todayData.inProgressTasks.length > 0 && (
                   <>
                     <div className="pt-4 border-t border-gray-700">
                       <h3 className="font-bold mb-3 flex items-center gap-2">
