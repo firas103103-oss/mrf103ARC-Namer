@@ -45,7 +45,6 @@ export default function SelfCheck() {
 
       setLoading(false);
     } catch (err) {
-      console.error("Error loading Supabase data:", err);
       setHealthScore(50);
       setLoading(false);
     }

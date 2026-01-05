@@ -28,7 +28,6 @@ export function OperatorLogin() {
         variant: "default",
       });
 
-      console.log("Login success, redirecting to /virtual-office");
       setLocation("/virtual-office");
 
     } catch (error) {
@@ -37,7 +36,6 @@ export function OperatorLogin() {
         description: "Invalid operator credentials.",
         variant: "destructive",
       });
-      console.error("Login failed:", error);
     } finally {
       setIsLoading(false);
     }

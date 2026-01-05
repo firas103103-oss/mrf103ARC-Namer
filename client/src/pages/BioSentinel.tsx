@@ -185,7 +185,7 @@ export default function BioSentinel() {
           const data = JSON.parse(event.data);
           handleWebSocketMessage(data);
         } catch (e) {
-          console.error("Failed to parse WebSocket message:", e);
+          // Invalid WebSocket message format - ignore
         }
       };
 
@@ -202,12 +202,10 @@ export default function BioSentinel() {
         const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000);
         setReconnectAttempts((prev) => prev + 1);
         
-        console.log(`[Bio Sentinel] Connection closed (code: ${event.code}). Reconnecting in ${delay}ms...`);
         reconnectTimeoutRef.current = setTimeout(connectWebSocket, delay);
       };
 
       ws.onerror = (error) => {
-        console.error("[Bio Sentinel] WebSocket error:", error);
         setConnectionState("error");
         setDeviceStatus((prev) => ({ ...prev, connectionState: "error" }));
         ws.close();
@@ -215,7 +213,6 @@ export default function BioSentinel() {
 
       wsRef.current = ws;
     } catch (e) {
-      console.error("WebSocket connection failed:", e);
       setConnectionState("error");
       setDeviceStatus((prev) => ({ ...prev, connectionState: "error" }));
       
@@ -308,7 +305,6 @@ export default function BioSentinel() {
         break;
 
       case "command_ack":
-        console.log(`[Bio Sentinel] Command ${data.payload.command} ${data.payload.status}`);
         if (data.payload.status === "failed") {
           toast({
             title: "Command Failed",

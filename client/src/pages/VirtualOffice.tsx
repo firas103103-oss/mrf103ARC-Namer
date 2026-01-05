@@ -34,7 +34,7 @@ export default function VirtualOffice() {
         audio.play();
       }
     } catch (e) {
-      console.error(e);
+      // Voice playback failed - silently ignore
     } finally {
       setLoading(null);
     }

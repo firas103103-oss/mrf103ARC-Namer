@@ -28,7 +28,6 @@ export default function ARCVoiceSelector() {
       setVoices(data.voices || []);
       setLoading(false);
     } catch (err) {
-      console.error("Failed to fetch voices:", err);
       setLoading(false);
     }
   };
