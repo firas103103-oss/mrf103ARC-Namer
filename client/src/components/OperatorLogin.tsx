@@ -29,8 +29,8 @@ export default function OperatorLogin() {
 
     try {
       await login(password);
-      await checkMe();
-      setStatus("ok");
+      // Force a full page reload to refresh authentication state
+      window.location.reload();
     } catch (err: any) {
       setStatus("error");
       setError(err?.message || "Login failed");
