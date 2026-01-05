@@ -799,6 +799,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const { masterAgentRouter } = await import("./routes/master-agent");
   app.use("/api/master-agent", operatorLimiter, requireOperatorSession, masterAgentRouter);
 
+  // Import and mount growth-roadmap routes
+  const growthRoadmapRouter = (await import("./routes/growth-roadmap")).default;
+  app.use("/api/growth-roadmap", operatorLimiter, requireOperatorSession, growthRoadmapRouter);
+
   // 25. GET /api/agents/profiles - Get all agent profiles
   app.get("/api/agents/profiles", operatorLimiter, requireOperatorSession, (_req: any, res) => {
     const profiles = Object.values(AGENT_PROFILES).map(p => ({

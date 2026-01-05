@@ -66,7 +66,7 @@ Your role:
 4. Estimate time and resources needed
 
 Available agents and their specialties:
-- MRF: Executive decisions, strategic planning
+- MRF: Executive decisions, strategic planning, growth monitoring
 - L0-Ops: Operations, task management, automation
 - L0-Comms: Communications, messaging, announcements
 - L0-Intel: Research, analysis, intelligence gathering
@@ -76,6 +76,11 @@ Available agents and their specialties:
 - Finance: Financial analysis, budgeting
 - Creative: Design, branding, marketing
 - Researcher: Deep research, fact-checking
+
+Special Commands:
+- "check growth" or "growth status": Check the 90-day growth plan progress
+- "today's tasks": Show today's tasks from the growth roadmap
+- "investment readiness": Show current investment readiness score
 
 Respond with a JSON object:
 {
@@ -462,5 +467,77 @@ masterAgentRouter.post("/cleanup", async (req, res) => {
   } catch (error) {
     console.error("Error cleaning up:", error);
     res.status(500).json({ error: "Failed to cleanup" });
+  }
+});
+// ============================================
+// GROWTH ROADMAP INTEGRATION
+// ============================================
+
+// Get growth status summary (for Master Agent reporting)
+masterAgentRouter.get("/growth-status", async (req, res) => {
+  try {
+    // Import growth modules dynamically
+    const { growthMetrics, growthTasks, growthPhases } = await import("@shared/schema");
+
+    // Get latest metrics
+    const latestMetrics = await db
+      .select()
+      .from(growthMetrics)
+      .orderBy(desc(growthMetrics.date))
+      .limit(1);
+
+    // Get tasks summary
+    const totalTasks = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(growthTasks);
+
+    const completedTasks = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(growthTasks)
+      .where(eq(growthTasks.status, "completed"));
+
+    const inProgressTasks = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(growthTasks)
+      .where(eq(growthTasks.status, "in-progress"));
+
+    // Get phases status
+    const phases = await db
+      .select()
+      .from(growthPhases)
+      .orderBy(growthPhases.phaseNumber);
+
+    const metrics = latestMetrics[0] || null;
+
+    res.json({
+      currentScore: metrics?.totalScore || 72,
+      targetScore: 95,
+      progress: Math.round(((metrics?.totalScore || 72) - 72) / (95 - 72) * 100),
+      tasks: {
+        total: totalTasks[0]?.count || 0,
+        completed: completedTasks[0]?.count || 0,
+        inProgress: inProgressTasks[0]?.count || 0,
+      },
+      metrics: metrics ? {
+        totalUsers: metrics.totalUsers,
+        activeUsers: metrics.activeUsers,
+        mrr: metrics.mrr,
+        payingCustomers: metrics.payingCustomers,
+        websiteVisitors: metrics.websiteVisitors,
+        technicalScore: metrics.technicalScore,
+        businessScore: metrics.businessScore,
+        operationalScore: metrics.operationalScore,
+        polishScore: metrics.polishScore,
+      } : null,
+      phases: phases.map(p => ({
+        number: p.phaseNumber,
+        name: p.name,
+        status: p.status,
+        targetScore: p.targetScore,
+      })),
+    });
+  } catch (error) {
+    console.error("Error fetching growth status:", error);
+    res.status(500).json({ error: "Failed to fetch growth status" });
   }
 });

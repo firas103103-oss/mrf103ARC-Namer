@@ -730,3 +730,176 @@ export const agentTaskSchema = z.object({
   input: z.record(z.unknown()).optional(),
   dueDate: z.string().datetime().optional(),
 });
+
+// ============================================
+// SECTION 8: GROWTH ROADMAP (90-Day Plan)
+// ============================================
+
+// جدول المراحل الرئيسية
+export const growthPhases = pgTable("growth_phases", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  phaseNumber: integer("phase_number").notNull(), // 1, 2, 3
+  name: varchar("name").notNull(), // "Foundation", "Traction", "Polish"
+  description: text("description"),
+  startWeek: integer("start_week").notNull(), // 1
+  endWeek: integer("end_week").notNull(), // 3
+  targetScore: integer("target_score").notNull(), // 85
+  budget: numeric("budget", { precision: 10, scale: 2 }), // 15000.00
+  status: varchar("status").default("not-started"), // not-started, in-progress, completed
+  actualScore: integer("actual_score"), // النتيجة الفعلية
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// جدول الأسابيع التفصيلية
+export const growthWeeks = pgTable("growth_weeks", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  phaseId: varchar("phase_id")
+    .notNull()
+    .references(() => growthPhases.id, { onDelete: "cascade" }),
+  weekNumber: integer("week_number").notNull(), // 1-13
+  name: varchar("name").notNull(), // "Business Foundation"
+  description: text("description"),
+  goals: text("goals"), // JSON string of goals array
+  status: varchar("status").default("not-started"),
+  startDate: timestamp("start_date"),
+  endDate: timestamp("end_date"),
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// جدول المهام اليومية
+export const growthTasks = pgTable("growth_tasks", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  weekId: varchar("week_id")
+    .notNull()
+    .references(() => growthWeeks.id, { onDelete: "cascade" }),
+  phaseId: varchar("phase_id")
+    .notNull()
+    .references(() => growthPhases.id),
+  dayNumber: integer("day_number").notNull(), // 1-90
+  title: varchar("title").notNull(),
+  description: text("description"),
+  category: varchar("category"), // "business", "legal", "marketing", "technical", "product"
+  estimatedHours: numeric("estimated_hours", { precision: 4, scale: 1 }), // 8.0
+  deliverables: text("deliverables"), // JSON string of deliverables array
+  resources: text("resources"), // JSON string of resources/tools
+  cost: numeric("cost", { precision: 10, scale: 2 }), // 500.00
+  priority: varchar("priority").default("medium"), // low, medium, high, critical
+  status: varchar("status").default("not-started"), // not-started, in-progress, completed, blocked
+  progress: integer("progress").default(0), // 0-100
+  actualHours: numeric("actual_hours", { precision: 4, scale: 1 }),
+  actualCost: numeric("actual_cost", { precision: 10, scale: 2 }),
+  notes: text("notes"),
+  blockers: text("blockers"), // ما يمنع التقدم
+  startedAt: timestamp("started_at"),
+  completedAt: timestamp("completed_at"),
+  dueDate: timestamp("due_date"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// جدول الإنجازات اليومية
+export const dailyCheckIns = pgTable("daily_check_ins", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  date: timestamp("date").notNull(),
+  tasksCompleted: integer("tasks_completed").default(0),
+  hoursWorked: numeric("hours_worked", { precision: 4, scale: 1 }),
+  moneySpent: numeric("money_spent", { precision: 10, scale: 2 }),
+  wins: text("wins"), // JSON array of today's wins
+  challenges: text("challenges"), // JSON array of challenges
+  tomorrow: text("tomorrow"), // JSON array of tomorrow's priorities
+  mood: varchar("mood"), // great, good, okay, bad
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// جدول المقاييس (KPIs)
+export const growthMetrics = pgTable("growth_metrics", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  date: timestamp("date").notNull(),
+  weekNumber: integer("week_number"),
+  
+  // User metrics
+  totalUsers: integer("total_users").default(0),
+  activeUsers: integer("active_users").default(0),
+  newSignups: integer("new_signups").default(0),
+  
+  // Revenue metrics
+  mrr: numeric("mrr", { precision: 10, scale: 2 }).default("0"),
+  arr: numeric("arr", { precision: 10, scale: 2 }).default("0"),
+  payingCustomers: integer("paying_customers").default(0),
+  
+  // Marketing metrics
+  websiteVisitors: integer("website_visitors").default(0),
+  emailSubscribers: integer("email_subscribers").default(0),
+  blogPosts: integer("blog_posts").default(0),
+  socialFollowers: integer("social_followers").default(0),
+  
+  // Product metrics
+  featureCount: integer("feature_count").default(0),
+  bugCount: integer("bug_count").default(0),
+  uptime: numeric("uptime", { precision: 5, scale: 2 }).default("0"), // 99.90
+  
+  // Investment readiness score
+  technicalScore: integer("technical_score").default(0),
+  businessScore: integer("business_score").default(0),
+  operationalScore: integer("operational_score").default(0),
+  polishScore: integer("polish_score").default(0),
+  totalScore: integer("total_score").default(0),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// جدول المعالم الرئيسية
+export const growthMilestones = pgTable("growth_milestones", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  title: varchar("title").notNull(),
+  description: text("description"),
+  category: varchar("category"), // "users", "revenue", "product", "marketing"
+  targetValue: numeric("target_value", { precision: 10, scale: 2 }),
+  currentValue: numeric("current_value", { precision: 10, scale: 2 }).default("0"),
+  targetDate: timestamp("target_date"),
+  status: varchar("status").default("not-started"), // not-started, in-progress, completed
+  importance: varchar("importance").default("medium"), // low, medium, high, critical
+  achievedAt: timestamp("achieved_at"),
+  celebrationMessage: text("celebration_message"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Relations
+export const growthPhasesRelations = relations(growthPhases, ({ many }) => ({
+  weeks: many(growthWeeks),
+  tasks: many(growthTasks),
+}));
+
+export const growthWeeksRelations = relations(growthWeeks, ({ one, many }) => ({
+  phase: one(growthPhases, {
+    fields: [growthWeeks.phaseId],
+    references: [growthPhases.id],
+  }),
+  tasks: many(growthTasks),
+}));
+
+export const growthTasksRelations = relations(growthTasks, ({ one }) => ({
+  phase: one(growthPhases, {
+    fields: [growthTasks.phaseId],
+    references: [growthPhases.id],
+  }),
+  week: one(growthWeeks, {
+    fields: [growthTasks.weekId],
+    references: [growthWeeks.id],
+  }),
+}));
