@@ -8,6 +8,16 @@ import path from "path";
 import { registerRoutes } from "./routes";
 import { initializeRealtimeSubscriptions } from "./realtime"; // Import the new initializer
 import { handleRealtimeChatUpgrade } from "./chatRealtime";
+import { validateEnv } from "./utils/env-validator";
+
+// Validate environment variables before starting
+try {
+  validateEnv();
+} catch (error) {
+  console.error('❌ Environment validation failed:');
+  console.error(error instanceof Error ? error.message : error);
+  process.exit(1);
+}
 
 export function log(message: unknown, scope?: string) {
   if (scope) {
