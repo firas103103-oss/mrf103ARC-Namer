@@ -14,6 +14,7 @@ const VirtualOffice = lazy(() => import("@/pages/VirtualOffice"));
 const BioSentinel = lazy(() => import("@/pages/BioSentinel"));
 const TeamCommandCenter = lazy(() => import("@/pages/TeamCommandCenter"));
 const AdminControlPanel = lazy(() => import("@/pages/AdminControlPanel"));
+const MasterAgentCommand = lazy(() => import("@/pages/MasterAgentCommand"));
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -54,6 +55,7 @@ function Router() {
         <Route path="/bio-sentinel" component={BioSentinel} />
         <Route path="/command-center" component={TeamCommandCenter} />
         <Route path="/admin" component={AdminControlPanel} />
+        <Route path="/master-agent" component={MasterAgentCommand} />
         <Route component={NotFound} />
       </Switch>
     </Suspense>

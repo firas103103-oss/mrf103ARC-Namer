@@ -795,6 +795,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const { bioSentinelRouter } = await import("./routes/bio-sentinel");
   app.use("/api/bio-sentinel", operatorLimiter, requireOperatorSession, bioSentinelRouter);
 
+  // Import and mount master-agent routes
+  const { masterAgentRouter } = await import("./routes/master-agent");
+  app.use("/api/master-agent", operatorLimiter, requireOperatorSession, masterAgentRouter);
+
   // 25. GET /api/agents/profiles - Get all agent profiles
   app.get("/api/agents/profiles", operatorLimiter, requireOperatorSession, (_req: any, res) => {
     const profiles = Object.values(AGENT_PROFILES).map(p => ({
