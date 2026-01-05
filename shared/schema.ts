@@ -491,6 +491,69 @@ export const users = pgTable("users", {
   }
 ];
 
+// Smell Categories for Bio Sentinel
+export const SMELL_CATEGORIES = {
+  human: ["Body odor", "Breath", "Skin", "Sweat"],
+  food: ["Fruits", "Vegetables", "Meat", "Dairy", "Beverages", "Spices"],
+  chemical: ["Solvents", "Alcohols", "Acids", "Gases", "Fuels"],
+  environmental: ["Smoke", "Mold", "Plants", "Soil", "Water"],
+  medical: ["Infections", "Metabolic", "Medications"],
+  industrial: ["Manufacturing", "Automotive", "Construction"],
+  household: ["Cleaning", "Cooking", "Personal care"],
+} as const;
+
+// WebSocket message types
+export interface WsDeviceStatus {
+  type: "device_status";
+  connected: boolean;
+  deviceId: string;
+  timestamp: number;
+}
+
+export interface WsSensorReading {
+  type: "sensor_reading";
+  data: {
+    deviceId: string;
+    gasResistance: number;
+    temperature: number;
+    humidity: number;
+    pressure?: number;
+    iaqScore?: number;
+    co2Equivalent?: number;
+    vocEquivalent?: number;
+    heaterTemperature?: number;
+    mode?: string;
+  };
+  timestamp: number;
+}
+
+export interface WsCaptureComplete {
+  type: "capture_complete";
+  id: string;
+  timestamp: number;
+}
+
+export interface WsCalibrationComplete {
+  type: "calibration_complete";
+  success: boolean;
+  message: string;
+  timestamp: number;
+}
+
+export interface SmellProfile {
+  id: string;
+  name: string;
+  category: keyof typeof SMELL_CATEGORIES;
+  description?: string;
+  createdAt: number;
+  readings: Array<{
+    gasResistance: number;
+    temperature: number;
+    humidity: number;
+    timestamp: number;
+  }>;
+}
+
 // Zod Schemas for API
 export const chatRequestSchema = z.object({
   message: z.string().min(1),
