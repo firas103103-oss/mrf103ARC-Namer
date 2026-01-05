@@ -464,6 +464,41 @@ export const archiveEncryptionKeys = pgTable("archive_encryption_keys", {
 });
 
 // ============================================
+// SECTION 7: ADMIN CONTROL - AGENTS & PROJECTS
+// ============================================
+
+export const agents = pgTable("agents", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  name: varchar("name", { length: 255 }).notNull(),
+  role: varchar("role", { length: 255 }).notNull(),
+  systemPrompt: text("system_prompt").notNull(),
+  specializations: text("specializations").array().default(sql`'{}'`),
+  capabilities: text("capabilities").array().default(sql`'{}'`),
+  model: varchar("model", { length: 100 }).default("gpt-4"),
+  temperature: numeric("temperature").default("0.7"),
+  maxTokens: integer("max_tokens").default(4000),
+  active: boolean("active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const projects = pgTable("projects", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description").notNull(),
+  type: varchar("type", { length: 50 }).notNull(), // 'individual' | 'company' | 'enterprise'
+  status: varchar("status", { length: 50 }).default("active"), // 'active' | 'paused' | 'completed'
+  assignedAgents: text("assigned_agents").array().default(sql`'{}'`),
+  owner: varchar("owner", { length: 255 }).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// ============================================
 // SHARED TYPES & ZOD SCHEMAS
 // ============================================
 
@@ -481,6 +516,10 @@ export type InsertAgentEvent = typeof agentEvents.$inferInsert;
 export type InsertChatMessage = typeof chatMessages.$inferInsert;
 export type InsertConversation = typeof conversations.$inferInsert;
 export type InsertArcCommandLog = typeof arcCommandLog.$inferInsert;
+export type Agent = typeof agents.$inferSelect;
+export type InsertAgent = typeof agents.$inferInsert;
+export type Project = typeof projects.$inferSelect;
+export type InsertProject = typeof projects.$inferInsert;
 
 // Agent Definitions
 export const agentTypeSchema = z.enum([

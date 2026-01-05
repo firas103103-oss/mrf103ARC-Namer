@@ -787,6 +787,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Mount voice routes
   app.use("/api/voice", voiceRouter);
 
+  // Import and mount admin routes
+  const { adminRouter } = await import("./routes/admin");
+  app.use("/api/admin", operatorLimiter, requireOperatorSession, adminRouter);
+
+  // Import and mount bio-sentinel routes
+  const { bioSentinelRouter } = await import("./routes/bio-sentinel");
+  app.use("/api/bio-sentinel", operatorLimiter, requireOperatorSession, bioSentinelRouter);
+
   // 25. GET /api/agents/profiles - Get all agent profiles
   app.get("/api/agents/profiles", operatorLimiter, requireOperatorSession, (_req: any, res) => {
     const profiles = Object.values(AGENT_PROFILES).map(p => ({
