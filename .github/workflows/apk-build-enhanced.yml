@@ -1,0 +1,317 @@
+name: 🔨 APK Build - Enhanced CI/CD (NEW)
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Build type'
+        required: true
+        default: 'debug'
+        type: choice
+        options:
+          - debug
+          - release
+      upload_to_releases:
+        description: 'Upload to GitHub Releases'
+        required: false
+        default: 'true'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+  push:
+    branches: [ main ]
+    paths:
+      - 'android/**'
+      - 'src/**'
+      - 'package.json'
+      - '.github/workflows/apk-build-enhanced.yml'
+    tags:
+      - 'v*'
+
+env:
+  GRADLE_OPTS: "-Xmx2048m -XX:MaxMetaspaceSize=512m"
+  NODE_VERSION: "20"
+  JAVA_VERSION: "17"
+
+jobs:
+  # Job 1: Prepare and validate
+  prepare:
+    name: 📋 Prepare Build Environment
+    runs-on: ubuntu-latest
+    outputs:
+      build_type: ${{ steps.set_build_type.outputs.type }}
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set build type
+        id: set_build_type
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "type=${{ github.event.inputs.build_type }}" >> $GITHUB_OUTPUT
+          else
+            echo "type=debug" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Get version
+        id: version
+        run: |
+          VERSION=$(grep '"version"' package.json | head -1 | sed 's/.*"version": "\(.*\)".*/\1/')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "📦 Version: $VERSION"
+
+      - name: Display environment
+        run: |
+          echo "🔨 Build Environment:"
+          echo "  Build Type: ${{ steps.set_build_type.outputs.type }}"
+          echo "  Version: ${{ steps.version.outputs.version }}"
+          echo "  Node: ${{ env.NODE_VERSION }}"
+          echo "  Java: ${{ env.JAVA_VERSION }}"
+          echo "  Commit: ${{ github.sha }}"
+          echo "  Branch: ${{ github.ref_name }}"
+
+  # Job 2: Build the APK
+  build-apk:
+    name: 🏗️ Build APK
+    needs: prepare
+    runs-on: ubuntu-latest
+    outputs:
+      apk_path: ${{ steps.build.outputs.apk_path }}
+      build_status: ${{ steps.build.outputs.status }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install Node dependencies
+        run: |
+          echo "📥 Installing npm dependencies..."
+          npm ci --legacy-peer-deps
+          echo "✅ Dependencies installed"
+
+      - name: Setup Java ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: 'gradle'
+
+      - name: Verify Java installation
+        run: |
+          echo "🔍 Java Information:"
+          java -version
+          echo "JAVA_HOME: $JAVA_HOME"
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          log-accepted-android-sdk-licenses: false
+
+      - name: Build web app
+        run: |
+          echo "🌐 Building web application..."
+          npm run build
+          echo "✅ Web app built successfully"
+          du -sh dist/public
+
+      - name: Sync Capacitor
+        run: |
+          echo "🔄 Syncing Capacitor..."
+          npx cap sync android
+          echo "✅ Capacitor synced"
+
+      - name: Setup Gradle wrapper
+        run: |
+          cd android
+          chmod +x gradlew
+          echo "✅ Gradle wrapper ready"
+
+      - name: Create Gradle properties
+        run: |
+          mkdir -p ~/.gradle
+          cat > ~/.gradle/gradle.properties << EOF
+          org.gradle.daemon=false
+          org.gradle.parallel=true
+          org.gradle.caching=true
+          org.gradle.jvmargs=-Xmx2048m -XX:MaxMetaspaceSize=512m
+          org.gradle.workers.max=2
+          systemProp.http.socketTimeout=120000
+          systemProp.http.connectionTimeout=120000
+          systemProp.https.socketTimeout=120000
+          systemProp.https.connectionTimeout=120000
+          EOF
+          cat ~/.gradle/gradle.properties
+
+      - name: Build ${{ needs.prepare.outputs.build_type }} APK
+        id: build
+        run: |
+          cd android
+          BUILD_TYPE="${{ needs.prepare.outputs.build_type }}"
+          
+          echo "🔨 Building $BUILD_TYPE APK..."
+          
+          if [ "$BUILD_TYPE" == "release" ]; then
+            ./gradlew assembleRelease \
+              --no-daemon \
+              --stacktrace \
+              -x lint \
+              -x lintVital \
+              -Pandroid.useAndroidX=true \
+              -Pandroid.enableJetifier=true
+            APK_PATH="app/build/outputs/apk/release/app-release-unsigned.apk"
+          else
+            ./gradlew assembleDebug \
+              --no-daemon \
+              --stacktrace \
+              -x lint \
+              -x lintVital \
+              -Pandroid.useAndroidX=true \
+              -Pandroid.enableJetifier=true
+            APK_PATH="app/build/outputs/apk/debug/app-debug.apk"
+          fi
+          
+          if [ -f "$APK_PATH" ]; then
+            echo "✅ APK built successfully"
+            echo "apk_path=$APK_PATH" >> $GITHUB_OUTPUT
+            echo "status=success" >> $GITHUB_OUTPUT
+            ls -lh "$APK_PATH"
+          else
+            echo "❌ APK not found at expected location"
+            echo "status=failed" >> $GITHUB_OUTPUT
+            find app/build/outputs -name "*.apk" -type f
+            exit 1
+          fi
+
+      - name: Calculate APK checksum
+        if: steps.build.outputs.status == 'success'
+        run: |
+          cd android
+          sha256sum "${{ steps.build.outputs.apk_path }}" > apk-checksum.txt
+          cat apk-checksum.txt
+
+      - name: Upload APK artifact
+        if: steps.build.outputs.status == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: apk-${{ needs.prepare.outputs.build_type }}-${{ github.run_number }}
+          path: android/${{ steps.build.outputs.apk_path }}
+          retention-days: 30
+
+      - name: Upload checksum
+        if: steps.build.outputs.status == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: apk-checksum-${{ needs.prepare.outputs.build_type }}-${{ github.run_number }}
+          path: android/apk-checksum.txt
+          retention-days: 30
+
+      - name: Prepare build summary
+        if: always()
+        run: |
+          cat > build-summary.json << 'EOF'
+          {
+            "build_type": "${{ needs.prepare.outputs.build_type }}",
+            "version": "${{ needs.prepare.outputs.version }}",
+            "status": "${{ steps.build.outputs.status }}",
+            "commit": "${{ github.sha }}",
+            "branch": "${{ github.ref_name }}",
+            "timestamp": "$(date -u +'%Y-%m-%dT%H:%M:%SZ')",
+            "run_number": "${{ github.run_number }}"
+          }
+          EOF
+          cat build-summary.json
+
+      - name: Upload build summary
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-summary-${{ github.run_number }}
+          path: build-summary.json
+          retention-days: 30
+
+  # Job 3: Test APK (optional)
+  test-apk:
+    name: 🧪 Validate APK
+    needs: build-apk
+    runs-on: ubuntu-latest
+    if: needs.build-apk.outputs.build_status == 'success'
+    steps:
+      - name: Download APK
+        uses: actions/download-artifact@v4
+        with:
+          name: apk-${{ github.run_number }}
+
+      - name: Verify APK integrity
+        run: |
+          echo "🔍 Validating APK..."
+          file app-*.apk
+          unzip -t app-*.apk > /dev/null && echo "✅ APK is valid" || echo "❌ APK is corrupted"
+          ls -lh app-*.apk
+
+  # Job 4: Create release (on tags)
+  create-release:
+    name: 📦 Create GitHub Release
+    needs: [prepare, build-apk]
+    runs-on: ubuntu-latest
+    if: |
+      startsWith(github.ref, 'refs/tags/v') && 
+      needs.build-apk.outputs.build_status == 'success'
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download APK
+        uses: actions/download-artifact@v4
+        with:
+          name: apk-${{ github.run_number }}
+          path: ./release-apk
+
+      - name: Download checksum
+        uses: actions/download-artifact@v4
+        with:
+          name: apk-checksum-${{ github.run_number }}
+          path: ./release-apk
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            ./release-apk/app-*.apk
+            ./release-apk/apk-checksum.txt
+          generate_release_notes: true
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Job 5: Build status notification
+  notify:
+    name: 📢 Build Status
+    needs: [build-apk]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Success notification
+        if: needs.build-apk.outputs.build_status == 'success'
+        run: |
+          echo "✅ BUILD SUCCESSFUL"
+          echo "🎉 APK is ready for download!"
+          echo "📍 Check the Artifacts section for APK file"
+
+      - name: Failure notification
+        if: needs.build-apk.outputs.build_status != 'success'
+        run: |
+          echo "❌ BUILD FAILED"
+          echo "📋 Check the logs above for details"
+          exit 1
