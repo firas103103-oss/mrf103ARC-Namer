@@ -45,7 +45,13 @@ function Router() {
   return (
     <Suspense fallback={<EnhancedLoadingFallback timeout={10000} />}>
       <Switch>
-        <Route path="/" component={LandingPage} />
+        <Route path="/">
+          {() => {
+            // إعادة توجيه المستخدمين المسجلين إلى Virtual Office
+            window.location.href = "/virtual-office";
+            return <EnhancedLoadingFallback timeout={3000} />;
+          }}
+        </Route>
         <Route path="/auth" component={OperatorLogin} />
         <Route path="/virtual-office" component={VirtualOffice} />
         <Route path="/bio-sentinel" component={BioSentinel} />

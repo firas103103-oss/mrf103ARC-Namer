@@ -41,8 +41,10 @@ export default function Landing() {
 
     try {
       await loginMutation.mutateAsync({ password });
-      // Force full page reload to ensure proper session
-      window.location.href = "/virtual-office";
+      // Navigate using wouter for proper SPA routing
+      setLocation("/virtual-office");
+      // Force re-render after successful login
+      setTimeout(() => window.location.reload(), 100);
     } catch (err) {
       console.error('Login error:', err);
       setError(t("landing.errors.invalidKey") || "Invalid security key");
