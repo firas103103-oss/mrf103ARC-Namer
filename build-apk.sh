@@ -68,7 +68,7 @@ print_success "Cleaned previous builds"
 # Step 3: Install dependencies
 print_step "Step 3/7: Installing/updating dependencies..."
 
-npm ci || npm install
+npm install --legacy-peer-deps
 
 print_success "Dependencies installed"
 
