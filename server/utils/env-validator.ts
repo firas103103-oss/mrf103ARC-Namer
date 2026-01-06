@@ -11,14 +11,14 @@ interface EnvConfig {
 const ENV_CONFIG: EnvConfig = {
   required: [
     'DATABASE_URL',
-    'SESSION_SECRET',
-    'SUPABASE_URL',
-    'SUPABASE_KEY',
-    'OPENAI_API_KEY',
   ],
   optional: [
     'PORT',
     'NODE_ENV',
+    'SESSION_SECRET',
+    'SUPABASE_URL',
+    'SUPABASE_KEY',
+    'OPENAI_API_KEY',
     'OPENAI_MODEL',
     'ANTHROPIC_API_KEY',
     'GEMINI_API_KEY',
