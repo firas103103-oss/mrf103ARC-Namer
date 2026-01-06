@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { useTranslation } from "react-i18next";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { useState, FormEvent } from "react";
+import { useLocation } from "wouter";
 import { 
   Shield, 
   LogIn, 
@@ -22,6 +23,7 @@ import {
 
 export default function Landing() {
   const { t } = useTranslation();
+  const [, setLocation] = useLocation();
   const [showAuth, setShowAuth] = useState(false);
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -46,10 +48,10 @@ export default function Landing() {
         const data = await response.json();
         console.log('Login successful:', data);
         
-        // Small delay to ensure session is set
-        setTimeout(() => {
-          window.location.href = "/virtual-office";
-        }, 100);
+        // Wait a bit for session to be saved, then do a full page reload
+        // to ensure cookies are properly set across all requests
+        await new Promise(resolve => setTimeout(resolve, 300));
+        window.location.href = "/virtual-office";
       } else {
         const data = await response.json().catch(() => ({ error: 'unknown' }));
         console.error('Login failed:', data);
