@@ -28,8 +28,9 @@ export function OperatorLogin() {
         variant: "default",
       });
 
-      // Wait for session to sync then navigate
-      setTimeout(() => setLocation("/virtual-office"), 100);
+      // Force page reload to ensure session is loaded
+      // This avoids race conditions with query cache
+      window.location.href = "/virtual-office";
 
     } catch (error) {
       toast({
@@ -37,7 +38,6 @@ export function OperatorLogin() {
         description: "Invalid operator credentials.",
         variant: "destructive",
       });
-    } finally {
       setIsLoading(false);
     }
   };
