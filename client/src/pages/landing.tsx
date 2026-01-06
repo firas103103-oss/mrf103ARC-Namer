@@ -143,7 +143,7 @@ export default function Landing() {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder="••••••••"
-                        disabled={isLoading}
+                        disabled={loginMutation.isPending}
                         className="bg-black/50 border-zinc-800 text-white placeholder:text-zinc-600 focus:border-cyan-500/50"
                         required
                       />
