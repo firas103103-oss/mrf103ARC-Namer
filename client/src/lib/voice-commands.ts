@@ -405,7 +405,7 @@ class VoiceCommandManager {
 }
 
 // Initialize
-let voiceManager: VoiceCommandManager;
+let voiceManager: VoiceCommandManager | undefined;
 
 if (typeof window !== 'undefined') {
   voiceManager = new VoiceCommandManager();
@@ -415,7 +415,7 @@ if (typeof window !== 'undefined') {
   window.addEventListener('keydown', (e) => {
     if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'V') {
       e.preventDefault();
-      voiceManager.toggle();
+      voiceManager!.toggle();
     }
   });
 
@@ -424,5 +424,5 @@ if (typeof window !== 'undefined') {
   console.log('%cType window.ARC_VOICE.showHelp() for commands', 'font-size: 10px; color: #94A3B8;');
 }
 
-export default voiceManager;
+export default voiceManager!;
 export { VoiceCommandManager };

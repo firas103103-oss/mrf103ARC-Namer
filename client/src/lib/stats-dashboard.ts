@@ -446,7 +446,7 @@ class StatsManager {
 }
 
 // Initialize
-let statsManager: StatsManager;
+let statsManager: StatsManager | undefined;
 
 if (typeof window !== 'undefined') {
   statsManager = new StatsManager();
@@ -456,7 +456,7 @@ if (typeof window !== 'undefined') {
   window.addEventListener('keydown', (e) => {
     if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'S') {
       e.preventDefault();
-      statsManager.showDashboard();
+      statsManager!.showDashboard();
     }
   });
 
@@ -464,5 +464,5 @@ if (typeof window !== 'undefined') {
   console.log('%cPress Ctrl+Shift+S to view', 'font-size: 10px; color: #94A3B8;');
 }
 
-export default statsManager;
+export default statsManager!;
 export { StatsManager };

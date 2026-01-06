@@ -103,7 +103,7 @@ export default function MatrixLogin() {
               ARC SYSTEM
             </h1>
             <p className="text-matrix-green/70 text-sm font-mono">
-              [ نظام الاستخبارات الذاتي التكيفي ]
+              [ نظام التحليل الذكي الذاتي التكيفي ]
             </p>
             
             <div className="flex items-center justify-center gap-2 text-xs text-matrix-green/50 font-mono">

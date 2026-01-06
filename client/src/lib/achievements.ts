@@ -446,7 +446,7 @@ class AchievementManager {
 }
 
 // Initialize
-let achievementManager: AchievementManager;
+let achievementManager: AchievementManager | undefined;
 
 if (typeof window !== 'undefined') {
   achievementManager = new AchievementManager();
@@ -456,5 +456,5 @@ if (typeof window !== 'undefined') {
   console.log('%cType window.ARC_ACHIEVEMENTS.showStats() to see your progress', 'font-size: 10px; color: #94A3B8;');
 }
 
-export default achievementManager;
+export default achievementManager!;
 export { AchievementManager };

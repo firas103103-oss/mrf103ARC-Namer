@@ -378,7 +378,7 @@ class EasterEggManager {
 }
 
 // Initialize on load
-let easterEggManager: EasterEggManager;
+let easterEggManager: EasterEggManager | undefined;
 
 if (typeof window !== 'undefined') {
   easterEggManager = new EasterEggManager();
@@ -391,5 +391,5 @@ if (typeof window !== 'undefined') {
   console.log('%c💡 Hint: Type special commands to discover secrets', 'font-size: 12px; color: #F59E0B;');
 }
 
-export default easterEggManager;
+export default easterEggManager!;
 export { EasterEggManager };
