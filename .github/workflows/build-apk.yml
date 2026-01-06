@@ -44,12 +44,20 @@ jobs:
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
       
+    - name: Setup Gradle Cache
+      uses: gradle/actions/setup-gradle@v3
+      with:
+        cache-read-only: false
+      
     - name: Create Gradle Properties
       run: |
         mkdir -p ~/.gradle
         echo "org.gradle.daemon=false" >> ~/.gradle/gradle.properties
         echo "org.gradle.parallel=true" >> ~/.gradle/gradle.properties
         echo "org.gradle.caching=true" >> ~/.gradle/gradle.properties
+        echo "org.gradle.jvmargs=-Xmx2048m -XX:MaxMetaspaceSize=512m" >> ~/.gradle/gradle.properties
+        echo "systemProp.http.socketTimeout=60000" >> ~/.gradle/gradle.properties
+        echo "systemProp.http.connectionTimeout=60000" >> ~/.gradle/gradle.properties
         
     - name: Build Debug APK
       run: |
