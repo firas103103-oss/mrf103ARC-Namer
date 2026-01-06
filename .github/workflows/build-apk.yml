@@ -52,11 +52,10 @@ jobs:
         echo "org.gradle.caching=true" >> ~/.gradle/gradle.properties
         
     - name: Build Debug APK
-      env:
-        JAVA_HOME: ${{ env.JAVA_HOME_21_X64 }}
       run: |
         cd android
         chmod +x gradlew
+        echo "JAVA_HOME: $JAVA_HOME"
         java -version
         ./gradlew assembleDebug --no-daemon --stacktrace --warning-mode all
         
