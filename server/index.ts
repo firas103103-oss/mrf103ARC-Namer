@@ -2,14 +2,28 @@
 import { createServer, ServerResponse } from "http";
 import express, { type Request, Response, NextFunction, type Express } from "express";
 import cors from "cors";
+import helmet from "helmet";
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import pg from "pg";
 import path from "path";
+import * as Sentry from "@sentry/node";
 import { registerRoutes } from "./routes";
 import { initializeRealtimeSubscriptions } from "./realtime"; // Import the new initializer
 import { handleRealtimeChatUpgrade } from "./chatRealtime";
 import { validateEnv } from "./utils/env-validator";
+
+// Initialize Sentry (only in production)
+if (process.env.NODE_ENV === 'production' && process.env.SENTRY_DSN) {
+  Sentry.init({
+    dsn: process.env.SENTRY_DSN,
+    environment: process.env.NODE_ENV || 'development',
+    tracesSampleRate: 1.0,
+    // Optional: Set release version from package.json
+    // release: "arc-namer@" + process.env.npm_package_version,
+  });
+  console.log('✅ Sentry monitoring initialized');
+}
 
 // Validate environment variables before starting
 try {
@@ -74,8 +88,37 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
 }));
 
+// Security headers with Helmet
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https:"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"], // Allow inline scripts for React
+      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'", "https:", "wss:"],
+      fontSrc: ["'self'", "data:", "https:"],
+      objectSrc: ["'none'"],
+      mediaSrc: ["'self'"],
+      frameSrc: ["'none'"],
+    },
+  },
+  crossOriginEmbedderPolicy: false, // Allow external resources
+  hsts: {
+    maxAge: 31536000, // 1 year
+    includeSubDomains: true,
+    preload: true,
+  },
+}));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Sentry request handler (must be before all routes)
+if (process.env.NODE_ENV === 'production' && process.env.SENTRY_DSN) {
+  app.use(Sentry.Handlers.requestHandler());
+  app.use(Sentry.Handlers.tracingHandler());
+}
 
 // PostgreSQL Session Store (production-ready)
 const PgStore = connectPgSimple(session);
@@ -141,12 +184,22 @@ app.use(sessionMiddleware);
     serveStatic(app);
   }
 
+  // Sentry error handler (must be before any other error middleware)
+  if (process.env.NODE_ENV === 'production' && process.env.SENTRY_DSN) {
+    app.use(Sentry.Handlers.errorHandler());
+  }
+
   // Error handling (should be last)
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
+    
+    // Log error to console in development
+    if (process.env.NODE_ENV !== 'production') {
+      console.error('❌ Error:', err);
+    }
+    
     res.status(status).json({ message });
-    throw err;
   });
 
   // Use the PORT environment variable if available, otherwise default to 9002.

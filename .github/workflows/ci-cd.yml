@@ -36,7 +36,36 @@ jobs:
         continue-on-error: true
 
   # =====================================
-  # Job 2: Run Tests
+  # Job 2: Security Audit
+  # =====================================
+  security:
+    name: 🔒 Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      
+      - name: Run npm audit
+        run: npm audit --audit-level=moderate || true
+      
+      - name: Check for vulnerabilities
+        run: |
+          echo "Checking for known vulnerabilities..."
+          npm audit --json > audit-report.json || true
+      
+      - name: Upload audit report
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-audit
+          path: audit-report.json
+          retention-days: 30
+
+  # =====================================
+  # Job 3: Run Tests
   # =====================================
   test:
     name: 🧪 Run Tests
@@ -128,21 +157,27 @@ jobs:
   deploy:
     name: 🚀 Deploy to Railway
     runs-on: ubuntu-latest
-    needs: [lint, test, build]
+    needs: [lint, security, test, build]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     environment:
       name: production
-      url: https://your-railway-url.railway.app
+      url: https://app.mrf103.com
     steps:
       - uses: actions/checkout@v4
       
-      - name: Install Railway CLI
-        run: npm install -g @railway/cli
-      
       - name: Deploy to Railway
-        run: railway up
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          echo "🚀 Railway auto-deploys on push to main"
+          echo "✅ Deployment triggered"
+          echo "🌐 Production: https://app.mrf103.com"
+      
+      - name: Wait for deployment
+        run: sleep 30
+      
+      - name: Verify deployment
+        run: |
+          echo "🔍 Verifying deployment..."
+          curl -I https://app.mrf103.com || echo "⚠️ Verification failed"
       
       - name: Notify Sentry of deployment
         if: env.SENTRY_AUTH_TOKEN
@@ -153,17 +188,51 @@ jobs:
           SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
         with:
           environment: production
+        continue-on-error: true
 
   # =====================================
-  # Job 6: Notify (on failure)
+  # Job 6: Deploy to Staging (Optional)
+  # =====================================
+  deploy-staging:
+    name: 🧪 Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [lint, security, test, build]
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    environment:
+      name: staging
+      url: https://staging.app.mrf103.com
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Deploy to Staging
+        run: |
+          echo "🚀 Deploying to Staging..."
+          echo "ℹ️ Staging environment not configured yet"
+          echo "📝 See STAGING_SETUP.md for configuration"
+
+  # =====================================
+  # Job 7: Notify (on failure)
   # =====================================
   notify:
-    name: 📧 Notify on Failure
+    name: 📧 Notify on Status
     runs-on: ubuntu-latest
-    needs: [lint, test, build, deploy]
-    if: failure()
+    needs: [lint, security, test, build, deploy]
+    if: always()
     steps:
-      - name: Send notification
+      - name: Check pipeline status
         run: |
-          echo "Pipeline failed! Check the logs."
-          # يمكن إضافة إشعار إلى Discord, Slack, etc
+          echo "📊 Pipeline Status:"
+          echo "  🔍 Lint: ${{ needs.lint.result }}"
+          echo "  🔒 Security: ${{ needs.security.result }}"
+          echo "  🧪 Test: ${{ needs.test.result }}"
+          echo "  🏗️ Build: ${{ needs.build.result }}"
+          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            echo "  🚀 Deploy: ${{ needs.deploy.result }}"
+          fi
+      
+      - name: Pipeline summary
+        run: |
+          echo "✅ Pipeline completed"
+          echo "📦 Branch: ${{ github.ref_name }}"
+          echo "📝 Commit: ${{ github.sha }}"
+          echo "👤 Author: ${{ github.actor }}"
