@@ -7,7 +7,7 @@ const isDevelopment = process.env.NODE_ENV === 'development';
 // Get API URL from environment or use default
 const getServerUrl = (): string | undefined => {
   if (isProduction) {
-    return process.env.VITE_API_URL || 'https://mrf103arc-namer-production-236c.up.railway.app';
+    return process.env.VITE_API_URL || 'https://app.mrf103.com';
   }
   // In development, let Capacitor use the bundled web app
   return undefined;
