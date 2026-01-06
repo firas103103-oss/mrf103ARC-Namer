@@ -4,8 +4,9 @@ import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
 import { OperatorLogin } from "@/components/OperatorLogin";
 import { useAuth } from "@/hooks/useAuth";
-import { Loader2 } from "lucide-react";
 import { lazy, Suspense } from "react";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { EnhancedLoadingFallback } from "@/components/EnhancedLoadingFallback";
 
 // Lazy load heavy components
 const NotFound = lazy(() => import("@/pages/not-found"));
@@ -18,25 +19,17 @@ const MasterAgentCommand = lazy(() => import("@/pages/MasterAgentCommand"));
 const GrowthRoadmap = lazy(() => import("@/pages/GrowthRoadmap"));
 const Cloning = lazy(() => import("@/pages/Cloning"));
 
-// Loading fallback component
-const LoadingFallback = () => (
-  <div className="flex items-center justify-center min-h-screen bg-black text-green-500">
-    <Loader2 className="h-8 w-8 animate-spin" />
-    <span className="ml-2 font-mono">LOADING...</span>
-  </div>
-);
-
 function Router() {
   const { user, isLoading } = useAuth();
 
   if (isLoading) {
-    return <LoadingFallback />;
+    return <EnhancedLoadingFallback timeout={15000} />;
   }
 
   // إذا لم يسجل الدخول، أظهر صفحة الهبوط أو تسجيل الدخول فقط
   if (!user) {
     return (
-      <Suspense fallback={<LoadingFallback />}>
+      <Suspense fallback={<EnhancedLoadingFallback timeout={10000} />}>
         <Switch>
           <Route path="/auth" component={OperatorLogin} />
           <Route path="/" component={LandingPage} />
@@ -50,7 +43,7 @@ function Router() {
 
   // إذا سجل الدخول، افتح له كل الصفحات
   return (
-    <Suspense fallback={<LoadingFallback />}>
+    <Suspense fallback={<EnhancedLoadingFallback timeout={10000} />}>
       <Switch>
         <Route path="/" component={LandingPage} />
         <Route path="/auth" component={OperatorLogin} />
@@ -67,14 +60,16 @@ function Router() {
   );
 }
 
-                                                                                                                                                      function App() {
-                                                                                                                                                        return (
-                                                                                                                                                            <QueryClientProvider client={queryClient}>
-                                                                                                                                                                  <Router />
-                                                                                                                                                                        <Toaster />
-                                                                                                                                                                            </QueryClientProvider>
-                                                                                                                                                                              );
-                                                                                                                                                                              }
+function App() {
+  return (
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <Router />
+        <Toaster />
+      </QueryClientProvider>
+    </ErrorBoundary>
+  );
+}
 
-                                                                                                                                                                              export default App;
+export default App;
                                                                                                                                                                               

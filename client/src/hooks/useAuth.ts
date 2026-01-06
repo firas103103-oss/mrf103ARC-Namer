@@ -38,18 +38,32 @@ export function useAuth() {
 
   const loginMutation = useMutation({
     mutationFn: async ({ password }: { password: string }) => {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password }),
-        credentials: "include",
-      });
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
       
-      if (!response.ok) {
-        throw new Error("Login failed");
+      try {
+        const response = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ password }),
+          credentials: "include",
+          signal: controller.signal,
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({ message: "Login failed" }));
+          throw new Error(errorData.message || "Login failed");
+        }
+      
+        return response.json();
+      } catch (error) {
+        if (error instanceof Error && error.name === 'AbortError') {
+          throw new Error("Login timeout - please try again");
+        }
+        throw error;
       }
-      
-      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });

@@ -34,6 +34,11 @@ export default function Landing() {
     e.preventDefault();
     setError("");
 
+    if (!password.trim()) {
+      setError(t("landing.errors.invalidKey") || "Please enter security key");
+      return;
+    }
+
     try {
       await loginMutation.mutateAsync({ password });
       // Force full page reload to ensure proper session

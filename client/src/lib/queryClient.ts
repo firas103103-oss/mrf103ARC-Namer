@@ -1,4 +1,5 @@
-import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import { QueryClient, QueryFunction, QueryCache } from "@tanstack/react-query";
+import { toast } from "@/hooks/use-toast";
 
 export type ErrorType = "network" | "server" | "auth" | "client" | "unknown";
 
@@ -203,12 +204,26 @@ export const getQueryFn: <T>(options: {
   };
 
 export const queryClient = new QueryClient({
+  queryCache: new QueryCache({
+    onError: (error, query) => {
+      // Only show error toasts for active queries with existing data
+      if (query.state.data !== undefined) {
+        const message = getErrorMessage(error);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: message,
+        });
+      }
+    },
+  }),
   defaultOptions: {
     queries: {
       queryFn: getQueryFn({ on401: "throw" }),
       refetchInterval: false,
       refetchOnWindowFocus: false,
-      staleTime: Infinity,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      gcTime: 10 * 60 * 1000, // 10 minutes
       retry: shouldRetry,
       retryDelay: getRetryDelay,
     },
