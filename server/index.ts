@@ -215,10 +215,13 @@ app.use(sessionMiddleware);
     res.status(status).json({ message });
   });
 
-  // Use the PORT environment variable if available, otherwise default to 9002.
-  // Use 0.0.0.0 to ensure external access in Replit/IDX environment.
-    const port = Number(process.env.PORT) || 9002;
-    httpServer.listen(port, "0.0.0.0", () => {
-      console.log(`✅ Server is live and listening on port ${port}`);
+  // Use the PORT environment variable (Railway provides this automatically)
+  // Default to 9002 for local development
+  const port = process.env.PORT ? Number(process.env.PORT) : 9002;
+  const host = "0.0.0.0"; // Allow external access
+  
+  httpServer.listen(port, host, () => {
+    console.log(`✅ Server is live and listening on ${host}:${port}`);
+    console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
   });
 })();
