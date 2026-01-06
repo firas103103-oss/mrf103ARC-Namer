@@ -1,6 +1,7 @@
 
 import { createServer, ServerResponse } from "http";
 import express, { type Request, Response, NextFunction, type Express } from "express";
+import cors from "cors";
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import pg from "pg";
@@ -46,6 +47,32 @@ function serveStatic(app: Express) {
 }
 
 const app = express();
+
+// CORS Configuration
+const allowedOrigins = [
+  'http://localhost:9002',
+  'http://localhost:5173',
+  'https://app.mrf103.com',
+  'https://mrf103arc-namer-production-236c.up.railway.app',
+  process.env.VITE_API_URL,
+].filter(Boolean);
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, Postman, etc)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.warn(`⚠️ Blocked CORS request from: ${origin}`);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+}));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
