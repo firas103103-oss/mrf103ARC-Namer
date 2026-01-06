@@ -1,6 +1,6 @@
 #!/bin/bash
 # 🚀 Automated APK Build Script for ARC Operator
-# Version: 2.0.0
+# Version: 2.0.2
 # Author: GitHub Copilot
 
 set -e  # Exit immediately if a command exits with a non-zero status
@@ -33,7 +33,7 @@ print_warning() {
 echo ""
 echo -e "${BLUE}╔═══════════════════════════════════════════════╗${NC}"
 echo -e "${BLUE}║      ARC Operator APK Build Automation       ║${NC}"
-echo -e "${BLUE}║              Version 2.0.0                    ║${NC}"
+echo -e "${BLUE}║              Version 2.0.2                    ║${NC}"
 echo -e "${BLUE}╚═══════════════════════════════════════════════╝${NC}"
 echo ""
 
@@ -127,7 +127,8 @@ if [ -f "android/$APK_PATH" ]; then
     echo ""
     echo -e "📦 APK Location: ${BLUE}android/$APK_PATH${NC}"
     echo -e "📊 APK Size: ${YELLOW}$APK_SIZE${NC}"
-    echo -e "📱 Version: ${GREEN}2.0.0 (versionCode: 200)${NC}"
+    echo -e "📱 Version: ${GREEN}2.0.2 (Build 202)${NC}"
+    echo -e "✨ Changes: ${GREEN}Complete Stability & Navigation Fixes${NC}"
     echo ""
     
     # Show next steps
