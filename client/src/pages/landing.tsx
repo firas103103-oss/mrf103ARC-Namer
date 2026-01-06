@@ -48,7 +48,7 @@ export default function Landing() {
         
         // Small delay to ensure session is set
         setTimeout(() => {
-          window.location.href = "/dashboard";
+          window.location.href = "/virtual-office";
         }, 100);
       } else {
         const data = await response.json().catch(() => ({ error: 'unknown' }));
