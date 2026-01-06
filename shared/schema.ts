@@ -161,6 +161,7 @@ export const smellProfiles = pgTable("smell_profiles", {
   label: varchar("label", { length: 255 }),
   featureVector: jsonb("feature_vector"), // مكان لتخزين الـ Embeddings
   embeddingText: text("embedding_text"),
+  confidence: integer("confidence"), // Confidence percentage (0-100)
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -520,6 +521,12 @@ export type Agent = typeof agents.$inferSelect;
 export type InsertAgent = typeof agents.$inferInsert;
 export type Project = typeof projects.$inferSelect;
 export type InsertProject = typeof projects.$inferInsert;
+export type MissionScenario = typeof missionScenarios.$inferSelect;
+export type InsertMissionScenario = typeof missionScenarios.$inferInsert;
+export type InsertIntentLog = typeof intentLog.$inferInsert;
+export type InsertActionLog = typeof actionLog.$inferInsert;
+export type InsertResultLog = typeof resultLog.$inferInsert;
+export type InsertImpactLog = typeof impactLog.$inferInsert;
 
 // Agent Definitions
 export const agentTypeSchema = z.enum([

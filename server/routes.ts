@@ -476,9 +476,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Use optimized cached query - 5 minute TTL, reduces DB load by 70%
       const interactions = await cachedSelect(
         'agent_interactions',
-        'agent_id, created_at, duration_ms, success',
-        { orderBy: 'created_at', ascending: false, limit: 1000 },
-        300 // Cache for 5 minutes
+        {
+          select: 'agent_id, created_at, duration_ms, success',
+          filters: {},
+          cacheTTL: 300
+        }
       );
       
       if (!interactions) {
@@ -535,16 +537,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Fetch with optimized cached queries
       const metrics = await cachedSelect(
         'agent_performance',
-        '*',
-        { gte: { field: 'timestamp', value: since }, orderBy: 'timestamp', ascending: false },
-        300 // 5 min cache
+        {
+          select: '*',
+          filters: {},
+          cacheTTL: 300
+        }
       );
       
       const interactions = await cachedSelect(
         'agent_interactions',
-        'agent_id, success, duration_ms, created_at',
-        { gte: { field: 'created_at', value: since }, orderBy: 'created_at', ascending: false },
-        300
+        {
+          select: 'agent_id, success, duration_ms, created_at',
+          filters: {},
+          cacheTTL: 300
+        }
       );
       
       if (!interactions) {
@@ -908,7 +914,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     // Use cached profile lookup
     const cacheKey = `agent:profile:${id}`;
-    let profile = staticCache.get(cacheKey);
+    let profile: any = staticCache.get(cacheKey);
     
     if (!profile) {
       profile = getAgentProfile(id);

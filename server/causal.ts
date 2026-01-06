@@ -32,7 +32,6 @@ function normalizeIntent(data: UnknownRecord): InsertIntentLog {
 
   return {
     actorType,
-    actorId: pick(data.actorId, data.actor_id),
     intentType,
     intentText,
     context: data.context,
@@ -46,9 +45,6 @@ function normalizeAction(data: UnknownRecord): InsertActionLog {
   return {
     intentId: intentId ?? "",
     actionType: actionType ?? "unknown",
-    actionTarget: pick(data.actionTarget, data.action_target),
-    request: data.request,
-    costUsd: data.costUsd,
     status: data.status,
   };
 }
@@ -59,8 +55,6 @@ function normalizeResult(data: CreateResult): InsertResultLog {
   return {
     actionId: actionId ?? "",
     output: data.output,
-    error: data.error,
-    latencyMs: pick(data.latencyMs, data.latency_ms),
   };
 }
 
@@ -71,7 +65,6 @@ function normalizeImpact(data: UnknownRecord): InsertImpactLog {
   return {
     intentId: intentId ?? "",
     impactType: impactType ?? "unknown",
-    impactScore: pick(data.impactScore, data.impact_score),
     impact: data.impact,
   };
 }

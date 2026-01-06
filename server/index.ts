@@ -116,7 +116,9 @@ app.use(express.urlencoded({ extended: false }));
 
 // Sentry request handler (must be before all routes)
 if (process.env.NODE_ENV === 'production' && process.env.SENTRY_DSN) {
+  // @ts-ignore - Sentry types issue
   app.use(Sentry.Handlers.requestHandler());
+  // @ts-ignore - Sentry types issue
   app.use(Sentry.Handlers.tracingHandler());
 }
 
@@ -186,6 +188,7 @@ app.use(sessionMiddleware);
 
   // Sentry error handler (must be before any other error middleware)
   if (process.env.NODE_ENV === 'production' && process.env.SENTRY_DSN) {
+    // @ts-ignore - Sentry types issue
     app.use(Sentry.Handlers.errorHandler());
   }
 

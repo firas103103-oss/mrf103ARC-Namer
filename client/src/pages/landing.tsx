@@ -256,7 +256,7 @@ export default function Landing() {
       {/* Scanline Effect */}
       <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(transparent_50%,rgba(0,255,255,0.01)_50%)] bg-[length:100%_4px] animate-scanline"></div>
 
-      <style jsx>{`
+      <style>{`
         @keyframes matrix-fall {
           0% { transform: translateY(-100%); }
           100% { transform: translateY(100%); }
