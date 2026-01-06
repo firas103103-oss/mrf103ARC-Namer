@@ -128,6 +128,16 @@ const pgPool = new pg.Pool({
   connectionString: process.env.DATABASE_URL,
 });
 
+// Initialize session table manually to avoid file system issues in production
+pgPool.query(`
+  CREATE TABLE IF NOT EXISTS session (
+    sid VARCHAR NOT NULL COLLATE "default" PRIMARY KEY,
+    sess JSON NOT NULL,
+    expire TIMESTAMP(6) NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS "IDX_session_expire" ON session ("expire");
+`).catch(err => console.error('Session table creation error (non-fatal):', err.message));
+
 const sessionMiddleware = session({
   name: "arc.sid",
   secret: process.env.SESSION_SECRET || process.env.ARC_BACKEND_SECRET || "dev-session-secret",
@@ -135,8 +145,8 @@ const sessionMiddleware = session({
   saveUninitialized: false,
   store: new PgStore({
     pool: pgPool,
-    tableName: "session", // Will auto-create table
-    createTableIfMissing: true,
+    tableName: "session",
+    createTableIfMissing: false, // We create it manually above
   }),
   cookie: {
     httpOnly: true,
