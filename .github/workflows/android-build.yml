@@ -29,10 +29,13 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '21'
+          java-version: '17'
       
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
+      
+      - name: Grant execute permission for gradlew
+        run: chmod +x android/gradlew
       
       - name: Sync Capacitor
         run: npx cap sync android
@@ -40,8 +43,7 @@ jobs:
       - name: Build Debug APK
         run: |
           cd android
-          chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon
+          ./gradlew assembleDebug --no-daemon --stacktrace --info
       
       - name: Upload APK
         uses: actions/upload-artifact@v4
