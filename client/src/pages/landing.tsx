@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { useState, FormEvent } from "react";
 import { useLocation } from "wouter";
+import { useAuth } from "@/hooks/useAuth";
 import { 
   Shield, 
   LogIn, 
@@ -24,51 +25,23 @@ import {
 export default function Landing() {
   const { t } = useTranslation();
   const [, setLocation] = useLocation();
+  const { loginMutation } = useAuth();
   const [showAuth, setShowAuth] = useState(false);
   const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
   const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
     setError("");
 
     try {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-        },
-        credentials: 'include', // Important: Include cookies
-        body: JSON.stringify({ password }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        console.log('Login successful:', data);
-        
-        // Wait a bit for session to be saved, then do a full page reload
-        // to ensure cookies are properly set across all requests
-        await new Promise(resolve => setTimeout(resolve, 300));
-        window.location.href = "/virtual-office";
-      } else {
-        const data = await response.json().catch(() => ({ error: 'unknown' }));
-        console.error('Login failed:', data);
-        
-        if (data.error === "invalid_credentials") {
-          setError(t("landing.errors.invalidKey") || "Invalid security key");
-        } else if (data.error === "missing_server_auth_secret") {
-          setError("Server configuration error. Please contact administrator.");
-        } else {
-          setError(t("landing.errors.authFailed") || "Authentication failed");
-        }
-      }
+      await loginMutation.mutateAsync({ password });
+      // Wait briefly for auth state to update
+      await new Promise(resolve => setTimeout(resolve, 100));
+      setLocation("/virtual-office");
     } catch (err) {
       console.error('Login error:', err);
-      setError(t("landing.errors.connectionError") || "Connection error. Please try again.");
-    } finally {
-      setIsLoading(false);
+      setError(t("landing.errors.invalidKey") || "Invalid security key");
     }
   };
 
@@ -179,11 +152,11 @@ export default function Landing() {
 
                     <Button
                       type="submit"
-                      disabled={isLoading || !password}
+                      disabled={loginMutation.isPending || !password}
                       className="w-full h-11 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white border-0 disabled:opacity-50"
                       data-testid="button-login"
                     >
-                      {isLoading ? (
+                      {loginMutation.isPending ? (
                         <>
                           <Activity className="w-4 h-4 mr-2 animate-spin" />
                           AUTHENTICATING...
