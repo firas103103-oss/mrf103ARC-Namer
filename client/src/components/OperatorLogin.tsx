@@ -28,7 +28,8 @@ export function OperatorLogin() {
         variant: "default",
       });
 
-      setLocation("/virtual-office");
+      // Wait for session to sync then navigate
+      setTimeout(() => setLocation("/virtual-office"), 100);
 
     } catch (error) {
       toast({

@@ -1,44 +1,32 @@
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import { useLocation } from 'wouter';
 
 /**
- * Navigation guard hook to prevent navigation freezing
- * Handles edge cases and provides fallback navigation
+ * Navigation guard hook - Fixed for proper routing sync
+ * Prevents navigation loops and ensures consistent state
  */
 export function useNavigationGuard() {
   const [location, setLocation] = useLocation();
 
+  // Sync check - ensure wouter and browser location match
   useEffect(() => {
-    // Prevent navigation loops
-    const navigationTimeout = setTimeout(() => {
-      // If stuck on auth page but should be elsewhere, redirect
-      if (location === '/auth' && window.location.pathname !== '/auth') {
-        console.warn('Navigation mismatch detected, syncing...');
-        setLocation(window.location.pathname);
-      }
-    }, 100);
-
-    return () => clearTimeout(navigationTimeout);
+    const actualPath = window.location.pathname;
+    if (location !== actualPath && actualPath !== '/') {
+      console.log(`[Nav Guard] Syncing: ${location} -> ${actualPath}`);
+      setLocation(actualPath);
+    }
   }, [location, setLocation]);
 
-  // Safe navigation wrapper with timeout
-  const safeNavigate = (path: string, timeout = 5000) => {
-    const navigationPromise = new Promise<void>((resolve) => {
+  // Safe navigation with proper error handling
+  const safeNavigate = useCallback((path: string) => {
+    try {
       setLocation(path);
-      resolve();
-    });
-
-    const timeoutPromise = new Promise<void>((_, reject) => {
-      setTimeout(() => {
-        reject(new Error('Navigation timeout'));
-      }, timeout);
-    });
-
-    return Promise.race([navigationPromise, timeoutPromise]).catch((error) => {
-      console.error('Navigation failed, using fallback:', error);
+    } catch (error) {
+      console.error('[Nav Guard] Navigation failed:', error);
+      // Fallback to hard navigation
       window.location.href = path;
-    });
-  };
+    }
+  }, [setLocation]);
 
   return { safeNavigate, currentLocation: location };
 }

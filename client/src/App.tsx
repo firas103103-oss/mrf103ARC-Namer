@@ -1,10 +1,10 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
 import { OperatorLogin } from "@/components/OperatorLogin";
 import { useAuth } from "@/hooks/useAuth";
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { EnhancedLoadingFallback } from "@/components/EnhancedLoadingFallback";
 
@@ -47,8 +47,11 @@ function Router() {
       <Switch>
         <Route path="/">
           {() => {
-            // إعادة توجيه المستخدمين المسجلين إلى Virtual Office
-            window.location.href = "/virtual-office";
+            const [, setLocation] = useLocation();
+            useEffect(() => {
+              // إعادة توجيه المستخدمين المسجلين إلى Virtual Office
+              setLocation("/virtual-office");
+            }, [setLocation]);
             return <EnhancedLoadingFallback timeout={3000} />;
           }}
         </Route>
