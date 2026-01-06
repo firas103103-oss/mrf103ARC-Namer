@@ -457,13 +457,18 @@ rm -rf archives/
 ### Domain Configuration:
 ```
 🌐 الموقع: app.mrf103.com
+📍 Registrar: Squarespace Domains (via Google Workspace)
+📅 Expiration: 2026-04-12
+
 ✅ تم إنجازه:
   - ✅ تحديث VITE_API_URL في .env.production
   - ✅ تحديث CORS في server/index.ts
   - ✅ تحديث Supabase allowed origins (8 URLs)
-⚠️ متبقي:
-  - ⏳ SSL certificate configuration
-  - ⏳ DNS setup
+  - ✅ Cloudflare DNS records (CNAME app → Railway)
+⏳ قيد التنفيذ:
+  - ⏳ Nameservers update (Google → Cloudflare)
+  - ⏳ SSL certificate (Cloudflare Free SSL - auto after NS change)
+  - ⏳ DNS propagation (2-48 hours)
 ```
 
 ---
