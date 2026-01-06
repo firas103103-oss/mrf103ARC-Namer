@@ -823,6 +823,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Mount voice routes
   app.use("/api/voice", voiceRouter);
 
+  // Import and mount cloning routes
+  const cloningRouter = (await import("./routes/cloning")).default;
+  app.use("/api/cloning", cloningRouter);
+
   // Import and mount admin routes
   const { adminRouter } = await import("./routes/admin");
   app.use("/api/admin", operatorLimiter, requireOperatorSession, adminRouter);

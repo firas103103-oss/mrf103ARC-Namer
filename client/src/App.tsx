@@ -16,6 +16,7 @@ const TeamCommandCenter = lazy(() => import("@/pages/TeamCommandCenter"));
 const AdminControlPanel = lazy(() => import("@/pages/AdminControlPanel"));
 const MasterAgentCommand = lazy(() => import("@/pages/MasterAgentCommand"));
 const GrowthRoadmap = lazy(() => import("@/pages/GrowthRoadmap"));
+const Cloning = lazy(() => import("@/pages/Cloning"));
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -39,6 +40,7 @@ function Router() {
         <Switch>
           <Route path="/auth" component={OperatorLogin} />
           <Route path="/" component={LandingPage} />
+          <Route path="/cloning" component={Cloning} />
           {/* أي رابط آخر يوجه لصفحة الهبوط للحماية */}
           <Route component={LandingPage} />
         </Switch>
@@ -58,6 +60,7 @@ function Router() {
         <Route path="/admin" component={AdminControlPanel} />
         <Route path="/master-agent" component={MasterAgentCommand} />
         <Route path="/growth-roadmap" component={GrowthRoadmap} />
+        <Route path="/cloning" component={Cloning} />
         <Route component={NotFound} />
       </Switch>
     </Suspense>
