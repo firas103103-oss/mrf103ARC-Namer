@@ -22,4 +22,9 @@ npm-debug.log*
 
 # Test files
 *-cookies.txt
-arc-cookies.txtandroid/
+arc-cookies.txt
+# Android build outputs (keep android/ folder for Capacitor)
+android/build/
+android/app/build/
+android/.gradle/
+android/local.properties
