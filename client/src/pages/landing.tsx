@@ -36,9 +36,8 @@ export default function Landing() {
 
     try {
       await loginMutation.mutateAsync({ password });
-      // Wait briefly for auth state to update
-      await new Promise(resolve => setTimeout(resolve, 100));
-      setLocation("/virtual-office");
+      // Force full page reload to ensure proper session
+      window.location.href = "/virtual-office";
     } catch (err) {
       console.error('Login error:', err);
       setError(t("landing.errors.invalidKey") || "Invalid security key");
