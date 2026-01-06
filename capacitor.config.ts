@@ -15,7 +15,7 @@ const getServerUrl = (): string | undefined => {
 
 const config: CapacitorConfig = {
   appId: 'app.arc.operator',
-  appName: isProduction ? 'ARC Operator' : 'ARC Operator (Dev)',
+  appName: isProduction ? 'ARC Operator v2.1.0' : 'ARC Operator (Dev)',
   webDir: 'dist/public',
   
   // Server configuration (production only)
