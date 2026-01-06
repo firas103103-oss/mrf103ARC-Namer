@@ -86,6 +86,11 @@ const resources = {
         analyticsReportingDesc: 'Comprehensive dashboards and automated reporting for operational insights',
         androidApp: 'Android App',
         androidAppDesc: 'Download the Android project to build and install the ARC Intelligence app on your mobile device.',
+        errors: {
+          invalidKey: 'Invalid security key',
+          authFailed: 'Authentication failed. Please try again.',
+          connectionError: 'Connection error. Please check your network.',
+        },
       },
       header: {
         arcCommandCenter: 'ARC Command Center',
@@ -273,6 +278,11 @@ const resources = {
         analyticsReportingDesc: 'لوحات تحكم شاملة وتقارير آلية للرؤى التشغيلية',
         androidApp: 'تطبيق أندرويد',
         androidAppDesc: 'قم بتحميل مشروع أندرويد لبناء وتثبيت تطبيق ARC Intelligence على جهازك المحمول.',
+        errors: {
+          invalidKey: 'مفتاح الأمان غير صحيح',
+          authFailed: 'فشلت المصادقة. الرجاء المحاولة مرة أخرى.',
+          connectionError: 'خطأ في الاتصال. الرجاء التحقق من شبكتك.',
+        },
       },
       header: {
         arcCommandCenter: 'مركز قيادة ARC',
