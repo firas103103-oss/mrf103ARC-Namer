@@ -100,6 +100,17 @@ export default function Landing() {
                 size="lg" 
                 variant="outline"
                 className="min-w-[200px]"
+                asChild
+              >
+                <a href="/cloning">
+                  <Cpu className="h-5 w-5 ltr:mr-2 rtl:ml-2" />
+                  نظام الاستنساخ
+                </a>
+              </Button>
+              <Button 
+                size="lg" 
+                variant="outline"
+                className="min-w-[200px]"
                 data-testid="button-learn-more"
               >
                 <Eye className="h-5 w-5 ltr:mr-2 rtl:ml-2" />
