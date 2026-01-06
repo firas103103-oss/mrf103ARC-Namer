@@ -95,16 +95,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/login", authLimiter.middleware(), async (req: any, res) => {
     const expected = process.env.ARC_OPERATOR_PASSWORD || process.env.ARC_BACKEND_SECRET;
     if (!expected) {
+      console.error('❌ Missing ARC_OPERATOR_PASSWORD or ARC_BACKEND_SECRET');
       return res.status(500).json({ error: "missing_server_auth_secret" });
     }
 
     const { password } = req.body || {};
-    if (typeof password !== "string" || password.length === 0 || password !== expected) {
+    if (typeof password !== "string" || password.length === 0) {
+      console.warn('⚠️ Login attempt with missing/invalid password');
       return res.status(401).json({ error: "invalid_credentials" });
     }
 
+    if (password !== expected) {
+      console.warn('⚠️ Login attempt with incorrect password from IP:', getClientIp(req));
+      return res.status(401).json({ error: "invalid_credentials" });
+    }
+
+    // Set session
     req.session.operatorAuthenticated = true;
-    res.json({ ok: true });
+    
+    // Save session before responding
+    req.session.save((err: any) => {
+      if (err) {
+        console.error('❌ Session save error:', err);
+        return res.status(500).json({ error: "session_save_failed" });
+      }
+      
+      console.log('✅ Login successful for IP:', getClientIp(req));
+      res.json({ ok: true, message: "Authentication successful" });
+    });
   });
 
   app.post("/api/auth/logout", operatorLimiter, (req: any, res) => {

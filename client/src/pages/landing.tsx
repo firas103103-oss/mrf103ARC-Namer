@@ -35,18 +35,36 @@ export default function Landing() {
     try {
       const response = await fetch("/api/auth/login", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+        },
+        credentials: 'include', // Important: Include cookies
         body: JSON.stringify({ password }),
       });
 
       if (response.ok) {
-        window.location.href = "/";
-      } else {
         const data = await response.json();
-        setError(data.error === "invalid_credentials" ? "Invalid security key" : "Authentication failed");
+        console.log('Login successful:', data);
+        
+        // Small delay to ensure session is set
+        setTimeout(() => {
+          window.location.href = "/dashboard";
+        }, 100);
+      } else {
+        const data = await response.json().catch(() => ({ error: 'unknown' }));
+        console.error('Login failed:', data);
+        
+        if (data.error === "invalid_credentials") {
+          setError(t("landing.errors.invalidKey") || "Invalid security key");
+        } else if (data.error === "missing_server_auth_secret") {
+          setError("Server configuration error. Please contact administrator.");
+        } else {
+          setError(t("landing.errors.authFailed") || "Authentication failed");
+        }
       }
     } catch (err) {
-      setError("Connection error. Please try again.");
+      console.error('Login error:', err);
+      setError(t("landing.errors.connectionError") || "Connection error. Please try again.");
     } finally {
       setIsLoading(false);
     }
