@@ -1,20 +1,32 @@
 /**
  * Agent Registry
- * ADR-003: Multi-Agent Routing Core (v0.2)
+ * Phase 3: Agents Registry & Routing
  * 
- * Defines all available agents and their capabilities.
- * Server-side only, no client exposure.
+ * Agents are first-class, deterministic.
+ * - Load from database (agent_registry table)
+ * - Fallback to static config if DB unavailable
+ * - Full lifecycle logging via Event Ledger
  */
+
+import { supabase, isSupabaseConfigured } from "../supabase";
+import EventLedger, { generateTraceId } from "../services/event-ledger";
+
+// ============================================
+// TYPES
+// ============================================
 
 export interface Agent {
   id: string;
   name: string;
+  slug: string;
   role: "chat" | "voice" | "knowledge" | "automation";
   capabilities: string[];
+  scopes: string[];
   model?: string;
+  config: Record<string, unknown>;
   endpoint: string;
   isDefault: boolean;
-  status: "active" | "beta" | "maintenance";
+  status: "active" | "beta" | "maintenance" | "disabled";
   description?: string;
 }
 
@@ -24,78 +36,364 @@ export interface Message {
   context?: Record<string, unknown>;
 }
 
-/**
- * Agent Registry
- * Add agents here as they are developed (v0.2.1+)
- */
-export const AGENTS: Record<string, Agent> = {
+export interface AgentExecutionResult {
+  success: boolean;
+  output?: unknown;
+  error?: string;
+  durationMs: number;
+}
+
+// ============================================
+// STATIC FALLBACK (if DB unavailable)
+// ============================================
+
+const STATIC_AGENTS: Record<string, Agent> = {
   mrf: {
     id: "mrf",
     name: "Mr.F",
+    slug: "mrf",
     role: "chat",
-    capabilities: ["openai", "memory", "reasoning"],
+    capabilities: ["chat", "voice", "reasoning", "memory"],
+    scopes: ["read:messages", "write:messages", "execute:commands"],
     model: "gpt-4o-mini",
+    config: { temperature: 0.7 },
     endpoint: "/agents/mrf",
     isDefault: true,
     status: "active",
     description: "Primary conversational AI agent (OpenAI GPT-4o-mini)",
   },
-  // Future agents:
-  // knowledge: {
-  //   id: "knowledge",
-  //   name: "Knowledge Agent",
-  //   role: "knowledge",
-  //   capabilities: ["supabase", "embedding", "retrieval"],
-  //   endpoint: "/agents/knowledge",
-  //   isDefault: false,
-  //   status: "beta"
-  // },
-  // automation: {
-  //   id: "automation",
-  //   name: "Automation Agent",
-  //   role: "automation",
-  //   capabilities: ["n8n", "webhooks", "scheduling"],
-  //   endpoint: "/agents/automation",
-  //   isDefault: false,
-  //   status: "beta"
-  // }
 };
 
+// ============================================
+// AGENT CACHE
+// ============================================
+
+let agentCache: Map<string, Agent> = new Map();
+let cacheLoaded = false;
+
 /**
- * Route message to appropriate agent
- * 
- * v0.2: Basic routing (defaults to Mr.F)
- * v0.2.1+: Intelligent routing based on message content
+ * Load agents from database into cache
  */
-export function routeToAgent(message: Message): Agent {
-  // If agent explicitly specified, use it
-  if (message.agentId && AGENTS[message.agentId]) {
-    const agent = AGENTS[message.agentId];
-    if (agent.status === "active") {
-      return agent;
-    }
-    // If specified agent is not active, fall back to default
-    console.warn(`[Agent Routing] Agent ${message.agentId} not active, falling back to default`);
+async function loadAgentsFromDB(): Promise<void> {
+  if (!isSupabaseConfigured() || !supabase) {
+    console.warn("[AgentRegistry] Supabase not configured, using static agents");
+    Object.values(STATIC_AGENTS).forEach(agent => {
+      agentCache.set(agent.slug, agent);
+    });
+    cacheLoaded = true;
+    return;
   }
 
-  // Future: Intelligent routing
-  // if (message.text.includes("know")) return AGENTS["knowledge"];
-  // if (message.text.includes("automate")) return AGENTS["automation"];
+  try {
+    const { data, error } = await supabase
+      .from("agent_registry")
+      .select("*")
+      .order("name");
 
-  // Default: Mr.F
-  return AGENTS["mrf"];
+    if (error) {
+      console.error("[AgentRegistry] Failed to load from DB:", error.message);
+      // Fallback to static
+      Object.values(STATIC_AGENTS).forEach(agent => {
+        agentCache.set(agent.slug, agent);
+      });
+    } else {
+      agentCache.clear();
+      (data || []).forEach((row: any) => {
+        const agent: Agent = {
+          id: row.id,
+          name: row.name,
+          slug: row.slug,
+          role: "chat", // Default role
+          capabilities: row.capabilities || [],
+          scopes: row.scopes || [],
+          config: row.config || {},
+          model: row.config?.model,
+          endpoint: `/agents/${row.slug}`,
+          isDefault: row.slug === "mrf",
+          status: row.status || "active",
+          description: row.config?.description,
+        };
+        agentCache.set(agent.slug, agent);
+      });
+      console.log(`✅ AgentRegistry loaded ${agentCache.size} agents from DB`);
+    }
+  } catch (err) {
+    console.error("[AgentRegistry] DB load error:", err);
+    Object.values(STATIC_AGENTS).forEach(agent => {
+      agentCache.set(agent.slug, agent);
+    });
+  }
+
+  cacheLoaded = true;
+}
+
+/**
+ * Ensure cache is loaded
+ */
+async function ensureCacheLoaded(): Promise<void> {
+  if (!cacheLoaded) {
+    await loadAgentsFromDB();
+  }
+}
+
+/**
+ * Refresh agent cache from database
+ */
+export async function refreshAgentCache(): Promise<void> {
+  cacheLoaded = false;
+  await loadAgentsFromDB();
+}
+
+// ============================================
+// AGENT LOOKUP
+// ============================================
+
+/**
+ * Get all registered agents
+ */
+export async function getAllAgents(): Promise<Agent[]> {
+  await ensureCacheLoaded();
+  return Array.from(agentCache.values());
 }
 
 /**
  * Get all active agents
  */
-export function getActiveAgents(): Agent[] {
-  return Object.values(AGENTS).filter((agent) => agent.status === "active");
+export async function getActiveAgents(): Promise<Agent[]> {
+  await ensureCacheLoaded();
+  return Array.from(agentCache.values()).filter(a => a.status === "active");
 }
 
 /**
- * Get agent by ID
+ * Get agent by slug
  */
-export function getAgent(id: string): Agent | undefined {
-  return AGENTS[id];
+export async function getAgent(slug: string): Promise<Agent | undefined> {
+  await ensureCacheLoaded();
+  return agentCache.get(slug);
 }
+
+/**
+ * Get agent by ID (UUID)
+ */
+export async function getAgentById(id: string): Promise<Agent | undefined> {
+  await ensureCacheLoaded();
+  return Array.from(agentCache.values()).find(a => a.id === id);
+}
+
+/**
+ * Get the default agent (Mr.F)
+ */
+export async function getDefaultAgent(): Promise<Agent> {
+  await ensureCacheLoaded();
+  const defaultAgent = Array.from(agentCache.values()).find(a => a.isDefault);
+  return defaultAgent || STATIC_AGENTS.mrf;
+}
+
+// ============================================
+// AGENT ROUTING
+// ============================================
+
+/**
+ * Route message to appropriate agent
+ * Deterministic routing based on:
+ * 1. Explicit agent ID in message
+ * 2. Command keyword matching
+ * 3. Default agent (Mr.F)
+ */
+export async function routeToAgent(message: Message): Promise<Agent> {
+  await ensureCacheLoaded();
+  
+  // 1. Explicit agent specified
+  if (message.agentId) {
+    const agent = agentCache.get(message.agentId);
+    if (agent && agent.status === "active") {
+      return agent;
+    }
+    console.warn(`[AgentRouter] Agent ${message.agentId} not active, falling back to default`);
+  }
+
+  // 2. Keyword-based routing (deterministic)
+  const text = message.text.toLowerCase();
+  
+  // Future: Add more agents and routing rules
+  // if (text.includes("search") || text.includes("find")) return knowledgeAgent;
+  // if (text.includes("schedule") || text.includes("automate")) return automationAgent;
+
+  // 3. Default agent
+  return getDefaultAgent();
+}
+
+/**
+ * Route command to agent (for CLI-style commands)
+ */
+export async function routeCommandToAgent(command: string): Promise<Agent> {
+  await ensureCacheLoaded();
+
+  // Command-based routing map
+  const commandRoutes: Record<string, string> = {
+    "chat": "mrf",
+    "talk": "mrf",
+    "ask": "mrf",
+    // Future:
+    // "search": "knowledge",
+    // "schedule": "automation",
+    // "analyze": "analyst",
+  };
+
+  const firstWord = command.split(" ")[0].toLowerCase();
+  const agentSlug = commandRoutes[firstWord];
+
+  if (agentSlug) {
+    const agent = agentCache.get(agentSlug);
+    if (agent && agent.status === "active") {
+      return agent;
+    }
+  }
+
+  return getDefaultAgent();
+}
+
+// ============================================
+// AGENT LIFECYCLE LOGGING
+// ============================================
+
+/**
+ * Log agent execution start
+ */
+export async function logAgentStarted(
+  agent: Agent,
+  input: Record<string, unknown>,
+  traceId?: string
+): Promise<string> {
+  const trace = traceId || generateTraceId();
+  
+  await EventLedger.agentStarted(agent.slug, trace, {
+    agent_name: agent.name,
+    agent_id: agent.id,
+    capabilities: agent.capabilities,
+    input,
+  });
+
+  return trace;
+}
+
+/**
+ * Log agent execution completed
+ */
+export async function logAgentCompleted(
+  agent: Agent,
+  traceId: string,
+  result: AgentExecutionResult
+): Promise<void> {
+  await EventLedger.agentCompleted(agent.slug, traceId, {
+    agent_name: agent.name,
+    success: result.success,
+    duration_ms: result.durationMs,
+    output_type: typeof result.output,
+  });
+}
+
+/**
+ * Log agent execution failed
+ */
+export async function logAgentFailed(
+  agent: Agent,
+  traceId: string,
+  error: string
+): Promise<void> {
+  await EventLedger.agentFailed(agent.slug, traceId, error);
+}
+
+/**
+ * Execute agent with full lifecycle logging
+ */
+export async function executeAgent(
+  agent: Agent,
+  input: Record<string, unknown>,
+  executor: () => Promise<unknown>,
+  parentTraceId?: string
+): Promise<AgentExecutionResult> {
+  const traceId = parentTraceId || generateTraceId();
+  const startTime = Date.now();
+
+  // Log start
+  await logAgentStarted(agent, input, traceId);
+
+  try {
+    // Execute
+    const output = await executor();
+    const durationMs = Date.now() - startTime;
+
+    // Log success
+    const result: AgentExecutionResult = {
+      success: true,
+      output,
+      durationMs,
+    };
+    await logAgentCompleted(agent, traceId, result);
+
+    return result;
+  } catch (err) {
+    const durationMs = Date.now() - startTime;
+    const errorMessage = err instanceof Error ? err.message : String(err);
+
+    // Log failure
+    await logAgentFailed(agent, traceId, errorMessage);
+
+    return {
+      success: false,
+      error: errorMessage,
+      durationMs,
+    };
+  }
+}
+
+// ============================================
+// INITIALIZATION
+// ============================================
+
+/**
+ * Initialize the agent registry
+ * Called at server startup
+ */
+export async function initializeAgentRegistry(): Promise<void> {
+  await loadAgentsFromDB();
+  const activeCount = (await getActiveAgents()).length;
+  console.log(`✅ Agent Registry initialized: ${activeCount} active agents`);
+}
+
+// ============================================
+// LEGACY COMPATIBILITY
+// ============================================
+
+// Keep AGENTS export for backwards compatibility
+export const AGENTS = STATIC_AGENTS;
+
+// ============================================
+// EXPORTS
+// ============================================
+
+export const AgentRegistry = {
+  // Lookup
+  getAllAgents,
+  getActiveAgents,
+  getAgent,
+  getAgentById,
+  getDefaultAgent,
+  refreshAgentCache,
+  
+  // Routing
+  routeToAgent,
+  routeCommandToAgent,
+  
+  // Lifecycle
+  logAgentStarted,
+  logAgentCompleted,
+  logAgentFailed,
+  executeAgent,
+  
+  // Init
+  initializeAgentRegistry,
+};
+
+export default AgentRegistry;

@@ -4,6 +4,7 @@ import type { Server, IncomingMessage } from "http";
 import type { Socket } from "net";
 import { supabase, isSupabaseConfigured } from "./supabase";
 import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
+import { subscribeToEvents, type ArcEvent } from "./services/event-ledger";
 
 type Activity = { title?: string } & Record<string, any>;
 
@@ -192,4 +193,15 @@ export function handleDashboardActivityUpgrade(request: IncomingMessage, socket:
 export function initializeRealtimeSubscriptions() {
   console.log("Initializing real-time dashboard activity service...");
   setupSupabaseSubscription();
+  
+  // Subscribe to ARC Event Ledger and broadcast to all connected clients
+  subscribeToEvents((event: ArcEvent) => {
+    console.log(`[Realtime] Broadcasting event: ${event.type}`);
+    broadcast({
+      type: "arc_event",
+      event: event.type,
+      payload: event,
+    });
+  });
+  console.log("✅ Event Ledger → WebSocket bridge established");
 }

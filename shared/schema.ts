@@ -995,3 +995,121 @@ export const userIotDevicesRelations = relations(userIotDevices, ({ one }) => ({
     references: [userProfiles.id],
   }),
 }));
+
+// ============================================
+// SECTION: ARC CORE LEDGER (Phase 1)
+// ============================================
+// Unified event logging for all system actions
+// Every action = structured event in the ledger
+
+export const arcEvents = pgTable(
+  "arc_events",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    type: varchar("type", { length: 100 }).notNull(), // auth.login, command.received, agent.started, etc.
+    actor: varchar("actor", { length: 100 }).notNull(), // operator, system, agent_id
+    tenantId: varchar("tenant_id", { length: 100 }).notNull().default("mrf-primary"),
+    payload: jsonb("payload").default({}),
+    traceId: varchar("trace_id", { length: 100 }), // Correlation ID for request tracing
+    severity: varchar("severity", { length: 20 }).default("info"), // info, warn, error, critical
+    createdAt: timestamp("created_at").defaultNow(),
+  },
+  (table) => [
+    // Index for fetching recent events by type
+    index("idx_arc_events_type_created").on(table.type, table.createdAt),
+    // Index for tenant-scoped queries
+    index("idx_arc_events_tenant").on(table.tenantId, table.createdAt),
+    // Index for trace correlation
+    index("idx_arc_events_trace").on(table.traceId),
+  ],
+);
+
+// Zod validation schema for events
+export const arcEventSchema = z.object({
+  id: z.string().uuid().optional(),
+  type: z.string().min(1).max(100),
+  actor: z.string().min(1).max(100),
+  tenantId: z.string().default("mrf-primary"),
+  payload: z.record(z.any()).default({}),
+  traceId: z.string().optional(),
+  severity: z.enum(["info", "warn", "error", "critical"]).default("info"),
+  createdAt: z.date().optional(),
+});
+
+export type ArcEvent = z.infer<typeof arcEventSchema>;
+export type InsertArcEvent = typeof arcEvents.$inferInsert;
+export type SelectArcEvent = typeof arcEvents.$inferSelect;
+
+// ============================================
+// SECTION: TENANTS & RBAC (Phase 2 Prep)
+// ============================================
+// SaaS-grade tenant isolation - single tenant for now
+
+export const tenants = pgTable("tenants", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  name: varchar("name", { length: 255 }).notNull(),
+  slug: varchar("slug", { length: 100 }).unique().notNull(),
+  status: varchar("status", { length: 50 }).default("active"), // active, suspended, deleted
+  config: jsonb("config").default({}),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const tenantUsers = pgTable(
+  "tenant_users",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    tenantId: varchar("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    userId: varchar("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    role: varchar("role", { length: 50 }).notNull().default("AGENT"), // OWNER, ADMIN, AGENT
+    permissions: jsonb("permissions").default([]),
+    createdAt: timestamp("created_at").defaultNow(),
+  },
+  (table) => [
+    index("idx_tenant_users_tenant").on(table.tenantId),
+    index("idx_tenant_users_user").on(table.userId),
+  ],
+);
+
+export const featureFlags = pgTable("feature_flags", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  key: varchar("key", { length: 100 }).unique().notNull(),
+  enabled: boolean("enabled").default(false),
+  tenantId: varchar("tenant_id").references(() => tenants.id), // null = global
+  config: jsonb("config").default({}),
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// ============================================
+// SECTION: AGENTS REGISTRY (Phase 3 Prep)
+// ============================================
+// First-class agent definitions in database
+
+export const agentRegistry = pgTable("agent_registry", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  name: varchar("name", { length: 100 }).notNull(),
+  slug: varchar("slug", { length: 100 }).unique().notNull(),
+  capabilities: jsonb("capabilities").default([]), // ["chat", "voice", "automation"]
+  scopes: jsonb("scopes").default([]), // ["read:messages", "write:tasks"]
+  config: jsonb("config").default({}), // model, temperature, etc.
+  status: varchar("status", { length: 50 }).default("active"), // active, beta, maintenance, disabled
+  tenantId: varchar("tenant_id").references(() => tenants.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});

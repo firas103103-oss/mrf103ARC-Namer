@@ -10,6 +10,8 @@ import { AGENT_PROFILES, getAgentProfile, getAgentSystemPrompt } from "./agents/
 import { apiLimiter, aiLimiter, authLimiter } from "./middleware/rate-limiter";
 import { cache, aiCache, staticCache, createCacheKey } from "./services/cache";
 import { cachedSelect, storeAgentInteraction } from "./services/supabase-optimized";
+import EventLedger from "./services/event-ledger";
+import { ProductionMetrics } from "./services/production-metrics";
 
 function getClientIp(req: any): string {
   const xff = req.headers?.["x-forwarded-for"]; 
@@ -82,8 +84,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Put your application routes here
   // Example: api/projects, api/users etc.
   
-  app.get("/api/health", (req, res) => {
-    res.json({ status: "System Online", mode: "Horizontal Integration" });
+  // =========================================================================
+  // PHASE 5: PRODUCTION HEALTH ENDPOINTS
+  // =========================================================================
+  
+  // Simple health check for load balancers (no auth required)
+  app.get("/health", (req, res) => {
+    res.json({ 
+      status: "ok", 
+      time: new Date().toISOString(),
+      service: "arc-namer"
+    });
+  });
+
+  // Detailed health check (no auth required, for monitoring)
+  app.get("/api/health", async (req, res) => {
+    try {
+      const health = await ProductionMetrics.healthCheck();
+      const statusCode = health.status === "healthy" ? 200 : 
+                         health.status === "degraded" ? 200 : 503;
+      res.status(statusCode).json(health);
+    } catch (error: any) {
+      res.status(503).json({
+        status: "unhealthy",
+        error: error.message,
+        timestamp: new Date().toISOString(),
+      });
+    }
+  });
+
+  // Kubernetes-style liveness probe
+  app.get("/api/health/live", (req, res) => {
+    res.json({ status: "alive", timestamp: new Date().toISOString() });
+  });
+
+  // Kubernetes-style readiness probe
+  app.get("/api/health/ready", async (req, res) => {
+    try {
+      const readiness = await ProductionMetrics.readinessCheck();
+      const statusCode = readiness.ready ? 200 : 503;
+      res.status(statusCode).json(readiness);
+    } catch (error: any) {
+      res.status(503).json({
+        ready: false,
+        error: error.message,
+        timestamp: new Date().toISOString(),
+      });
+    }
+  });
+
+  // Metrics endpoint (for Prometheus scraping or internal monitoring)
+  app.get("/api/metrics", (req, res) => {
+    const metrics = ProductionMetrics.getSummary();
+    res.json({
+      ...metrics,
+      timestamp: new Date().toISOString(),
+    });
   });
 
   // --- Minimal operator auth (server-side session cookie) ---
@@ -107,6 +163,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     if (password !== expected) {
       console.warn('⚠️ Login attempt with incorrect password from IP:', getClientIp(req));
+      EventLedger.loginFailed("unknown", "invalid_password");
       return res.status(401).json({ error: "invalid_credentials" });
     }
 
@@ -114,18 +171,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     req.session.operatorAuthenticated = true;
     
     // Save session before responding
-    req.session.save((err: any) => {
+    req.session.save(async (err: any) => {
       if (err) {
         console.error('❌ Session save error:', err);
+        await EventLedger.loginFailed("operator", "session_save_failed");
         return res.status(500).json({ error: "session_save_failed" });
       }
       
+      // Log successful login to ledger
+      await EventLedger.loginSuccess("operator", { ip: getClientIp(req) });
       console.log('✅ Login successful for IP:', getClientIp(req));
       res.json({ ok: true, message: "Authentication successful" });
     });
   });
 
-  app.post("/api/auth/logout", operatorLimiter, (req: any, res) => {
+  app.post("/api/auth/logout", operatorLimiter, async (req: any, res) => {
+    await EventLedger.logout("operator");
     req.session?.destroy(() => {
       res.json({ ok: true });
     });
@@ -180,6 +241,259 @@ export async function registerRoutes(app: Express): Promise<Server> {
       pick(row, ["id", "agent_name", "event_type", "payload", "created_at"] as any),
     );
     res.json({ data: whitelisted, count: count ?? 0 });
+  });
+
+  // ============================================
+  // ARC EVENT LEDGER (Phase 1)
+  // ============================================
+  // Unified event feed - every action as a structured event
+
+  app.get("/api/arc/events", operatorLimiter, requireOperatorSession, async (req: any, res) => {
+    if (!isSupabaseConfigured() || !supabase) return res.status(503).json({ error: "supabase_not_configured" });
+
+    const page = Math.max(1, Number(req.query.page || 1));
+    const pageSize = Math.min(100, Math.max(1, Number(req.query.pageSize || 50)));
+    const offset = (page - 1) * pageSize;
+    const typeFilter = req.query.type as string | undefined;
+    const traceFilter = req.query.trace_id as string | undefined;
+
+    let query = supabase
+      .from("arc_events")
+      .select("*", { count: "exact" })
+      .order("created_at", { ascending: false })
+      .range(offset, offset + pageSize - 1);
+
+    if (typeFilter) {
+      query = query.ilike("type", `${typeFilter}%`);
+    }
+
+    if (traceFilter) {
+      query = query.eq("trace_id", traceFilter);
+    }
+
+    const { data, error, count } = await query;
+
+    if (error) {
+      console.error("[EventLedger API] Query error:", error);
+      return res.status(500).json({ error: "supabase_query_failed" });
+    }
+
+    res.json({ 
+      data: data || [], 
+      count: count ?? 0,
+      page,
+      pageSize,
+    });
+  });
+
+  // Get events by trace ID (for debugging request flow)
+  app.get("/api/arc/events/trace/:traceId", operatorLimiter, requireOperatorSession, async (req: any, res) => {
+    if (!isSupabaseConfigured() || !supabase) return res.status(503).json({ error: "supabase_not_configured" });
+
+    const { traceId } = req.params;
+    
+    const { data, error } = await supabase
+      .from("arc_events")
+      .select("*")
+      .eq("trace_id", traceId)
+      .order("created_at", { ascending: true });
+
+    if (error) {
+      console.error("[EventLedger API] Trace query error:", error);
+      return res.status(500).json({ error: "supabase_query_failed" });
+    }
+
+    res.json({ data: data || [], trace_id: traceId });
+  });
+
+  // ============================================
+  // PHASE 2: TENANT & FEATURE FLAGS API
+  // ============================================
+
+  // Get current tenant info
+  app.get("/api/arc/tenant", operatorLimiter, requireOperatorSession, async (_req: any, res) => {
+    if (!isSupabaseConfigured() || !supabase) return res.status(503).json({ error: "supabase_not_configured" });
+
+    const { data, error } = await supabase
+      .from("tenants")
+      .select("id, name, slug, status, config, created_at")
+      .eq("slug", "mrf-primary")
+      .single();
+
+    if (error) return res.status(500).json({ error: "tenant_not_found" });
+    res.json({ tenant: data, mode: "private", role: "OWNER" });
+  });
+
+  // Get all feature flags
+  app.get("/api/arc/feature-flags", operatorLimiter, requireOperatorSession, async (_req: any, res) => {
+    if (!isSupabaseConfigured() || !supabase) return res.status(503).json({ error: "supabase_not_configured" });
+
+    const { data, error } = await supabase
+      .from("feature_flags")
+      .select("key, enabled, description, config")
+      .order("key");
+
+    if (error) return res.status(500).json({ error: "supabase_query_failed" });
+    res.json({ flags: data || [] });
+  });
+
+  // Update a feature flag (OWNER only)
+  app.patch("/api/arc/feature-flags/:key", operatorLimiter, requireOperatorSession, async (req: any, res) => {
+    if (!isSupabaseConfigured() || !supabase) return res.status(503).json({ error: "supabase_not_configured" });
+
+    const { key } = req.params;
+    const { enabled } = req.body;
+
+    if (typeof enabled !== "boolean") {
+      return res.status(400).json({ error: "invalid_payload", message: "enabled must be boolean" });
+    }
+
+    // Log the feature flag change
+    EventLedger.logAsync({
+      type: "command.received",
+      actor: "operator",
+      payload: { action: "set_feature_flag", key, enabled },
+    });
+
+    const { data, error } = await supabase
+      .from("feature_flags")
+      .update({ enabled })
+      .eq("key", key)
+      .select()
+      .single();
+
+    if (error) {
+      EventLedger.logAsync({
+        type: "command.failed",
+        actor: "operator",
+        payload: { action: "set_feature_flag", key, error: error.message },
+        severity: "error",
+      });
+      return res.status(500).json({ error: "update_failed" });
+    }
+
+    EventLedger.logAsync({
+      type: "command.completed",
+      actor: "operator",
+      payload: { action: "set_feature_flag", key, enabled },
+    });
+
+    res.json({ success: true, flag: data });
+  });
+
+  // Get agent registry
+  app.get("/api/arc/agents", operatorLimiter, requireOperatorSession, async (_req: any, res) => {
+    if (!isSupabaseConfigured() || !supabase) return res.status(503).json({ error: "supabase_not_configured" });
+
+    const { data, error } = await supabase
+      .from("agent_registry")
+      .select("*")
+      .order("name");
+
+    if (error) return res.status(500).json({ error: "supabase_query_failed" });
+    res.json({ agents: data || [] });
+  });
+
+  // ============================================
+  // PHASE 4: JARVIS WORKFLOWS API
+  // ============================================
+
+  // Import workflows dynamically to avoid circular deps
+  const getJarvisWorkflows = async () => {
+    const { JarvisWorkflows } = await import("./workflows/jarvis");
+    return JarvisWorkflows;
+  };
+
+  // Daily Brief
+  app.get("/api/arc/jarvis/daily-brief", operatorLimiter, requireOperatorSession, async (_req: any, res) => {
+    try {
+      const workflows = await getJarvisWorkflows();
+      const brief = await workflows.generateDailyBrief();
+      res.json({ success: true, brief });
+    } catch (error: any) {
+      res.status(500).json({ error: "daily_brief_failed", message: error.message });
+    }
+  });
+
+  // Projects - List
+  app.get("/api/arc/jarvis/projects", operatorLimiter, requireOperatorSession, async (_req: any, res) => {
+    try {
+      const workflows = await getJarvisWorkflows();
+      const projects = await workflows.getActiveProjects();
+      res.json({ projects });
+    } catch (error: any) {
+      res.status(500).json({ error: "projects_failed", message: error.message });
+    }
+  });
+
+  // Projects - Create
+  app.post("/api/arc/jarvis/projects", operatorLimiter, requireOperatorSession, async (req: any, res) => {
+    try {
+      const workflows = await getJarvisWorkflows();
+      const project = await workflows.createProject(req.body);
+      if (!project) {
+        return res.status(500).json({ error: "create_failed" });
+      }
+      res.json({ success: true, project });
+    } catch (error: any) {
+      res.status(500).json({ error: "create_failed", message: error.message });
+    }
+  });
+
+  // Projects - Update Status
+  app.patch("/api/arc/jarvis/projects/:id", operatorLimiter, requireOperatorSession, async (req: any, res) => {
+    try {
+      const workflows = await getJarvisWorkflows();
+      const success = await workflows.updateProjectStatus(
+        req.params.id,
+        req.body.status,
+        req.body.progress
+      );
+      res.json({ success });
+    } catch (error: any) {
+      res.status(500).json({ error: "update_failed", message: error.message });
+    }
+  });
+
+  // IoT - Status
+  app.get("/api/arc/jarvis/iot/status", operatorLimiter, requireOperatorSession, async (req: any, res) => {
+    try {
+      const workflows = await getJarvisWorkflows();
+      const status = await workflows.getIoTDeviceStatus(req.query.deviceId);
+      res.json({ status });
+    } catch (error: any) {
+      res.status(500).json({ error: "iot_status_failed", message: error.message });
+    }
+  });
+
+  // IoT - Ingest Sensor Reading (can also be called by devices)
+  app.post("/api/arc/jarvis/iot/ingest", apiLimiter.middleware(), async (req: any, res) => {
+    // Validate device auth (simple secret check)
+    const secret = req.headers["x-arc-secret"] || req.body.secret;
+    const expected = process.env.X_ARC_SECRET || process.env.ARC_BACKEND_SECRET;
+    
+    if (secret !== expected) {
+      return res.status(401).json({ error: "unauthorized" });
+    }
+
+    try {
+      const workflows = await getJarvisWorkflows();
+      const success = await workflows.ingestSensorReading(req.body);
+      res.json({ success });
+    } catch (error: any) {
+      res.status(500).json({ error: "ingest_failed", message: error.message });
+    }
+  });
+
+  // IoT - Resolve Alert
+  app.post("/api/arc/jarvis/iot/alerts/:id/resolve", operatorLimiter, requireOperatorSession, async (req: any, res) => {
+    try {
+      const workflows = await getJarvisWorkflows();
+      const success = await workflows.resolveIoTAlert(req.params.id);
+      res.json({ success });
+    } catch (error: any) {
+      res.status(500).json({ error: "resolve_failed", message: error.message });
+    }
   });
 
   app.get("/api/arc/command-metrics", operatorLimiter, requireOperatorSession, async (_req: any, res) => {

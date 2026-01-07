@@ -12,6 +12,10 @@ import { registerRoutes } from "./routes";
 import { initializeRealtimeSubscriptions } from "./realtime"; // Import the new initializer
 import { handleRealtimeChatUpgrade } from "./chatRealtime";
 import { validateEnv } from "./utils/env-validator";
+import { TenantService } from "./services/tenant-service";
+import EventLedger from "./services/event-ledger";
+import { initializeAgentRegistry } from "./agents/registry";
+import { metricsMiddleware } from "./services/production-metrics";
 
 // Initialize Sentry (only in production)
 if (process.env.NODE_ENV === 'production' && process.env.SENTRY_DSN) {
@@ -158,6 +162,9 @@ const sessionMiddleware = session({
 
 app.use(sessionMiddleware);
 
+// Production metrics collection (Phase 5)
+app.use(metricsMiddleware());
+
 (async () => {
   // Activate the router from routes.ts, providing the express app
   const httpServer = await registerRoutes(app);
@@ -185,6 +192,18 @@ app.use(sessionMiddleware);
 
   // Initialize the real-time subscription service
   initializeRealtimeSubscriptions();
+
+  // Bootstrap tenant and log system startup
+  await TenantService.bootstrapTenant();
+  await initializeAgentRegistry();
+  await EventLedger.log({
+    type: "system.startup",
+    actor: "system",
+    payload: {
+      environment: process.env.NODE_ENV || "development",
+      version: process.env.npm_package_version || "2.1.0",
+    },
+  });
 
   // Environment settings (Vite for preview)
   if (app.get("env") === "development") {
