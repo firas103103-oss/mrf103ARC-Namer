@@ -18,6 +18,15 @@ const AdminControlPanel = lazy(() => import("@/pages/AdminControlPanel"));
 const MasterAgentCommand = lazy(() => import("@/pages/MasterAgentCommand"));
 const GrowthRoadmap = lazy(() => import("@/pages/GrowthRoadmap"));
 const Cloning = lazy(() => import("@/pages/Cloning"));
+// New pages - previously unused
+const AnalyticsHub = lazy(() => import("@/pages/AnalyticsHub"));
+const SystemArchitecture = lazy(() => import("@/pages/SystemArchitecture"));
+const InvestigationLounge = lazy(() => import("@/pages/InvestigationLounge"));
+const OperationsSimulator = lazy(() => import("@/pages/OperationsSimulator"));
+const QuantumWarRoom = lazy(() => import("@/pages/QuantumWarRoom"));
+const TemporalAnomalyLab = lazy(() => import("@/pages/TemporalAnomalyLab"));
+const SelfCheck = lazy(() => import("@/pages/SelfCheck"));
+const Home = lazy(() => import("@/pages/Home"));
 
 function Router() {
   const { user, isLoading } = useAuth();
@@ -63,6 +72,15 @@ function Router() {
         <Route path="/master-agent" component={MasterAgentCommand} />
         <Route path="/growth-roadmap" component={GrowthRoadmap} />
         <Route path="/cloning" component={Cloning} />
+        {/* New routes */}
+        <Route path="/profile" component={Home} />
+        <Route path="/analytics" component={AnalyticsHub} />
+        <Route path="/architecture" component={SystemArchitecture} />
+        <Route path="/investigation" component={InvestigationLounge} />
+        <Route path="/simulator" component={OperationsSimulator} />
+        <Route path="/war-room" component={QuantumWarRoom} />
+        <Route path="/anomaly-lab" component={TemporalAnomalyLab} />
+        <Route path="/self-check" component={SelfCheck} />
         <Route component={NotFound} />
       </Switch>
     </Suspense>
