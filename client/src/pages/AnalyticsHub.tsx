@@ -288,7 +288,8 @@ export default function AnalyticsHub() {
             )}
           </CardContent>
         </Card>
-      </div>
-    </div>
+        </main>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

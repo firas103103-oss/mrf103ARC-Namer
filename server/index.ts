@@ -17,6 +17,9 @@ import EventLedger from "./services/event-ledger";
 import { initializeAgentRegistry } from "./agents/registry";
 import { metricsMiddleware } from "./services/production-metrics";
 import { acriRouter } from "./routes/acri";
+import metricsRoutes from "../src/routes/metrics.routes";
+import { superSystem } from "../src/SuperIntegration";
+import { metricsCollector } from "../src/infrastructure/monitoring/MetricsCollector";
 
 // Initialize Sentry (only in production)
 if (process.env.NODE_ENV === 'production' && process.env.SENTRY_DSN) {
@@ -97,6 +100,16 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
 }));
 
+// Middleware to record HTTP metrics for Super AI System
+app.use((req, res, next) => {
+  const start = Date.now();
+  res.on('finish', () => {
+    const duration = (Date.now() - start) / 1000;
+    metricsCollector.recordHttpRequest(req.method, req.path, res.statusCode, duration);
+  });
+  next();
+});
+
 // Security headers with Helmet
 app.use(helmet({
   contentSecurityPolicy: {
@@ -174,6 +187,9 @@ app.use(metricsMiddleware());
 // ACRI routes (Phase 6)
 app.use("/api/acri", acriRouter);
 
+// Super AI System metrics routes
+app.use("/api", metricsRoutes);
+
 (async () => {
   // Activate the router from routes.ts, providing the express app
   const httpServer = await registerRoutes(app);
@@ -205,6 +221,10 @@ app.use("/api/acri", acriRouter);
   // Bootstrap tenant and log system startup
   await TenantService.bootstrapTenant();
   await initializeAgentRegistry();
+  
+  // Start Super AI System
+  await superSystem.start();
+  
   await EventLedger.log({
     type: "system.startup",
     actor: "system",

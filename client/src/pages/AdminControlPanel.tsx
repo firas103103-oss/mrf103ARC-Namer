@@ -910,7 +910,6 @@ export default function AdminControlPanel() {
           </TabsContent>
         </Tabs>
       </div>
-    </div>
         </main>
       </SidebarInset>
     </SidebarProvider>
