@@ -4,7 +4,7 @@
  */
 
 import OpenAI from 'openai';
-import { Agent } from './hierarchy_system';
+import type { AgentDefinition } from './hierarchy_system';
 
 interface ChatMessage {
   role: 'system' | 'user' | 'assistant';
@@ -46,7 +46,7 @@ class ARCOpenAIService {
   /**
    * Get system prompt for specific agent
    */
-  private getAgentSystemPrompt(agent: Agent): string {
+  private getAgentSystemPrompt(agent: AgentDefinition): string {
     const basePrompt = `You are ${agent.name} (${agent.nameAr}), an AI agent in the ARC 2.0 system.
 
 **Your Role:** ${agent.role}
@@ -57,7 +57,7 @@ ${agent.roleAr ? `**دورك:** ${agent.roleAr}` : ''}
 **Your Sector:** ${agent.sector === 'all' ? 'All sectors (you oversee everything)' : agent.sector}
 
 **Your Capabilities:**
-${agent.capabilities.map(c => `- ${c.replace(/_/g, ' ')}`).join('\n')}
+${agent.capabilities.map((c: string) => `- ${c.replace(/_/g, ' ')}`).join('\n')}
 
 **Your AI Model:** ${agent.aiModel}
 
@@ -128,7 +128,7 @@ ${agent.capabilities.map(c => `- ${c.replace(/_/g, ' ')}`).join('\n')}
    * Chat with an agent
    */
   async chat(
-    agent: Agent,
+    agent: AgentDefinition,
     userMessage: string,
     userId: string,
     context?: Record<string, any>
@@ -215,7 +215,7 @@ ${agent.capabilities.map(c => `- ${c.replace(/_/g, ' ')}`).join('\n')}
   /**
    * Simulate agent response (fallback when OpenAI not available)
    */
-  private simulateResponse(agent: Agent, userMessage: string): AgentResponse {
+  private simulateResponse(agent: AgentDefinition, userMessage: string): AgentResponse {
     const responses: Record<string, string[]> = {
       mrf_ceo: [
         'تم استلام رسالتك. سأقوم بمراجعتها والتنسيق مع الفرق المناسبة.',
@@ -252,7 +252,7 @@ ${agent.capabilities.map(c => `- ${c.replace(/_/g, ' ')}`).join('\n')}
    * Generate agent report using AI
    */
   async generateReport(
-    agent: Agent,
+    agent: AgentDefinition,
     reportType: 'daily' | 'weekly' | 'monthly' | 'semi_annual',
     data: Record<string, any>
   ): Promise<string> {
@@ -314,7 +314,7 @@ Format:
    * Simulate report (fallback)
    */
   private simulateReport(
-    agent: Agent,
+    agent: AgentDefinition,
     reportType: string,
     data: Record<string, any>
   ): string {

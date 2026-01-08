@@ -266,34 +266,6 @@ export default function AgentChat() {
             )}
             <div ref={messagesEndRef} />
           </div>
-                {message.sender === 'agent' && (
-                  <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0">
-                    <Bot className="w-5 h-5 text-blue-400" />
-                  </div>
-                )}
-                <div
-                  className={`max-w-[70%] rounded-lg p-3 ${
-                    message.sender === 'user'
-                      ? 'bg-blue-500/20 text-blue-100'
-                      : 'bg-gray-700/50'
-                  }`}
-                >
-                  {message.sender === 'agent' && (
-                    <div className="text-xs text-gray-400 mb-1">{message.agentName}</div>
-                  )}
-                  <div>{message.content}</div>
-                  <div className="text-xs text-gray-500 mt-1">
-                    {message.timestamp.toLocaleTimeString()}
-                  </div>
-                </div>
-                {message.sender === 'user' && (
-                  <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center flex-shrink-0">
-                    <UserIcon className="w-5 h-5 text-purple-400" />
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
 
           {/* Input Area */}
           <div className="p-4 border-t border-gray-700">
@@ -302,15 +274,21 @@ export default function AgentChat() {
                 type="text"
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                onKeyPress={(e) => e.key === 'Enter' && !isLoading && handleSendMessage()}
                 placeholder="اكتب رسالتك هنا..."
                 className="flex-1 bg-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={isLoading}
               />
               <button
                 onClick={handleSendMessage}
-                className="px-6 py-3 bg-blue-500 rounded-lg hover:bg-blue-600 transition-all flex items-center gap-2 font-semibold"
+                disabled={isLoading}
+                className="px-6 py-3 bg-blue-500 rounded-lg hover:bg-blue-600 transition-all flex items-center gap-2 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <Send className="w-5 h-5" />
+                {isLoading ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <Send className="w-5 h-5" />
+                )}
                 Send
               </button>
             </div>
