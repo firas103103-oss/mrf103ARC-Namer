@@ -3,6 +3,9 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import OpenAI from "openai";
+import { db } from "./db";
+import { workflowSimulations } from "@shared/schema";
+import { eq, desc } from "drizzle-orm";
 import { supabase, isSupabaseConfigured } from "./supabase";
 import voiceRouter from "./routes/voice";
 import healthRouter from "./routes/health";
@@ -1050,8 +1053,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // 17. GET /api/simulations - List all simulations/workflows
   app.get("/api/simulations", operatorLimiter, requireOperatorSession, async (_req: any, res) => {
-    // Return mock data for now
-    res.json([]);
+    try {
+      const simulations = await db
+        .select()
+        .from(workflowSimulations)
+        .orderBy(desc(workflowSimulations.createdAt));
+      
+      res.json(simulations);
+    } catch (error: any) {
+      console.error("[/api/simulations GET]", error);
+      res.status(500).json({ error: "database_error", message: error.message });
+    }
   });
 
   // 18. POST /api/simulations - Create new simulation
@@ -1060,36 +1072,123 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     if (!name) return res.status(400).json({ error: "name_required" });
     
-    const newSim = {
-      id: Date.now().toString(),
-      name,
-      description: description || "",
-      steps: steps || [],
-      status: "pending",
-      createdAt: new Date().toISOString()
-    };
-    
-    res.json(newSim);
+    try {
+      const [newSim] = await db
+        .insert(workflowSimulations)
+        .values({
+          name,
+          description: description || null,
+          steps: steps || [],
+          status: "draft",
+          createdBy: req.session?.operatorId || "operator",
+        })
+        .returning();
+      
+      res.json(newSim);
+    } catch (error: any) {
+      console.error("[/api/simulations POST]", error);
+      res.status(500).json({ error: "database_error", message: error.message });
+    }
   });
 
   // 19. PATCH /api/simulations/:id - Update simulation
   app.patch("/api/simulations/:id", operatorLimiter, requireOperatorSession, async (req: any, res) => {
     const { id } = req.params;
-    const updates = req.body;
+    const { name, description, steps, status } = req.body;
     
-    res.json({ id, ...updates, updatedAt: new Date().toISOString() });
+    try {
+      const updateData: any = { updatedAt: new Date() };
+      if (name !== undefined) updateData.name = name;
+      if (description !== undefined) updateData.description = description;
+      if (steps !== undefined) updateData.steps = steps;
+      if (status !== undefined) updateData.status = status;
+      
+      const [updated] = await db
+        .update(workflowSimulations)
+        .set(updateData)
+        .where(eq(workflowSimulations.id, id))
+        .returning();
+      
+      if (!updated) {
+        return res.status(404).json({ error: "simulation_not_found" });
+      }
+      
+      res.json(updated);
+    } catch (error: any) {
+      console.error("[/api/simulations/:id PATCH]", error);
+      res.status(500).json({ error: "database_error", message: error.message });
+    }
   });
 
   // 20. POST /api/simulations/:id/run - Execute simulation
   app.post("/api/simulations/:id/run", operatorLimiter, requireOperatorSession, async (req: any, res) => {
     const { id } = req.params;
     
-    res.json({ 
-      id, 
-      status: "running", 
-      startedAt: new Date().toISOString(),
-      message: "Simulation execution started"
-    });
+    try {
+      // Get simulation
+      const [simulation] = await db
+        .select()
+        .from(workflowSimulations)
+        .where(eq(workflowSimulations.id, id));
+      
+      if (!simulation) {
+        return res.status(404).json({ error: "simulation_not_found" });
+      }
+      
+      // Execute simulation steps (simplified for now)
+      const startTime = Date.now();
+      const steps = (simulation.steps as any[]) || [];
+      const stepResults: any[] = [];
+      
+      for (const step of steps) {
+        const stepStart = Date.now();
+        try {
+          // Simulate step execution with delay
+          if (step.type === "delay") {
+            await new Promise(r => setTimeout(r, Math.min(step.config?.delayMs || 1000, 3000)));
+          } else {
+            await new Promise(r => setTimeout(r, 500)); // Simulate processing
+          }
+          
+          stepResults.push({
+            stepId: step.id,
+            status: "success",
+            duration: Date.now() - stepStart,
+          });
+        } catch (error: any) {
+          stepResults.push({
+            stepId: step.id,
+            status: "error",
+            duration: Date.now() - stepStart,
+            error: error.message,
+          });
+        }
+      }
+      
+      const totalDuration = Date.now() - startTime;
+      const result = {
+        status: stepResults.every(r => r.status === "success") ? "success" : "partial_success",
+        timestamp: new Date().toISOString(),
+        duration: totalDuration,
+        stepResults,
+      };
+      
+      // Update simulation with results
+      await db
+        .update(workflowSimulations)
+        .set({
+          lastRunAt: new Date(),
+          lastResult: result,
+          status: "completed",
+          updatedAt: new Date(),
+        })
+        .where(eq(workflowSimulations.id, id));
+      
+      res.json({ id, result });
+    } catch (error: any) {
+      console.error("[/api/simulations/:id/run POST]", error);
+      res.status(500).json({ error: "execution_error", message: error.message });
+    }
   });
 
   // 21. GET /api/bio-sentinel/profiles - List bio profiles
