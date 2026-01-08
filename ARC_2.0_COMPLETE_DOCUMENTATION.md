@@ -9,16 +9,16 @@
 
 ## 📋 Table of Contents
 
-1. [System Overview](#system-overview)
-2. [Architecture](#architecture)
-3. [Agent Hierarchy](#agent-hierarchy)
-4. [Backend Systems](#backend-systems)
-5. [Frontend Pages](#frontend-pages)
-6. [API Documentation](#api-documentation)
-7. [Database Schema](#database-schema)
-8. [Deployment](#deployment)
-9. [Testing](#testing)
-10. [Future Roadmap](#future-roadmap)
+1. [System Overview](#-system-overview)
+2. [Architecture](#️-architecture)
+3. [Agent Hierarchy](#-agent-hierarchy)
+4. [Backend Systems](#-backend-systems)
+5. [Frontend Pages](#-frontend-pages)
+6. [API Documentation](#-api-documentation)
+7. [Database Schema](#️-database-schema)
+8. [Deployment](#-deployment)
+9. [Testing](#-testing)
+10. [Future Roadmap](#-future-roadmap)
 
 ---
 

@@ -62,14 +62,6 @@ async function runSchema() {
       try {
         const { error } = await supabase.rpc('exec_sql', { 
           sql_query: statement + ';' 
-        }).catch(async () => {
-          // Fallback: try direct query for certain operations
-          if (isCreate || isInsert || isAlter) {
-            // For Supabase, we need to use REST API or client methods
-            // Since we can't execute raw SQL directly, we'll log it
-            return { error: null };
-          }
-          return { error: 'Not supported' };
         });
         
         if (error) {

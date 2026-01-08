@@ -2,12 +2,12 @@
 
 **Production-Ready Multi-Agent Intelligence Platform with Advanced Optimization**
 
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)]()
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)]()
-[![React](https://img.shields.io/badge/React-18-blue)]()
-[![System Health](https://img.shields.io/badge/health-98%2F100-success)]()
-[![Performance](https://img.shields.io/badge/performance-optimized-brightgreen)]()
-[![License](https://img.shields.io/badge/license-MIT-blue)]()
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/firas103103-oss/mrf103ARC-Namer)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.6-blue)](https://www.typescriptlang.org/)
+[![React](https://img.shields.io/badge/React-18-blue)](https://react.dev/)
+[![System Health](https://img.shields.io/badge/health-98%2F100-success)](https://github.com/firas103103-oss/mrf103ARC-Namer)
+[![Performance](https://img.shields.io/badge/performance-optimized-brightgreen)](https://github.com/firas103103-oss/mrf103ARC-Namer)
+[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 Enterprise-grade AI orchestration platform with real-time monitoring, multi-agent coordination, intelligent caching, advanced rate limiting, and comprehensive 90-day growth tracking system. Built with React 18, TypeScript, Express, PostgreSQL, and GPT-4 integration.
 
@@ -51,7 +51,7 @@ Enterprise-grade AI orchestration platform with real-time monitoring, multi-agen
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js 20+ (recommended)
+- Node.js 20+ or 24+ (recommended: v24.11.1)
 - PostgreSQL database
 - OpenAI API key (for Master Agent)
 - Supabase account (recommended for optimal performance)
