@@ -10,7 +10,7 @@
  * Phase 5: Production Hardening
  */
 
-import { supabase } from "./supabase.js";
+import { supabase } from "../supabase";
 import { TenantService } from "./tenant-service.js";
 
 // ============================================================================

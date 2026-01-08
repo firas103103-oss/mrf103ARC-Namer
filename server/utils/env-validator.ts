@@ -84,7 +84,7 @@ export function validateEnv(): void {
 
 function validateDatabaseUrl(): void {
   const dbUrl = process.env.DATABASE_URL;
-  if (!dbUrl?.startsWith('postgresql://')) {
+  if (!dbUrl || !dbUrl.startsWith('postgresql://')) {
     throw new EnvValidationError(
       'DATABASE_URL must be a valid PostgreSQL connection string (starting with postgresql://)'
     );

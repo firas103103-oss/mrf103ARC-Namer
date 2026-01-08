@@ -20,8 +20,7 @@ RUN npm run build
 
 # إعداد المنفذ
 # Railway سيحدد PORT تلقائياً - لا نقوم بتعيينه هنا
-# ENV PORT=9002 - تم إزالته للسماح لـ Railway بتعيين PORT ديناميكياً
-EXPOSE 9002
+# لا حاجة لـ EXPOSE في Railway - سيستخدم PORT التلقائي
 
 # تشغيل التطبيق
 CMD ["npm", "start"]

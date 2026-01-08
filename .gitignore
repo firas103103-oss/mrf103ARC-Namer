@@ -28,3 +28,8 @@ android/build/
 android/app/build/
 android/.gradle/
 android/local.properties
+*.txt
+RAILWAY_*.md
+PRODUCTION_STATUS_REPORT.md
+.env.production
+RAILWAY_VARIABLES_COMPLETE.txt

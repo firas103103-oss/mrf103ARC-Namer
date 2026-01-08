@@ -16,6 +16,7 @@ import { TenantService } from "./services/tenant-service";
 import EventLedger from "./services/event-ledger";
 import { initializeAgentRegistry } from "./agents/registry";
 import { metricsMiddleware } from "./services/production-metrics";
+import { acriRouter } from "./routes/acri";
 
 // Initialize Sentry (only in production)
 if (process.env.NODE_ENV === 'production' && process.env.SENTRY_DSN) {
@@ -65,6 +66,10 @@ function serveStatic(app: Express) {
 }
 
 const app = express();
+
+// Trust proxy - CRITICAL for Railway/Cloudflare
+// Without this, secure cookies won't work behind reverse proxy
+app.set("trust proxy", 1);
 
 // CORS Configuration
 const allowedOrigins = [
@@ -154,9 +159,10 @@ const sessionMiddleware = session({
   }),
   cookie: {
     httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    secure: process.env.NODE_ENV === "production", // Always true in production with trust proxy
     maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+    domain: process.env.NODE_ENV === "production" ? ".mrf103.com" : undefined, // Allow subdomains
   },
 });
 
@@ -164,6 +170,9 @@ app.use(sessionMiddleware);
 
 // Production metrics collection (Phase 5)
 app.use(metricsMiddleware());
+
+// ACRI routes (Phase 6)
+app.use("/api/acri", acriRouter);
 
 (async () => {
   // Activate the router from routes.ts, providing the express app
@@ -235,8 +244,8 @@ app.use(metricsMiddleware());
   });
 
   // Use the PORT environment variable (Railway provides this automatically)
-  // Default to 9002 for local development
-  const port = process.env.PORT ? Number(process.env.PORT) : 9002;
+  // Default to 5001 for local development (9002 was old port)
+  const port = process.env.PORT ? Number(process.env.PORT) : 5001;
   const host = "0.0.0.0"; // Allow external access
   
   httpServer.listen(port, host, () => {
