@@ -191,6 +191,10 @@ app.use("/api/acri", acriRouter);
 // Super AI System metrics routes
 app.use("/api", metricsRoutes);
 
+// ARC 2.0 Routes - New 31-Agent Hierarchy System
+import arcRouter from "./routes/arc.routes";
+app.use("/api/arc", arcRouter);
+
 (async () => {
   // Activate the router from routes.ts, providing the express app
   const httpServer = await registerRoutes(app);

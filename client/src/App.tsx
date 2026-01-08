@@ -18,7 +18,7 @@ const AdminControlPanel = lazy(() => import("@/pages/AdminControlPanel"));
 const MasterAgentCommand = lazy(() => import("@/pages/MasterAgentCommand"));
 const GrowthRoadmap = lazy(() => import("@/pages/GrowthRoadmap"));
 const Cloning = lazy(() => import("@/pages/Cloning"));
-// New pages - previously unused
+// Old pages
 const AnalyticsHub = lazy(() => import("@/pages/AnalyticsHub"));
 const SystemArchitecture = lazy(() => import("@/pages/SystemArchitecture"));
 const InvestigationLounge = lazy(() => import("@/pages/InvestigationLounge"));
@@ -27,6 +27,20 @@ const QuantumWarRoom = lazy(() => import("@/pages/QuantumWarRoom"));
 const TemporalAnomalyLab = lazy(() => import("@/pages/TemporalAnomalyLab"));
 const SelfCheck = lazy(() => import("@/pages/SelfCheck"));
 const Home = lazy(() => import("@/pages/Home"));
+
+// New ARC 2.0 Pages - 31 Agent Hierarchy
+const MRFDashboard = lazy(() => import("@/pages/MRFDashboard"));
+const MaestrosHub = lazy(() => import("@/pages/MaestrosHub"));
+const SecurityCenter = lazy(() => import("@/pages/SecurityCenter"));
+const FinanceHub = lazy(() => import("@/pages/FinanceHub"));
+const LegalArchive = lazy(() => import("@/pages/LegalArchive"));
+const LifeManager = lazy(() => import("@/pages/LifeManager"));
+const RnDLab = lazy(() => import("@/pages/RnDLab"));
+const XBioSentinel = lazy(() => import("@/pages/XBioSentinel"));
+const ReportsCenter = lazy(() => import("@/pages/ReportsCenter"));
+const Settings = lazy(() => import("@/pages/Settings"));
+const Integrations = lazy(() => import("@/pages/Integrations"));
+const AgentChat = lazy(() => import("@/pages/AgentChat"));
 
 function Router() {
   const { user, isLoading } = useAuth();
@@ -56,6 +70,22 @@ function Router() {
       <Switch>
         <Route path="/" component={Home} />
         <Route path="/auth" component={OperatorLogin} />
+        
+        {/* ARC 2.0 - New 31-Agent Hierarchy Pages */}
+        <Route path="/mrf" component={MRFDashboard} />
+        <Route path="/maestros" component={MaestrosHub} />
+        <Route path="/security" component={SecurityCenter} />
+        <Route path="/finance" component={FinanceHub} />
+        <Route path="/legal" component={LegalArchive} />
+        <Route path="/life" component={LifeManager} />
+        <Route path="/rnd" component={RnDLab} />
+        <Route path="/xbio" component={XBioSentinel} />
+        <Route path="/reports" component={ReportsCenter} />
+        <Route path="/settings" component={Settings} />
+        <Route path="/integrations" component={Integrations} />
+        <Route path="/chat" component={AgentChat} />
+
+        {/* Old Pages - Legacy */}
         <Route path="/dashboard" component={VirtualOffice} />
         <Route path="/bio-sentinel" component={BioSentinel} />
         <Route path="/team-command" component={TeamCommandCenter} />
