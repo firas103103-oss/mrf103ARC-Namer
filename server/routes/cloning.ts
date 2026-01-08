@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 import { Router, Request, Response } from "express";
 import multer from "multer";
 import path from "path";

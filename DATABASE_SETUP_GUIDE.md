@@ -24,13 +24,13 @@
 5. **Verify:**
    - Check "Table Editor" in sidebar
    - You should see 7 new tables:
-     * `agent_experiences`
-     * `agent_skills`
-     * `agent_reports`
-     * `learning_goals`
-     * `agent_patterns`
-     * `agent_chat_messages`
-     * `agent_status` (should have 31 rows)
+     - `agent_experiences`
+     - `agent_skills`
+     - `agent_reports`
+     - `learning_goals`
+     - `agent_patterns`
+     - `agent_chat_messages`
+     - `agent_status` (should have 31 rows)
 
 ### Option 2: Using psql CLI
 
