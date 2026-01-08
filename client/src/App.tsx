@@ -1,17 +1,17 @@
-import { Switch, Route, useLocation } from "wouter";
+import { Switch, Route, Redirect } from "wouter";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
 import { OperatorLogin } from "@/components/OperatorLogin";
 import { useAuth } from "@/hooks/useAuth";
-import { lazy, Suspense, useEffect } from "react";
+import { lazy, Suspense } from "react";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { EnhancedLoadingFallback } from "@/components/EnhancedLoadingFallback";
 
 // Lazy load heavy components
 const NotFound = lazy(() => import("@/pages/not-found"));
 const LandingPage = lazy(() => import("@/pages/landing"));
-const VirtualOffice = lazy(() => import("@/pages/VirtualOffice"));
+const VirtualOffice = lazy(() => import("@/pages/virtual-office"));
 const BioSentinel = lazy(() => import("@/pages/BioSentinel"));
 const TeamCommandCenter = lazy(() => import("@/pages/TeamCommandCenter"));
 const AdminControlPanel = lazy(() => import("@/pages/AdminControlPanel"));
@@ -55,14 +55,7 @@ function Router() {
     <Suspense fallback={<EnhancedLoadingFallback timeout={10000} />}>
       <Switch>
         <Route path="/">
-          {() => {
-            const [, setLocation] = useLocation();
-            useEffect(() => {
-              // إعادة توجيه المستخدمين المسجلين إلى Virtual Office
-              setLocation("/virtual-office");
-            }, [setLocation]);
-            return <EnhancedLoadingFallback timeout={3000} />;
-          }}
+          <Redirect to="/virtual-office" />
         </Route>
         <Route path="/auth" component={OperatorLogin} />
         <Route path="/virtual-office" component={VirtualOffice} />
