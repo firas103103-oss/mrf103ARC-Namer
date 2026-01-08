@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/app-sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -98,13 +100,20 @@ export default function SelfCheck() {
   }
 
   return (
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
+        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+          <SidebarTrigger className="-ml-1" />
+          <h1 className="text-lg font-semibold flex items-center gap-2">
+            <Shield className="h-5 w-5" />
+            ARC Self-Check
+          </h1>
+        </header>
+        <main className="flex flex-1 flex-col gap-4 p-4 overflow-auto">
     <div className="p-6 space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-foreground flex items-center gap-2" data-testid="text-page-title">
-            <Shield className="h-6 w-6 text-primary" />
-            ARC Self-Check
-          </h1>
           <p className="text-muted-foreground mt-1">Live system monitoring and health status</p>
         </div>
         <div data-testid="health-score">
@@ -211,5 +220,8 @@ export default function SelfCheck() {
         </Card>
       </div>
     </div>
+        </main>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

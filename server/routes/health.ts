@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { supabase } from '../supabase';
 import os from 'os';
 import { selfHealer } from '../services/self-healer';
+import logger from '../utils/logger';
 
 const router = Router();
 
@@ -77,7 +78,7 @@ router.get('/health', async (req: Request, res: Response) => {
     
     console.log(`Health check completed in ${Date.now() - startTime}ms - Status: ${overallStatus}`);
   } catch (error) {
-    console.error('Health check failed:', error);
+    logger.error('Health check failed:', error);
     res.status(503).json({
       status: 'unhealthy',
       timestamp: new Date().toISOString(),

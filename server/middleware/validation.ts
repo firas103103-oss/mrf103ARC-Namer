@@ -101,6 +101,36 @@ export const paginationSchema = z.object({
   }),
 });
 
+// Sensor Reading Schema (Bio Sentinel)
+export const sensorReadingSchema = z.object({
+  deviceId: z.string().min(1, "Device ID is required"),
+  gasResistance: z.number().min(0),
+  temperature: z.number(),
+  humidity: z.number().min(0).max(100),
+  pressure: z.number().min(0),
+  iaqScore: z.number().min(0).max(500),
+  co2Equivalent: z.number().optional(),
+  vocEquivalent: z.number().optional(),
+  heaterTemperature: z.number().optional(),
+  mode: z.string().optional(),
+});
+
+// Master Agent Command Schema
+export const masterAgentCommandSchema = z.object({
+  command: z.string().min(1, "Command is required"),
+  priority: z.enum(["low", "medium", "high", "critical"]).optional().default("medium"),
+  context: z.record(z.any()).optional(),
+});
+
+// Growth Roadmap Task Schema
+export const growthTaskSchema = z.object({
+  phaseId: z.string().uuid("Invalid phase ID"),
+  title: z.string().min(1, "Task title is required"),
+  description: z.string().optional(),
+  target: z.number().optional(),
+  priority: z.enum(["low", "medium", "high"]).default("medium"),
+});
+
 export default {
   validateBody,
   validateQuery,
@@ -109,4 +139,7 @@ export default {
   agentSchema,
   taskSchema,
   paginationSchema,
+  sensorReadingSchema,
+  masterAgentCommandSchema,
+  growthTaskSchema,
 };

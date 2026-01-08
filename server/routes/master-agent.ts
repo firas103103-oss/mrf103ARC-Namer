@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
 import { db } from "../db";
+import logger from "../utils/logger";
 import { eq, desc, sql } from "drizzle-orm";
 import { arcCommandLog, agents } from "@shared/schema";
 import OpenAI from "openai";
@@ -110,7 +111,7 @@ Respond with a JSON object:
     const plan = JSON.parse(response.choices[0].message.content || "{}");
     return plan;
   } catch (error) {
-    console.error("Error analyzing command:", error);
+    logger.error("Error analyzing command:", error);
     // Fallback plan
     return {
       title: "Execute Command",
@@ -160,7 +161,7 @@ Respond with JSON:
     const decision = JSON.parse(response.choices[0].message.content || "{}");
     return decision;
   } catch (error) {
-    console.error("Error making decision:", error);
+    logger.error("Error making decision:", error);
     return null;
   }
 }
@@ -222,7 +223,7 @@ masterAgentRouter.post("/execute", async (req, res) => {
 
     // Start execution in background
     executeTask(taskId, plan).catch((err) => {
-      console.error("Task execution error:", err);
+      logger.error("Task execution error:", err);
       const t = activeTasks.get(taskId);
       if (t) {
         t.status = "failed";
@@ -237,7 +238,7 @@ masterAgentRouter.post("/execute", async (req, res) => {
       plan,
     });
   } catch (error) {
-    console.error("Error executing command:", error);
+    logger.error("Error executing command:", error);
     res.status(500).json({ error: "Failed to execute command" });
   }
 });
@@ -319,7 +320,7 @@ masterAgentRouter.get("/tasks", async (req, res) => {
     );
     res.json(tasks);
   } catch (error) {
-    console.error("Error fetching tasks:", error);
+    logger.error("Error fetching tasks:", error);
     res.status(500).json({ error: "Failed to fetch tasks" });
   }
 });
@@ -332,7 +333,7 @@ masterAgentRouter.get("/decisions", async (req, res) => {
     );
     res.json(decisions);
   } catch (error) {
-    console.error("Error fetching decisions:", error);
+    logger.error("Error fetching decisions:", error);
     res.status(500).json({ error: "Failed to fetch decisions" });
   }
 });
@@ -359,7 +360,7 @@ masterAgentRouter.post("/approve-decision", async (req, res) => {
 
     res.json({ success: true, decision });
   } catch (error) {
-    console.error("Error approving decision:", error);
+    logger.error("Error approving decision:", error);
     res.status(500).json({ error: "Failed to approve decision" });
   }
 });
@@ -370,7 +371,7 @@ masterAgentRouter.get("/agents-status", async (req, res) => {
     const status = Array.from(agentsStatus.values());
     res.json(status);
   } catch (error) {
-    console.error("Error fetching agents status:", error);
+    logger.error("Error fetching agents status:", error);
     res.status(500).json({ error: "Failed to fetch agents status" });
   }
 });
@@ -410,7 +411,7 @@ masterAgentRouter.get("/stats", async (req, res) => {
       decisionsToday,
     });
   } catch (error) {
-    console.error("Error fetching stats:", error);
+    logger.error("Error fetching stats:", error);
     res.status(500).json({ error: "Failed to fetch stats" });
   }
 });
@@ -440,7 +441,7 @@ masterAgentRouter.post("/request-decision", async (req, res) => {
 
     res.json({ success: true, decision: decisionRecord });
   } catch (error) {
-    console.error("Error requesting decision:", error);
+    logger.error("Error requesting decision:", error);
     res.status(500).json({ error: "Failed to request decision" });
   }
 });
@@ -465,7 +466,7 @@ masterAgentRouter.post("/cleanup", async (req, res) => {
 
     res.json({ success: true, removedTasks: removed });
   } catch (error) {
-    console.error("Error cleaning up:", error);
+    logger.error("Error cleaning up:", error);
     res.status(500).json({ error: "Failed to cleanup" });
   }
 });
@@ -537,7 +538,7 @@ masterAgentRouter.get("/growth-status", async (req, res) => {
       })),
     });
   } catch (error) {
-    console.error("Error fetching growth status:", error);
+    logger.error("Error fetching growth status:", error);
     res.status(500).json({ error: "Failed to fetch growth status" });
   }
 });

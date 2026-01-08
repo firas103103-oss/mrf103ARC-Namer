@@ -5,6 +5,7 @@ import type { Socket } from "net";
 import { supabase, isSupabaseConfigured } from "./supabase";
 import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 import { subscribeToEvents, type ArcEvent } from "./services/event-ledger";
+import logger from "./utils/logger";
 
 type Activity = { title?: string } & Record<string, any>;
 
@@ -58,7 +59,7 @@ function setupSupabaseSubscription() {
       if (status === "SUBSCRIBED") {
         console.log("✅ Real-time subscription to activity_feed established.");
       } else if (status === "CHANNEL_ERROR") {
-        console.error("❌ Real-time subscription to activity_feed failed:", err);
+        logger.error("❌ Real-time subscription to activity_feed failed:", err);
       }
     });
 
@@ -82,7 +83,7 @@ function setupSupabaseSubscription() {
       if (status === "SUBSCRIBED") {
         console.log("✅ Real-time subscription to anomalies established.");
       } else if (status === "CHANNEL_ERROR") {
-        console.error("❌ Real-time subscription to anomalies failed:", err);
+        logger.error("❌ Real-time subscription to anomalies failed:", err);
       }
     });
 
@@ -106,7 +107,7 @@ function setupSupabaseSubscription() {
       if (status === "SUBSCRIBED") {
         console.log("✅ Real-time subscription to mission_scenarios established.");
       } else if (status === "CHANNEL_ERROR") {
-        console.error("❌ Real-time subscription to mission_scenarios failed:", err);
+        logger.error("❌ Real-time subscription to mission_scenarios failed:", err);
       }
     });
 
@@ -130,7 +131,7 @@ function setupSupabaseSubscription() {
       if (status === "SUBSCRIBED") {
         console.log("✅ Real-time subscription to team_tasks established.");
       } else if (status === "CHANNEL_ERROR") {
-        console.error("❌ Real-time subscription to team_tasks failed:", err);
+        logger.error("❌ Real-time subscription to team_tasks failed:", err);
       }
     });
 
@@ -153,7 +154,7 @@ function setupSupabaseSubscription() {
       if (status === "SUBSCRIBED") {
         console.log("✅ Real-time subscription to agent_performance established.");
       } else if (status === "CHANNEL_ERROR") {
-        console.error("❌ Real-time subscription to agent_performance failed:", err);
+        logger.error("❌ Real-time subscription to agent_performance failed:", err);
       }
     });
 }
@@ -169,7 +170,7 @@ wss.on("connection", (ws: WebSocket) => {
   });
 
   ws.on("error", (err) => {
-    console.error("[Activity Feed] WebSocket error:", err);
+    logger.error("[Activity Feed] WebSocket error:", err);
     clients.delete(ws);
   });
 

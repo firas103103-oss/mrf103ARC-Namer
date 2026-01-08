@@ -16,6 +16,7 @@
 import { supabase, isSupabaseConfigured } from "../supabase";
 import EventLedger, { generateTraceId } from "../services/event-ledger";
 import { AgentRegistry, executeAgent } from "../agents/registry";
+import logger from "../utils/logger";
 
 // ============================================
 // TYPES
@@ -329,7 +330,7 @@ export async function getActiveProjects(): Promise<Project[]> {
     .order("created_at", { ascending: false });
 
   if (error) {
-    console.error("[Workflows] Projects query error:", error.message);
+    logger.error("[Workflows] Projects query error:", error.message);
     return [];
   }
 

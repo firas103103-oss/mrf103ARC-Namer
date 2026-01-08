@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
 import { db } from "../db";
+import logger from "../utils/logger";
 import { eq, desc } from "drizzle-orm";
 import {
   users,
@@ -50,7 +51,7 @@ adminRouter.get("/stats", async (req, res) => {
       avgResponseTime,
     });
   } catch (error) {
-    console.error("Error fetching admin stats:", error);
+    logger.error("Error fetching admin stats:", error);
     res.status(500).json({ error: "Failed to fetch stats" });
   }
 });
@@ -63,7 +64,7 @@ adminRouter.get("/agents", async (req, res) => {
     const allAgents = await db.select().from(agents).orderBy(desc(agents.createdAt));
     res.json(allAgents);
   } catch (error) {
-    console.error("Error fetching agents:", error);
+    logger.error("Error fetching agents:", error);
     res.status(500).json({ error: "Failed to fetch agents" });
   }
 });
@@ -97,7 +98,7 @@ adminRouter.post("/agents", async (req, res) => {
 
     res.json(newAgent);
   } catch (error) {
-    console.error("Error creating agent:", error);
+    logger.error("Error creating agent:", error);
     if (error instanceof z.ZodError) {
       res.status(400).json({ error: "Invalid input", details: error.errors });
     } else {
@@ -128,7 +129,7 @@ adminRouter.put("/agents/:id", async (req, res) => {
 
     res.json(updatedAgent);
   } catch (error) {
-    console.error("Error updating agent:", error);
+    logger.error("Error updating agent:", error);
     res.status(500).json({ error: "Failed to update agent" });
   }
 });
@@ -141,7 +142,7 @@ adminRouter.delete("/agents/:id", async (req, res) => {
 
     res.json({ success: true });
   } catch (error) {
-    console.error("Error deleting agent:", error);
+    logger.error("Error deleting agent:", error);
     res.status(500).json({ error: "Failed to delete agent" });
   }
 });
@@ -154,7 +155,7 @@ adminRouter.get("/projects", async (req, res) => {
     const allProjects = await db.select().from(projects).orderBy(desc(projects.createdAt));
     res.json(allProjects);
   } catch (error) {
-    console.error("Error fetching projects:", error);
+    logger.error("Error fetching projects:", error);
     res.status(500).json({ error: "Failed to fetch projects" });
   }
 });
@@ -176,7 +177,7 @@ adminRouter.post("/projects", async (req, res) => {
 
     res.json(newProject);
   } catch (error) {
-    console.error("Error creating project:", error);
+    logger.error("Error creating project:", error);
     if (error instanceof z.ZodError) {
       res.status(400).json({ error: "Invalid input", details: error.errors });
     } else {
@@ -202,7 +203,7 @@ adminRouter.put("/projects/:id", async (req, res) => {
 
     res.json(updatedProject);
   } catch (error) {
-    console.error("Error updating project:", error);
+    logger.error("Error updating project:", error);
     res.status(500).json({ error: "Failed to update project" });
   }
 });
@@ -215,7 +216,7 @@ adminRouter.delete("/projects/:id", async (req, res) => {
 
     res.json({ success: true });
   } catch (error) {
-    console.error("Error deleting project:", error);
+    logger.error("Error deleting project:", error);
     res.status(500).json({ error: "Failed to delete project" });
   }
 });
@@ -280,7 +281,7 @@ adminRouter.get("/capabilities", async (req, res) => {
 
     res.json(capabilities);
   } catch (error) {
-    console.error("Error fetching capabilities:", error);
+    logger.error("Error fetching capabilities:", error);
     res.status(500).json({ error: "Failed to fetch capabilities" });
   }
 });
@@ -293,7 +294,7 @@ adminRouter.put("/capabilities", async (req, res) => {
     // هنا نرجع ببساطة التأكيد
     res.json({ success: true, capability });
   } catch (error) {
-    console.error("Error updating capability:", error);
+    logger.error("Error updating capability:", error);
     res.status(500).json({ error: "Failed to update capability" });
   }
 });
@@ -326,7 +327,7 @@ adminRouter.post("/core-agent/execute", async (req, res) => {
       message: "Task queued for execution",
     });
   } catch (error) {
-    console.error("Error executing core agent task:", error);
+    logger.error("Error executing core agent task:", error);
     res.status(500).json({ error: "Failed to execute task" });
   }
 });

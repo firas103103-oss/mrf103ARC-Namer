@@ -10,6 +10,7 @@
 
 import { supabase, isSupabaseConfigured } from "../supabase";
 import EventLedger, { generateTraceId } from "../services/event-ledger";
+import logger from "../utils/logger";
 
 // ============================================
 // TYPES
@@ -76,7 +77,7 @@ let cacheLoaded = false;
  */
 async function loadAgentsFromDB(): Promise<void> {
   if (!isSupabaseConfigured() || !supabase) {
-    console.warn("[AgentRegistry] Supabase not configured, using static agents");
+    logger.warn("[AgentRegistry] Supabase not configured, using static agents");
     Object.values(STATIC_AGENTS).forEach(agent => {
       agentCache.set(agent.slug, agent);
     });
@@ -91,7 +92,7 @@ async function loadAgentsFromDB(): Promise<void> {
       .order("name");
 
     if (error) {
-      console.error("[AgentRegistry] Failed to load from DB:", error.message);
+      logger.error("[AgentRegistry] Failed to load from DB:", error.message);
       // Fallback to static
       Object.values(STATIC_AGENTS).forEach(agent => {
         agentCache.set(agent.slug, agent);
@@ -118,7 +119,7 @@ async function loadAgentsFromDB(): Promise<void> {
       console.log(`✅ AgentRegistry loaded ${agentCache.size} agents from DB`);
     }
   } catch (err) {
-    console.error("[AgentRegistry] DB load error:", err);
+    logger.error("[AgentRegistry] DB load error:", err);
     Object.values(STATIC_AGENTS).forEach(agent => {
       agentCache.set(agent.slug, agent);
     });
@@ -209,7 +210,7 @@ export async function routeToAgent(message: Message): Promise<Agent> {
     if (agent && agent.status === "active") {
       return agent;
     }
-    console.warn(`[AgentRouter] Agent ${message.agentId} not active, falling back to default`);
+    logger.warn(`[AgentRouter] Agent ${message.agentId} not active, falling back to default`);
   }
 
   // 2. Keyword-based routing (deterministic)

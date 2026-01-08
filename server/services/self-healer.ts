@@ -5,6 +5,7 @@
 
 import { Pool } from "pg";
 import EventEmitter from "events";
+import logger from "../utils/logger";
 
 export interface HealthCheck {
   name: string;
@@ -83,7 +84,7 @@ export class SelfHealer extends EventEmitter {
           console.log("✅ Database connection recovered");
           return true;
         } catch (error) {
-          console.error("❌ Database recovery failed:", error);
+          logger.error("❌ Database recovery failed:", error);
           return false;
         }
       },
@@ -129,7 +130,7 @@ export class SelfHealer extends EventEmitter {
       },
       recover: async () => {
         // Log warning - not much we can do automatically
-        console.warn("⚠️ Event loop lag detected - consider scaling");
+        logger.warn("⚠️ Event loop lag detected - consider scaling");
         return true;
       },
       maxAttempts: 1,
@@ -216,7 +217,7 @@ export class SelfHealer extends EventEmitter {
     if (!check) return false;
 
     if (check.recoveryAttempts >= action.maxAttempts) {
-      console.error(`❌ Max recovery attempts reached for ${action.name}`);
+      logger.error(`❌ Max recovery attempts reached for ${action.name}`);
       this.emit("recovery-failed", action.name);
       return false;
     }
@@ -238,7 +239,7 @@ export class SelfHealer extends EventEmitter {
       }
       return success;
     } catch (error) {
-      console.error(`❌ Recovery failed for ${action.name}:`, error);
+      logger.error(`❌ Recovery failed for ${action.name}:`, error);
       this.emit("recovery-error", { action: action.name, error });
       return false;
     } finally {

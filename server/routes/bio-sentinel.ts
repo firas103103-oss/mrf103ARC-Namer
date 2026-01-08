@@ -1,9 +1,11 @@
 import { Router } from "express";
 import { z } from "zod";
 import { db } from "../db";
+import logger from "../utils/logger";
 import { eq, desc, sql, and, gte } from "drizzle-orm";
 import { sensorReadings, smellProfiles, smellCaptures } from "@shared/schema";
 import OpenAI from "openai";
+import { validateBody, sensorReadingSchema } from "../middleware/validation";
 
 export const bioSentinelRouter = Router();
 
@@ -42,12 +44,12 @@ bioSentinelRouter.get("/readings", async (req, res) => {
 
     res.json(readings);
   } catch (error) {
-    console.error("Error fetching sensor readings:", error);
+    logger.error("Error fetching sensor readings:", error);
     res.status(500).json({ error: "Failed to fetch readings" });
   }
 });
 
-bioSentinelRouter.post("/readings", async (req, res) => {
+bioSentinelRouter.post("/readings", validateBody(sensorReadingSchema), async (req, res) => {
   try {
     const data = req.body;
 
@@ -69,7 +71,7 @@ bioSentinelRouter.post("/readings", async (req, res) => {
 
     res.json(reading);
   } catch (error) {
-    console.error("Error saving sensor reading:", error);
+    logger.error("Error saving sensor reading:", error);
     res.status(500).json({ error: "Failed to save reading" });
   }
 });
@@ -165,7 +167,7 @@ bioSentinelRouter.post("/analyze", async (req, res) => {
       readingsAnalyzed: recentReadings.length,
     });
   } catch (error) {
-    console.error("Error in AI analysis:", error);
+    logger.error("Error in AI analysis:", error);
     res.status(500).json({ error: "Failed to analyze data" });
   }
 });
@@ -179,7 +181,7 @@ bioSentinelRouter.get("/profiles", async (req, res) => {
     const profiles = await db.select().from(smellProfiles).orderBy(desc(smellProfiles.createdAt));
     res.json(profiles);
   } catch (error) {
-    console.error("Error fetching profiles:", error);
+    logger.error("Error fetching profiles:", error);
     res.status(500).json({ error: "Failed to fetch profiles" });
   }
 });
@@ -211,7 +213,7 @@ bioSentinelRouter.post("/profiles", async (req, res) => {
 
     res.json(profile);
   } catch (error) {
-    console.error("Error creating profile:", error);
+    logger.error("Error creating profile:", error);
     res.status(500).json({ error: "Failed to create profile" });
   }
 });
@@ -266,7 +268,7 @@ bioSentinelRouter.post("/capture", async (req, res) => {
 
     res.json(capture);
   } catch (error) {
-    console.error("Error saving capture:", error);
+    logger.error("Error saving capture:", error);
     res.status(500).json({ error: "Failed to save capture" });
   }
 });
@@ -333,7 +335,7 @@ bioSentinelRouter.post("/recognize", async (req, res) => {
       message: `تم التعرف على: ${bestMatch.profile.name}`,
     });
   } catch (error) {
-    console.error("Error in pattern recognition:", error);
+    logger.error("Error in pattern recognition:", error);
     res.status(500).json({ error: "Failed to recognize pattern" });
   }
 });
@@ -380,7 +382,7 @@ bioSentinelRouter.get("/analytics", async (req, res) => {
       recommendations: generateRecommendations(readings, anomalies, trends),
     });
   } catch (error) {
-    console.error("Error in analytics:", error);
+    logger.error("Error in analytics:", error);
     res.status(500).json({ error: "Failed to generate analytics" });
   }
 });

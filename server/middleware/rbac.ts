@@ -9,6 +9,7 @@
 import { Request, Response, NextFunction } from "express";
 import { TenantService, UserRole } from "../services/tenant-service";
 import EventLedger from "../services/event-ledger";
+import logger from "../utils/logger";
 
 // Extend Express Request to include tenant context
 declare global {

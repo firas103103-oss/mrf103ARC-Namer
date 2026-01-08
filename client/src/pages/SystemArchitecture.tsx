@@ -1,4 +1,6 @@
 import { useTranslation } from "react-i18next";
+import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/app-sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -237,6 +239,14 @@ export default function SystemArchitecture() {
   const { t } = useTranslation();
 
   return (
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
+        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+          <SidebarTrigger className="-ml-1" />
+          <h1 className="text-lg font-semibold">System Architecture</h1>
+        </header>
+        <main className="flex flex-1 flex-col gap-4 p-4 overflow-auto">
     <div className="p-6 space-y-8">
       <div className="relative overflow-hidden rounded-lg bg-gradient-to-br from-primary/20 via-background to-secondary/20 border border-border p-8">
         <div className="absolute inset-0 bg-grid-white/5" />
@@ -593,5 +603,8 @@ export default function SystemArchitecture() {
         </TabsContent>
       </Tabs>
     </div>
+        </main>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

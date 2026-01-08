@@ -8,6 +8,7 @@ import connectPgSimple from "connect-pg-simple";
 import pg from "pg";
 import path from "path";
 import * as Sentry from "@sentry/node";
+import logger from "./utils/logger";
 import { registerRoutes } from "./routes";
 import { initializeRealtimeSubscriptions } from "./realtime"; // Import the new initializer
 import { handleRealtimeChatUpgrade } from "./chatRealtime";
@@ -37,8 +38,8 @@ if (process.env.NODE_ENV === 'production' && process.env.SENTRY_DSN) {
 try {
   validateEnv();
 } catch (error) {
-  console.error('❌ Environment validation failed:');
-  console.error(error instanceof Error ? error.message : error);
+  logger.error('❌ Environment validation failed:');
+  logger.error(error instanceof Error ? error.message : error);
   process.exit(1);
 }
 
@@ -91,7 +92,7 @@ app.use(cors({
     if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      console.warn(`⚠️ Blocked CORS request from: ${origin}`);
+      logger.warn(`⚠️ Blocked CORS request from: ${origin}`);
       callback(new Error('Not allowed by CORS'));
     }
   },
@@ -158,7 +159,7 @@ pgPool.query(`
     expire TIMESTAMP(6) NOT NULL
   );
   CREATE INDEX IF NOT EXISTS "IDX_session_expire" ON session ("expire");
-`).catch(err => console.error('Session table creation error (non-fatal):', err.message));
+`).catch(err => logger.error('Session table creation error (non-fatal):', err.message));
 
 const sessionMiddleware = session({
   name: "arc.sid",
@@ -257,7 +258,7 @@ app.use("/api", metricsRoutes);
     
     // Log error to console in development
     if (process.env.NODE_ENV !== 'production') {
-      console.error('❌ Error:', err);
+      logger.error('❌ Error:', err);
     }
     
     res.status(status).json({ message });
