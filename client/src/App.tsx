@@ -54,26 +54,24 @@ function Router() {
   return (
     <Suspense fallback={<EnhancedLoadingFallback timeout={10000} />}>
       <Switch>
-        <Route path="/">
-          <Redirect to="/virtual-office" />
-        </Route>
+        <Route path="/" component={Home} />
         <Route path="/auth" component={OperatorLogin} />
-        <Route path="/virtual-office" component={VirtualOffice} />
+        <Route path="/dashboard" component={VirtualOffice} />
         <Route path="/bio-sentinel" component={BioSentinel} />
-        <Route path="/command-center" component={TeamCommandCenter} />
+        <Route path="/team-command" component={TeamCommandCenter} />
         <Route path="/admin" component={AdminControlPanel} />
         <Route path="/master-agent" component={MasterAgentCommand} />
         <Route path="/growth-roadmap" component={GrowthRoadmap} />
         <Route path="/cloning" component={Cloning} />
-        {/* New routes */}
-        <Route path="/profile" component={Home} />
         <Route path="/analytics" component={AnalyticsHub} />
-        <Route path="/architecture" component={SystemArchitecture} />
-        <Route path="/investigation" component={InvestigationLounge} />
-        <Route path="/simulator" component={OperationsSimulator} />
-        <Route path="/war-room" component={QuantumWarRoom} />
-        <Route path="/anomaly-lab" component={TemporalAnomalyLab} />
+        <Route path="/system-architecture" component={SystemArchitecture} />
+        <Route path="/investigation-lounge" component={InvestigationLounge} />
+        <Route path="/operations-simulator" component={OperationsSimulator} />
+        <Route path="/quantum-warroom" component={QuantumWarRoom} />
+        <Route path="/temporal-anomaly-lab" component={TemporalAnomalyLab} />
         <Route path="/self-check" component={SelfCheck} />
+        {/* Keep virtual-office as alias for dashboard */}
+        <Route path="/virtual-office" component={VirtualOffice} />
         <Route component={NotFound} />
       </Switch>
     </Suspense>

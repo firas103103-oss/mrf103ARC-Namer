@@ -4,6 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
+import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/app-sidebar";
 import {
   Zap,
   LayoutDashboard,
@@ -88,7 +90,17 @@ export default function Home() {
   ];
 
   return (
-    <div className="p-6 space-y-8 max-w-7xl mx-auto" data-testid="page-home">
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
+        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+          <SidebarTrigger className="-ml-1" />
+          <div className="flex-1">
+            <h1 className="text-lg font-semibold">{t("landing.title")}</h1>
+          </div>
+        </header>
+        <main className="flex flex-1 flex-col gap-4 p-6">
+    <div className="space-y-8 max-w-7xl mx-auto w-full" data-testid="page-home">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-display font-bold text-foreground" data-testid="text-welcome">
@@ -284,5 +296,8 @@ export default function Home() {
         </CardContent>
       </Card>
     </div>
+        </main>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }
