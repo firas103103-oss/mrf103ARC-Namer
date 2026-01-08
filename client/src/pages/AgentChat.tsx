@@ -3,8 +3,8 @@
  * التواصل المباشر مع أي وكيل من الـ 31 وكيل
  */
 
-import { useState } from 'react';
-import { Send, Bot, User as UserIcon } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Send, Bot, User as UserIcon, Sparkles, Loader2 } from 'lucide-react';
 
 interface Message {
   id: string;
@@ -12,6 +12,9 @@ interface Message {
   agentName?: string;
   content: string;
   timestamp: Date;
+  confidence?: number;
+  actions?: string[];
+  usingAI?: boolean;
 }
 
 export default function AgentChat() {
@@ -26,22 +29,42 @@ export default function AgentChat() {
     }
   ]);
   const [inputMessage, setInputMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [aiStatus, setAiStatus] = useState<'ai' | 'simulated'>('simulated');
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const agents = [
     { id: 'mrf_ceo', name: 'MRF', icon: '👑', color: '#FFD700', layer: 'CEO' },
-    { id: 'cipher', name: 'Cipher', icon: '🛡️', color: '#DC2626', layer: 'Maestro' },
-    { id: 'vault', name: 'Vault', icon: '💰', color: '#059669', layer: 'Maestro' },
-    { id: 'lexis', name: 'Lexis', icon: '⚖️', color: '#7C3AED', layer: 'Maestro' },
-    { id: 'harmony', name: 'Harmony', icon: '🏠', color: '#EC4899', layer: 'Maestro' },
-    { id: 'nova', name: 'Nova', icon: '🔬', color: '#0EA5E9', layer: 'Maestro' },
-    { id: 'scent', name: 'Scent', icon: '🧬', color: '#14B8A6', layer: 'Maestro' },
+    { id: 'maestro_security', name: 'Cipher', icon: '🛡️', color: '#DC2626', layer: 'Maestro' },
+    { id: 'maestro_finance', name: 'Vault', icon: '💰', color: '#059669', layer: 'Maestro' },
+    { id: 'maestro_legal', name: 'Lexis', icon: '⚖️', color: '#7C3AED', layer: 'Maestro' },
+    { id: 'maestro_life', name: 'Harmony', icon: '🏠', color: '#EC4899', layer: 'Maestro' },
+    { id: 'maestro_rnd', name: 'Nova', icon: '🔬', color: '#0EA5E9', layer: 'Maestro' },
+    { id: 'maestro_xbio', name: 'Scent', icon: '🧬', color: '#14B8A6', layer: 'Maestro' },
     { id: 'aegis', name: 'Aegis', icon: '🔥', color: '#EF4444', layer: 'Specialist' },
     { id: 'phantom', name: 'Phantom', icon: '🔐', color: '#6B7280', layer: 'Specialist' },
     { id: 'darwin', name: 'Darwin', icon: '🧬', color: '#38BDF8', layer: 'Specialist' }
   ];
 
-  const handleSendMessage = () => {
-    if (!inputMessage.trim()) return;
+  // Check AI status on mount
+  useEffect(() => {
+    fetch('/api/arc/chat/status')
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          setAiStatus(data.data.mode);
+        }
+      })
+      .catch(err => console.error('Failed to check AI status:', err));
+  }, []);
+
+  // Auto scroll to bottom
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  const handleSendMessage = async () => {
+    if (!inputMessage.trim() || isLoading) return;
 
     const newMessage: Message = {
       id: Date.now().toString(),
@@ -51,20 +74,52 @@ export default function AgentChat() {
     };
 
     setMessages([...messages, newMessage]);
+    setInputMessage('');
+    setIsLoading(true);
 
-    // Simulate agent response
-    setTimeout(() => {
-      const agentResponse: Message = {
+    try {
+      // Call real API
+      const response = await fetch('/api/arc/chat/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          agentId: selectedAgent,
+          message: inputMessage,
+          userId: 'user_' + Date.now() // In production, use real user ID
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        const agentResponse: Message = {
+          id: data.data.id,
+          sender: 'agent',
+          agentName: data.data.agentName,
+          content: data.data.message,
+          timestamp: new Date(data.data.timestamp),
+          confidence: data.data.confidence,
+          actions: data.data.actions,
+          usingAI: data.data.usingAI
+        };
+        setMessages(prev => [...prev, agentResponse]);
+      } else {
+        throw new Error(data.error);
+      }
+    } catch (error: any) {
+      console.error('Chat error:', error);
+      // Fallback response
+      const errorResponse: Message = {
         id: (Date.now() + 1).toString(),
         sender: 'agent',
         agentName: agents.find(a => a.id === selectedAgent)?.name,
-        content: 'شكراً على رسالتك. سأعمل على تنفيذ طلبك الآن.',
+        content: 'عذراً، حدث خطأ أثناء معالجة رسالتك. يرجى المحاولة مرة أخرى.',
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, agentResponse]);
-    }, 1000);
-
-    setInputMessage('');
+      setMessages(prev => [...prev, errorResponse]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const selectedAgentInfo = agents.find(a => a.id === selectedAgent);
@@ -108,13 +163,31 @@ export default function AgentChat() {
         <div className="lg:col-span-3 bg-gray-800/50 rounded-lg border border-gray-700 flex flex-col h-[600px]">
           {/* Chat Header */}
           <div 
-            className="p-4 border-b border-gray-700 flex items-center gap-3"
+            className="p-4 border-b border-gray-700 flex items-center justify-between"
             style={{ borderLeftColor: selectedAgentInfo?.color, borderLeftWidth: '4px' }}
           >
-            <span className="text-3xl">{selectedAgentInfo?.icon}</span>
-            <div>
-              <div className="font-bold text-lg">{selectedAgentInfo?.name}</div>
-              <div className="text-sm text-gray-400">{selectedAgentInfo?.layer}</div>
+            <div className="flex items-center gap-3">
+              <span className="text-3xl">{selectedAgentInfo?.icon}</span>
+              <div>
+                <div className="font-bold text-lg">{selectedAgentInfo?.name}</div>
+                <div className="text-sm text-gray-400">{selectedAgentInfo?.layer}</div>
+              </div>
+            </div>
+            {/* AI Status Badge */}
+            <div className={`px-3 py-1 rounded-full text-xs flex items-center gap-2 ${
+              aiStatus === 'ai' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'
+            }`}>
+              {aiStatus === 'ai' ? (
+                <>
+                  <Sparkles className="w-3 h-3" />
+                  <span>AI Powered</span>
+                </>
+              ) : (
+                <>
+                  <Bot className="w-3 h-3" />
+                  <span>Simulated</span>
+                </>
+              )}
             </div>
           </div>
 
@@ -125,6 +198,74 @@ export default function AgentChat() {
                 key={message.id}
                 className={`flex gap-3 ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
               >
+                {message.sender === 'agent' && (
+                  <div className="w-8 h-8 bg-blue-500/20 rounded-full flex items-center justify-center flex-shrink-0">
+                    <Bot className="w-5 h-5 text-blue-400" />
+                  </div>
+                )}
+                <div
+                  className={`max-w-[70%] rounded-lg p-4 ${
+                    message.sender === 'user'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-700/50 border border-gray-600'
+                  }`}
+                >
+                  {message.sender === 'agent' && (
+                    <div className="font-bold text-sm mb-1 text-blue-400 flex items-center gap-2">
+                      {message.agentName}
+                      {message.usingAI && (
+                        <Sparkles className="w-3 h-3 text-green-400" />
+                      )}
+                    </div>
+                  )}
+                  <div className="whitespace-pre-wrap">{message.content}</div>
+                  
+                  {/* Actions if present */}
+                  {message.actions && message.actions.length > 0 && (
+                    <div className="mt-3 pt-3 border-t border-gray-600">
+                      <div className="text-xs text-gray-400 mb-2">Suggested Actions:</div>
+                      {message.actions.map((action, idx) => (
+                        <div key={idx} className="text-xs text-gray-300 mb-1">
+                          • {action}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  
+                  {/* Confidence if present */}
+                  {message.confidence !== undefined && (
+                    <div className="mt-2 text-xs text-gray-400">
+                      Confidence: {message.confidence}%
+                    </div>
+                  )}
+                  
+                  <div className="text-xs text-gray-400 mt-2">
+                    {message.timestamp.toLocaleTimeString()}
+                  </div>
+                </div>
+                {message.sender === 'user' && (
+                  <div className="w-8 h-8 bg-green-500/20 rounded-full flex items-center justify-center flex-shrink-0">
+                    <UserIcon className="w-5 h-5 text-green-400" />
+                  </div>
+                )}
+              </div>
+            ))}
+            {isLoading && (
+              <div className="flex gap-3 justify-start">
+                <div className="w-8 h-8 bg-blue-500/20 rounded-full flex items-center justify-center">
+                  <Loader2 className="w-5 h-5 text-blue-400 animate-spin" />
+                </div>
+                <div className="bg-gray-700/50 border border-gray-600 rounded-lg p-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-100" />
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-200" />
+                  </div>
+                </div>
+              </div>
+            )}
+            <div ref={messagesEndRef} />
+          </div>
                 {message.sender === 'agent' && (
                   <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0">
                     <Bot className="w-5 h-5 text-blue-400" />

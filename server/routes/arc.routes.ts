@@ -6,8 +6,7 @@
 import { Router } from 'express';
 import { arcHierarchy, CEO, MAESTROS, ALL_AGENTS } from '../arc/hierarchy_system';
 import { arcReporting, ReportType } from '../arc/reporting_system';
-import { arcLearning } from '../arc/learning_system';
-
+import { arcLearning } from '../arc/learning_system';import { arcOpenAI } from '../arc/openai_service';
 export const arcRouter = Router();
 
 // ===============================
@@ -275,25 +274,74 @@ arcRouter.post('/learning/toggle', (req, res) => {
 // Send message to agent
 arcRouter.post('/chat/send', async (req, res) => {
   try {
-    const { agentId, message, userId } = req.body;
+    const { agentId, message, userId, context } = req.body;
+    
+    if (!agentId || !message || !userId) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Missing required fields: agentId, message, userId' 
+      });
+    }
+
     const agent = arcHierarchy.getAgent(agentId);
     if (!agent) {
       return res.status(404).json({ success: false, error: 'Agent not found' });
     }
 
-    // Simulate agent response (في الإنتاج، هنا سيكون integration مع OpenAI)
+    // Get AI response from OpenAI service
+    const aiResponse = await arcOpenAI.chat(agent, message, userId, context);
+
+    // Prepare response
     const response = {
       id: Date.now().toString(),
       agentId,
       agentName: agent.name,
-      message: `مرحباً! أنا ${agent.name}. تلقيت رسالتك وسأعمل على تنفيذها.`,
-      timestamp: new Date()
+      agentNameAr: agent.nameAr,
+      message: aiResponse.message,
+      reasoning: aiResponse.reasoning,
+      actions: aiResponse.actions,
+      confidence: aiResponse.confidence,
+      timestamp: new Date(),
+      usingAI: arcOpenAI.isAvailable()
     };
 
     res.json({ success: true, data: response });
   } catch (error: any) {
     res.status(500).json({ success: false, error: error.message });
   }
+});
+
+// Get chat history
+arcRouter.get('/chat/history/:agentId/:userId', (req, res) => {
+  try {
+    const { agentId, userId } = req.params;
+    const history = arcOpenAI.getHistory(agentId, userId);
+    res.json({ success: true, data: history });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Clear chat history
+arcRouter.delete('/chat/history/:agentId/:userId', (req, res) => {
+  try {
+    const { agentId, userId } = req.params;
+    arcOpenAI.clearHistory(agentId, userId);
+    res.json({ success: true, message: 'Chat history cleared' });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Check if OpenAI is available
+arcRouter.get('/chat/status', (req, res) => {
+  res.json({ 
+    success: true, 
+    data: {
+      openAiAvailable: arcOpenAI.isAvailable(),
+      mode: arcOpenAI.isAvailable() ? 'ai' : 'simulated'
+    }
+  });
 });
 
 // ===============================
