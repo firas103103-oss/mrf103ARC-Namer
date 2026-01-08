@@ -69,7 +69,7 @@ const STATIC_AGENTS: Record<string, Agent> = {
 // AGENT CACHE
 // ============================================
 
-let agentCache: Map<string, Agent> = new Map();
+const agentCache: Map<string, Agent> = new Map();
 let cacheLoaded = false;
 
 /**

@@ -846,7 +846,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Cache performance data based on time range - reduces expensive queries
       const cacheKey = `agent:performance:${timeRange}`;
-      let cachedData = cache.get(cacheKey);
+      const cachedData = cache.get(cacheKey);
       
       if (cachedData) {
         return res.json(cachedData);

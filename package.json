@@ -131,8 +131,7 @@
     "winston": "^3.19.0",
     "wouter": "^3.9.0",
     "ws": "^8.18.3",
-    "zod": "^3.25.76",
-    "zod-validation-error": "^3.5.4"
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@replit/vite-plugin-cartographer": "^0.4.4",
