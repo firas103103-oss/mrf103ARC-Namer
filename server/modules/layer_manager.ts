@@ -6,6 +6,7 @@
  * الطبقة الإنتاجية (Productive): Neural, Quantum, Catalyst, Echo, DataMiner, DevOpsBot, Trainer
  */
 
+/* eslint-disable no-undef, no-console */
 import { EventEmitter } from 'events';
 import { supabase } from '../supabase';
 

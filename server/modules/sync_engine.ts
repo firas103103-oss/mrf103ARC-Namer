@@ -6,6 +6,7 @@
  */
 
 import { supabase } from '../supabase';
+/* eslint-disable no-undef */
 import { EventEmitter } from 'events';
 import { Layer, Agent, AgentId, LayerMessage, layerManager } from './layer_manager';
 

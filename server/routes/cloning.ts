@@ -32,7 +32,7 @@ const storage = multer.diskStorage({
 });
 
 // فلتر أنواع الملفات المسموحة
-const fileFilter = (req: any, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+const fileFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
   const allowedTypes = [
     // Audio files
     "audio/mpeg",
@@ -171,7 +171,7 @@ router.post(
         .returning();
 
       // معالجة الملفات المرفوعة
-      const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+      const files = req.files as Record<string, Express.Multer.File[]>;
       const uploadedFiles: any[] = [];
 
       if (files) {
@@ -347,7 +347,7 @@ router.put(
         .where(eq(userProfiles.id, userId));
 
       // معالجة الملفات الجديدة
-      const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+      const files = req.files as Record<string, Express.Multer.File[]>;
       const uploadedFiles: any[] = [];
 
       if (files) {

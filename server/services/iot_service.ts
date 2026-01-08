@@ -6,6 +6,7 @@
  */
 
 import { supabase } from '../supabase';
+/* eslint-disable no-undef */
 import { EventEmitter } from 'events';
 import mqtt, { MqttClient } from 'mqtt';
 import WebSocket, { WebSocketServer } from 'ws';

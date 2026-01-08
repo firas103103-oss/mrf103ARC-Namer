@@ -3,6 +3,7 @@
  * Automatically detects and recovers from common server issues
  */
 
+/* eslint-disable no-undef */
 import { Pool } from "pg";
 import EventEmitter from "events";
 import logger from "../utils/logger";
