@@ -1,4 +1,5 @@
 import { Router, Request, Response } from "express";
+import logger from "../utils/logger";
 
 const voiceRouter = Router();
 
@@ -68,7 +69,7 @@ voiceRouter.post(
       res.send(Buffer.from(buffer));
 
     } catch (error) {
-      console.error("[Voice Synthesis Error]", error);
+      logger.error("[Voice Synthesis Error]", error);
       res.status(500).json({ 
         error: "Voice synthesis failed",
         reason: error instanceof Error ? error.message : "unknown error"

@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/app-sidebar";
 import {
   Target,
   Users,
@@ -345,16 +347,20 @@ export default function QuantumWarRoom() {
   }
 
   return (
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
+        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+          <SidebarTrigger className="-ml-1" />
+          <h1 className="text-lg font-semibold flex items-center gap-2">
+            <Crosshair className="h-5 w-5" />
+            Quantum Strategy WarRoom
+          </h1>
+        </header>
+        <main className="flex flex-1 flex-col gap-4 p-4 overflow-auto">
     <div className="p-6 space-y-6 bg-grid-pattern min-h-full" data-testid="quantum-warroom">
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div>
-          <h1
-            className="text-2xl font-semibold enterprise-title flex items-center gap-2"
-            data-testid="text-page-title"
-          >
-            <Crosshair className="h-6 w-6" />
-            Quantum Strategy WarRoom
-          </h1>
           <p className="text-muted-foreground mt-1">Advanced multi-agent scenario simulator</p>
         </div>
         <div className="flex items-center gap-2">
@@ -816,5 +822,8 @@ export default function QuantumWarRoom() {
         </Card>
       </div>
     </div>
+        </main>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

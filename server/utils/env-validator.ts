@@ -3,6 +3,8 @@
  * Validates all required environment variables at startup
  */
 
+import logger from './logger';
+
 interface EnvConfig {
   required: string[];
   optional: string[];
@@ -70,9 +72,9 @@ export function validateEnv(): void {
 
   // Log warnings for optional variables
   if (warnings.length > 0 && process.env.NODE_ENV !== 'test') {
-    console.warn('⚠️  Optional environment variables not set:');
-    warnings.forEach(key => console.warn(`   - ${key}`));
-    console.warn('   Some features may be limited.\n');
+    logger.warn('⚠️  Optional environment variables not set:');
+    warnings.forEach(key => logger.warn(`   - ${key}`));
+    logger.warn('   Some features may be limited.\n');
   }
 
   // Validate specific formats

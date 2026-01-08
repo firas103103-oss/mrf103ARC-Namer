@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/app-sidebar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -202,6 +204,14 @@ export default function MasterAgentCommand() {
   }, [tasks]);
 
   return (
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
+        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+          <SidebarTrigger className="-ml-1" />
+          <h1 className="text-lg font-semibold">MRF Executive Master Agent</h1>
+        </header>
+        <main className="flex flex-1 flex-col gap-4 p-4 overflow-auto">
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 text-white p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
@@ -702,5 +712,8 @@ export default function MasterAgentCommand() {
         </div>
       )}
     </div>
+        </main>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

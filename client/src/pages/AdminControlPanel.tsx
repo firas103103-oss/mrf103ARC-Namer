@@ -9,6 +9,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/app-sidebar";
 import {
   Shield,
   Users,
@@ -290,8 +292,23 @@ export default function AdminControlPanel() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 text-white p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
+        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-gradient-to-r from-slate-900 via-blue-900 to-slate-900">
+          <SidebarTrigger className="-ml-1" />
+          <div className="flex-1">
+            <h1 className="text-lg font-semibold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+              Admin Control Panel
+            </h1>
+          </div>
+          <Badge variant="outline" className="bg-green-500/20 text-green-400 border-green-500/50">
+            <Activity className="h-3 w-3 mr-1" />
+            System Online
+          </Badge>
+        </header>
+        <main className="flex flex-1 flex-col gap-4 p-6 overflow-auto bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
+    <div className="max-w-7xl mx-auto space-y-6 w-full">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -893,6 +910,8 @@ export default function AdminControlPanel() {
           </TabsContent>
         </Tabs>
       </div>
-    </div>
+        </main>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

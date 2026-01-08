@@ -4,6 +4,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import OpenAI from "openai";
 import { db } from "./db";
+import logger from "./utils/logger";
 import { workflowSimulations } from "@shared/schema";
 import { eq, desc } from "drizzle-orm";
 import { supabase, isSupabaseConfigured } from "./supabase";
@@ -78,7 +79,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({ success: true, timestamp: new Date(), result });
     } catch (error) {
-      console.error("[KAYAN BRIDGE] Error:", error);
+      logger.error("[KAYAN BRIDGE] Error:", error);
       res.status(500).json({ success: false, error: "Bridge Collapse" });
     }
   });
@@ -154,18 +155,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/login", authLimiter.middleware(), async (req: any, res) => {
     const expected = process.env.ARC_OPERATOR_PASSWORD || process.env.ARC_BACKEND_SECRET;
     if (!expected) {
-      console.error('❌ Missing ARC_OPERATOR_PASSWORD or ARC_BACKEND_SECRET');
+      logger.error('❌ Missing ARC_OPERATOR_PASSWORD or ARC_BACKEND_SECRET');
       return res.status(500).json({ error: "missing_server_auth_secret" });
     }
 
     const { password } = req.body || {};
     if (typeof password !== "string" || password.length === 0) {
-      console.warn('⚠️ Login attempt with missing/invalid password');
+      logger.warn('⚠️ Login attempt with missing/invalid password');
       return res.status(401).json({ error: "invalid_credentials" });
     }
 
     if (password !== expected) {
-      console.warn('⚠️ Login attempt with incorrect password from IP:', getClientIp(req));
+      logger.warn('⚠️ Login attempt with incorrect password from IP:', getClientIp(req));
       EventLedger.loginFailed("unknown", "invalid_password");
       return res.status(401).json({ error: "invalid_credentials" });
     }
@@ -176,7 +177,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // Save session before responding
     req.session.save(async (err: any) => {
       if (err) {
-        console.error('❌ Session save error:', err);
+        logger.error('❌ Session save error:', err);
         await EventLedger.loginFailed("operator", "session_save_failed");
         return res.status(500).json({ error: "session_save_failed" });
       }
@@ -277,7 +278,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const { data, error, count } = await query;
 
     if (error) {
-      console.error("[EventLedger API] Query error:", error);
+      logger.error("[EventLedger API] Query error:", error);
       return res.status(500).json({ error: "supabase_query_failed" });
     }
 
@@ -302,7 +303,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       .order("created_at", { ascending: true });
 
     if (error) {
-      console.error("[EventLedger API] Trace query error:", error);
+      logger.error("[EventLedger API] Trace query error:", error);
       return res.status(500).json({ error: "supabase_query_failed" });
     }
 
@@ -665,7 +666,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const reply = completion.choices?.[0]?.message?.content || "(no response)";
       res.json({ reply: reply.trim(), offline: false });
     } catch (error: any) {
-      console.error("[Mr.F Brain] OpenAI error:", error);
+      logger.error("[Mr.F Brain] OpenAI error:", error);
       res.status(500).json({ error: "openai_request_failed" });
     }
   });
@@ -829,7 +830,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(result);
     } catch (error: any) {
-      console.error('Agent analytics error:', error);
+      logger.error('Agent analytics error:', error);
       res.status(500).json({ error: error.message || 'Failed to fetch agent analytics' });
     }
   });
@@ -845,7 +846,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Cache performance data based on time range - reduces expensive queries
       const cacheKey = `agent:performance:${timeRange}`;
-      let cachedData = cache.get(cacheKey);
+      const cachedData = cache.get(cacheKey);
       
       if (cachedData) {
         return res.json(cachedData);
@@ -1061,7 +1062,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(simulations);
     } catch (error: any) {
-      console.error("[/api/simulations GET]", error);
+      logger.error("[/api/simulations GET]", error);
       res.status(500).json({ error: "database_error", message: error.message });
     }
   });
@@ -1086,7 +1087,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(newSim);
     } catch (error: any) {
-      console.error("[/api/simulations POST]", error);
+      logger.error("[/api/simulations POST]", error);
       res.status(500).json({ error: "database_error", message: error.message });
     }
   });
@@ -1186,7 +1187,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json({ id, result });
     } catch (error: any) {
-      console.error("[/api/simulations/:id/run POST]", error);
+      logger.error("[/api/simulations/:id/run POST]", error);
       res.status(500).json({ error: "execution_error", message: error.message });
     }
   });
@@ -1372,7 +1373,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         agentId: id
       });
     } catch (error: any) {
-      console.error(`[${profile.name} Chat] OpenAI error:`, error);
+      logger.error(`[${profile.name} Chat] OpenAI error:`, error);
       res.status(500).json({ error: "chat_failed" });
     }
   });

@@ -11,6 +11,8 @@ import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/app-sidebar";
 import {
   Zap,
   Thermometer,
@@ -477,6 +479,21 @@ export default function BioSentinel() {
   const iaqLevel = currentReading ? getIaqLevel(currentReading.iaqScore) : IAQ_LEVELS[0];
 
   return (
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
+        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+          <SidebarTrigger className="-ml-1" />
+          <div className="flex-1 flex items-center gap-2">
+            <Zap className="h-5 w-5 text-primary" />
+            <h1 className="text-lg font-semibold">X Bio Sentinel</h1>
+            <Badge variant={connectionState === "connected" ? "default" : "secondary"}>
+              {connectionState === "connected" ? <Wifi className="h-3 w-3 mr-1" /> : <WifiOff className="h-3 w-3 mr-1" />}
+              {connectionState}
+            </Badge>
+          </div>
+        </header>
+        <main className="flex flex-1 flex-col gap-4 p-4 overflow-auto">
     <div className="p-6 space-y-6 max-w-[1800px] mx-auto" data-testid="page-bio-sentinel">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -945,5 +962,8 @@ export default function BioSentinel() {
         </div>
       </div>
     </div>
+        </main>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

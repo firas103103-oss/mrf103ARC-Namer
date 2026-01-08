@@ -1,5 +1,7 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/app-sidebar";
 import {
   Crown,
   Settings,
@@ -382,6 +384,14 @@ export default function InvestigationLounge() {
   }
 
   return (
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
+        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+          <SidebarTrigger className="-ml-1" />
+          <h1 className="text-lg font-semibold">Investigation Lounge</h1>
+        </header>
+        <main className="flex flex-1 flex-col gap-4 p-4 overflow-auto">
     <div className="flex h-full" data-testid="investigation-lounge">
       <div className="w-80 border-r border-border flex flex-col bg-card/30">
         <div className="p-4 border-b border-border">
@@ -876,5 +886,8 @@ export default function InvestigationLounge() {
         )}
       </div>
     </div>
+        </main>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import logger from '../utils/logger';
 
 interface RateLimitOptions {
   windowMs: number;
@@ -69,7 +70,7 @@ export class RateLimiter {
         const retryAfter = Math.ceil((info.resetAt - now) / 1000);
         res.setHeader('Retry-After', retryAfter);
         
-        console.warn(`Rate limit exceeded for ${key}: ${info.count}/${this.options.max}`);
+        logger.warn(`Rate limit exceeded for ${key}: ${info.count}/${this.options.max}`);
         
         return res.status(this.options.statusCode).json({
           error: 'rate_limit_exceeded',

@@ -8,6 +8,7 @@ import connectPgSimple from "connect-pg-simple";
 import pg from "pg";
 import path from "path";
 import * as Sentry from "@sentry/node";
+import logger from "./utils/logger";
 import { registerRoutes } from "./routes";
 import { initializeRealtimeSubscriptions } from "./realtime"; // Import the new initializer
 import { handleRealtimeChatUpgrade } from "./chatRealtime";
@@ -17,6 +18,9 @@ import EventLedger from "./services/event-ledger";
 import { initializeAgentRegistry } from "./agents/registry";
 import { metricsMiddleware } from "./services/production-metrics";
 import { acriRouter } from "./routes/acri";
+import metricsRoutes from "../src/routes/metrics.routes";
+import { superSystem } from "../src/SuperIntegration";
+import { metricsCollector } from "../src/infrastructure/monitoring/MetricsCollector";
 
 // Initialize Sentry (only in production)
 if (process.env.NODE_ENV === 'production' && process.env.SENTRY_DSN) {
@@ -34,8 +38,8 @@ if (process.env.NODE_ENV === 'production' && process.env.SENTRY_DSN) {
 try {
   validateEnv();
 } catch (error) {
-  console.error('❌ Environment validation failed:');
-  console.error(error instanceof Error ? error.message : error);
+  logger.error('❌ Environment validation failed:');
+  logger.error(error instanceof Error ? error.message : error);
   process.exit(1);
 }
 
@@ -88,7 +92,7 @@ app.use(cors({
     if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      console.warn(`⚠️ Blocked CORS request from: ${origin}`);
+      logger.warn(`⚠️ Blocked CORS request from: ${origin}`);
       callback(new Error('Not allowed by CORS'));
     }
   },
@@ -96,6 +100,16 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
 }));
+
+// Middleware to record HTTP metrics for Super AI System
+app.use((req, res, next) => {
+  const start = Date.now();
+  res.on('finish', () => {
+    const duration = (Date.now() - start) / 1000;
+    metricsCollector.recordHttpRequest(req.method, req.path, res.statusCode, duration);
+  });
+  next();
+});
 
 // Security headers with Helmet
 app.use(helmet({
@@ -145,7 +159,7 @@ pgPool.query(`
     expire TIMESTAMP(6) NOT NULL
   );
   CREATE INDEX IF NOT EXISTS "IDX_session_expire" ON session ("expire");
-`).catch(err => console.error('Session table creation error (non-fatal):', err.message));
+`).catch(err => logger.error('Session table creation error (non-fatal):', err.message));
 
 const sessionMiddleware = session({
   name: "arc.sid",
@@ -173,6 +187,9 @@ app.use(metricsMiddleware());
 
 // ACRI routes (Phase 6)
 app.use("/api/acri", acriRouter);
+
+// Super AI System metrics routes
+app.use("/api", metricsRoutes);
 
 (async () => {
   // Activate the router from routes.ts, providing the express app
@@ -205,6 +222,10 @@ app.use("/api/acri", acriRouter);
   // Bootstrap tenant and log system startup
   await TenantService.bootstrapTenant();
   await initializeAgentRegistry();
+  
+  // Start Super AI System
+  await superSystem.start();
+  
   await EventLedger.log({
     type: "system.startup",
     actor: "system",
@@ -237,7 +258,7 @@ app.use("/api/acri", acriRouter);
     
     // Log error to console in development
     if (process.env.NODE_ENV !== 'production') {
-      console.error('❌ Error:', err);
+      logger.error('❌ Error:', err);
     }
     
     res.status(status).json({ message });

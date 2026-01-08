@@ -3,6 +3,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import bcrypt from "bcrypt";
+import logger from "../utils/logger";
 import { db } from "../db";
 import { userProfiles, userFiles, userIotDevices } from "../../shared/schema";
 import { eq } from "drizzle-orm";
@@ -97,7 +98,7 @@ router.post("/verify-passcode", async (req: Request, res: Response) => {
       });
     }
   } catch (error) {
-    console.error("خطأ في التحقق من الـ passcode:", error);
+    logger.error("خطأ في التحقق من الـ passcode:", error);
     return res.status(500).json({
       success: false,
       message: "حدث خطأ أثناء التحقق",
@@ -232,7 +233,7 @@ router.post(
         },
       });
     } catch (error: any) {
-      console.error("خطأ في التسجيل:", error);
+      logger.error("خطأ في التسجيل:", error);
       return res.status(500).json({
         success: false,
         message: "حدث خطأ أثناء التسجيل",
@@ -294,7 +295,7 @@ router.get("/profile/:userId", async (req: Request, res: Response) => {
       },
     });
   } catch (error: any) {
-    console.error("خطأ في جلب معلومات المستخدم:", error);
+    logger.error("خطأ في جلب معلومات المستخدم:", error);
     return res.status(500).json({
       success: false,
       message: "حدث خطأ أثناء جلب المعلومات",
@@ -383,7 +384,7 @@ router.put(
         },
       });
     } catch (error: any) {
-      console.error("خطأ في تحديث المعلومات:", error);
+      logger.error("خطأ في تحديث المعلومات:", error);
       return res.status(500).json({
         success: false,
         message: "حدث خطأ أثناء التحديث",

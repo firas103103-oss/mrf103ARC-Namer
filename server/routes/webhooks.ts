@@ -1,4 +1,5 @@
 import { Router, Request, Response } from "express";
+import logger from "../utils/logger";
 
 const webhookRouter = Router();
 
@@ -40,7 +41,7 @@ webhookRouter.post("/n8n", async (req: Request, res: Response) => {
       note: "Full processing deferred to v0.2.1",
     });
   } catch (error) {
-    console.error("[N8N Webhook Error]", error);
+    logger.error("[N8N Webhook Error]", error);
     res.status(500).json({ error: "Webhook processing failed" });
   }
 });
@@ -77,7 +78,7 @@ webhookRouter.post("/esp32", async (req: Request, res: Response) => {
       note: "Full processing deferred to v0.2.1",
     });
   } catch (error) {
-    console.error("[ESP32 Webhook Error]", error);
+    logger.error("[ESP32 Webhook Error]", error);
     res.status(500).json({ error: "Webhook processing failed" });
   }
 });

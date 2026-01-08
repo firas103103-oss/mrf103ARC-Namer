@@ -4,6 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
+import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/app-sidebar";
 import { 
   BarChart3,
   TrendingUp,
@@ -65,18 +67,17 @@ export default function AnalyticsHub() {
     : "0";
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="p-4 border-b bg-card/50">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2" data-testid="text-page-title">
-            <BarChart3 className="h-6 w-6 text-primary" />
-            Analytics Hub
-          </h1>
-          <p className="text-muted-foreground text-sm">Business intelligence and performance metrics</p>
-        </div>
-      </div>
-
-      <div className="flex-1 overflow-auto p-4">
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
+        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+          <SidebarTrigger className="-ml-1" />
+          <div className="flex items-center gap-2">
+            <BarChart3 className="h-5 w-5 text-primary" />
+            <h1 className="text-lg font-semibold">Analytics Hub</h1>
+          </div>
+        </header>
+        <main className="flex flex-1 flex-col gap-4 overflow-auto p-4">
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
           <Card data-testid="card-metric-commands">
             <CardContent className="p-4">
@@ -287,7 +288,8 @@ export default function AnalyticsHub() {
             )}
           </CardContent>
         </Card>
-      </div>
-    </div>
+        </main>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/app-sidebar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -149,14 +151,21 @@ export default function TeamCommandCenter() {
   };
 
   return (
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
+        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+          <SidebarTrigger className="-ml-1" />
+          <h1 className="text-2xl font-bold flex items-center gap-2" data-testid="text-page-title">
+            <Target className="h-6 w-6 text-primary" />
+            Team Command Center
+          </h1>
+        </header>
+        <main className="flex flex-1 flex-col gap-4 p-4 overflow-auto">
     <div className="flex flex-col h-full">
       <div className="p-4 border-b bg-card/50">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div>
-            <h1 className="text-2xl font-bold flex items-center gap-2" data-testid="text-page-title">
-              <Target className="h-6 w-6 text-primary" />
-              Team Command Center
-            </h1>
             <p className="text-muted-foreground text-sm">Manage tasks and coordinate your AI team</p>
           </div>
           <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
@@ -424,5 +433,8 @@ export default function TeamCommandCenter() {
         </div>
       </div>
     </div>
+        </main>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

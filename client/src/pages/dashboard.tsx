@@ -1,3 +1,5 @@
+import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/app-sidebar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -206,12 +208,17 @@ export default function Dashboard() {
   };
 
   return (
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
+        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+          <SidebarTrigger className="-ml-1" />
+          <h1 className="text-lg font-semibold">ARC Command Center</h1>
+        </header>
+        <main className="flex flex-1 flex-col gap-4 p-4 overflow-auto">
     <div className="p-6 space-y-6" data-testid="realtime-dashboard">
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl font-bold" data-testid="dashboard-title">
-            ARC Command Center
-          </h1>
           <p className="text-muted-foreground text-sm">
             Live view of system activity, commands, and agent events
           </p>
@@ -435,5 +442,8 @@ export default function Dashboard() {
       </div>
 
     </div>
+        </main>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

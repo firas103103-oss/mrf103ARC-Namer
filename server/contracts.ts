@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import type { Request, Response, NextFunction } from "express";
+import logger from "./utils/logger";
 
 export interface RateLimits {
   chat_per_minute: number;
@@ -85,7 +86,7 @@ export function loadContracts(): ContractsFile {
     lastLoadTime = now;
     return cachedContracts;
   } catch (e) {
-    console.error("[contracts] Failed to load contracts:", e);
+    logger.error("[contracts] Failed to load contracts:", e);
     return getDefaultContracts();
   }
 }

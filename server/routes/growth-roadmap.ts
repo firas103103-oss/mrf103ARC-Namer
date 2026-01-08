@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { db } from "../db";
+import logger from "../utils/logger";
 import { 
   growthPhases, 
   growthWeeks, 
@@ -66,7 +67,7 @@ router.get("/overview", async (req, res) => {
       currentMetrics: latestMetrics[0] || null,
     });
   } catch (error) {
-    console.error("Error fetching growth roadmap overview:", error);
+    logger.error("Error fetching growth roadmap overview:", error);
     res.status(500).json({ error: "Failed to fetch overview" });
   }
 });
@@ -84,7 +85,7 @@ router.get("/phases", async (req, res) => {
 
     res.json(phases);
   } catch (error) {
-    console.error("Error fetching phases:", error);
+    logger.error("Error fetching phases:", error);
     res.status(500).json({ error: "Failed to fetch phases" });
   }
 });
@@ -125,7 +126,7 @@ router.get("/phases/:id", async (req, res) => {
       tasks,
     });
   } catch (error) {
-    console.error("Error fetching phase details:", error);
+    logger.error("Error fetching phase details:", error);
     res.status(500).json({ error: "Failed to fetch phase details" });
   }
 });
@@ -143,7 +144,7 @@ router.get("/weeks", async (req, res) => {
 
     res.json(weeks);
   } catch (error) {
-    console.error("Error fetching weeks:", error);
+    logger.error("Error fetching weeks:", error);
     res.status(500).json({ error: "Failed to fetch weeks" });
   }
 });
@@ -177,7 +178,7 @@ router.get("/weeks/:id", async (req, res) => {
       tasks,
     });
   } catch (error) {
-    console.error("Error fetching week details:", error);
+    logger.error("Error fetching week details:", error);
     res.status(500).json({ error: "Failed to fetch week details" });
   }
 });
@@ -209,7 +210,7 @@ router.get("/tasks", async (req, res) => {
 
     res.json(tasks);
   } catch (error) {
-    console.error("Error fetching tasks:", error);
+    logger.error("Error fetching tasks:", error);
     res.status(500).json({ error: "Failed to fetch tasks" });
   }
 });
@@ -234,7 +235,7 @@ router.get("/tasks/:id", async (req, res) => {
 
     res.json(task[0]);
   } catch (error) {
-    console.error("Error fetching task:", error);
+    logger.error("Error fetching task:", error);
     res.status(500).json({ error: "Failed to fetch task" });
   }
 });
@@ -280,7 +281,7 @@ router.patch("/tasks/:id", async (req, res) => {
 
     res.json(updatedTask[0]);
   } catch (error) {
-    console.error("Error updating task:", error);
+    logger.error("Error updating task:", error);
     res.status(500).json({ error: "Failed to update task" });
   }
 });
@@ -300,7 +301,7 @@ router.post("/tasks", async (req, res) => {
 
     res.status(201).json(newTask[0]);
   } catch (error) {
-    console.error("Error creating task:", error);
+    logger.error("Error creating task:", error);
     res.status(500).json({ error: "Failed to create task" });
   }
 });
@@ -337,7 +338,7 @@ router.get("/today", async (req, res) => {
       inProgressTasks,
     });
   } catch (error) {
-    console.error("Error fetching today's tasks:", error);
+    logger.error("Error fetching today's tasks:", error);
     res.status(500).json({ error: "Failed to fetch today's tasks" });
   }
 });
@@ -360,7 +361,7 @@ router.post("/check-in", async (req, res) => {
 
     res.status(201).json(newCheckIn[0]);
   } catch (error) {
-    console.error("Error creating check-in:", error);
+    logger.error("Error creating check-in:", error);
     res.status(500).json({ error: "Failed to create check-in" });
   }
 });
@@ -381,7 +382,7 @@ router.get("/check-ins", async (req, res) => {
 
     res.json(checkIns);
   } catch (error) {
-    console.error("Error fetching check-ins:", error);
+    logger.error("Error fetching check-ins:", error);
     res.status(500).json({ error: "Failed to fetch check-ins" });
   }
 });
@@ -412,7 +413,7 @@ router.post("/metrics", async (req, res) => {
 
     res.status(201).json(newMetrics[0]);
   } catch (error) {
-    console.error("Error creating metrics:", error);
+    logger.error("Error creating metrics:", error);
     res.status(500).json({ error: "Failed to create metrics" });
   }
 });
@@ -433,7 +434,7 @@ router.get("/metrics", async (req, res) => {
 
     res.json(metrics);
   } catch (error) {
-    console.error("Error fetching metrics:", error);
+    logger.error("Error fetching metrics:", error);
     res.status(500).json({ error: "Failed to fetch metrics" });
   }
 });
@@ -452,7 +453,7 @@ router.get("/metrics/latest", async (req, res) => {
 
     res.json(latestMetrics[0] || null);
   } catch (error) {
-    console.error("Error fetching latest metrics:", error);
+    logger.error("Error fetching latest metrics:", error);
     res.status(500).json({ error: "Failed to fetch latest metrics" });
   }
 });
@@ -470,7 +471,7 @@ router.get("/milestones", async (req, res) => {
 
     res.json(milestones);
   } catch (error) {
-    console.error("Error fetching milestones:", error);
+    logger.error("Error fetching milestones:", error);
     res.status(500).json({ error: "Failed to fetch milestones" });
   }
 });
@@ -500,7 +501,7 @@ router.patch("/milestones/:id", async (req, res) => {
 
     res.json(updatedMilestone[0]);
   } catch (error) {
-    console.error("Error updating milestone:", error);
+    logger.error("Error updating milestone:", error);
     res.status(500).json({ error: "Failed to update milestone" });
   }
 });
@@ -620,7 +621,7 @@ router.post("/initialize", async (req, res) => {
       phases: [phase1[0], phase2[0], phase3[0]],
     });
   } catch (error) {
-    console.error("Error initializing growth roadmap:", error);
+    logger.error("Error initializing growth roadmap:", error);
     res.status(500).json({ error: "Failed to initialize growth roadmap" });
   }
 });
@@ -641,7 +642,7 @@ router.delete("/reset", async (req, res) => {
 
     res.json({ success: true, message: "All growth roadmap data reset" });
   } catch (error) {
-    console.error("Error resetting growth roadmap:", error);
+    logger.error("Error resetting growth roadmap:", error);
     res.status(500).json({ error: "Failed to reset growth roadmap" });
   }
 });

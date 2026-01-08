@@ -8,6 +8,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useAuth } from "@/hooks/useAuth";
+import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/app-sidebar";
 import {
   Terminal,
   Bot,
@@ -283,6 +285,48 @@ export default function VirtualOffice() {
   }
 
   return (
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
+        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+          <SidebarTrigger className="-ml-1" />
+          <div className="flex-1 flex items-center justify-between flex-wrap gap-4">
+            <div className="flex items-center gap-2">
+              <Terminal className="h-5 w-5 text-primary" />
+              <h1 className="text-lg font-semibold">ARC Virtual Office</h1>
+              <Badge variant={connected ? "default" : "secondary"} data-testid="status-connection">
+                {connected ? (
+                  <>
+                    <Wifi className="h-3 w-3 mr-1" />
+                    Live
+                  </>
+                ) : (
+                  <>
+                    <WifiOff className="h-3 w-3 mr-1" />
+                    Connecting
+                  </>
+                )}
+              </Badge>
+            </div>
+            <div className="flex items-center gap-2">
+              {lastUpdated && (
+                <span className="text-xs text-muted-foreground hidden sm:inline">
+                  Updated {formatRelativeTime(lastUpdated.toISOString())}
+                </span>
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleRefresh}
+                disabled={refreshing}
+                data-testid="button-refresh"
+              >
+                <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
+              </Button>
+            </div>
+          </div>
+        </header>
+        <main className="flex flex-1 flex-col gap-4 p-4 overflow-auto">
     <div className="min-h-screen bg-background" data-testid="virtual-office">
       <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="max-w-6xl mx-auto px-4 md:px-6 py-3 flex items-center justify-between gap-4 flex-wrap">
@@ -569,5 +613,8 @@ export default function VirtualOffice() {
         </div>
       </main>
     </div>
+        </main>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

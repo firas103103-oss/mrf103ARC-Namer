@@ -1,6 +1,8 @@
 import { Router, Request, Response } from 'express';
 import { supabase } from '../supabase';
 import os from 'os';
+import { selfHealer } from '../services/self-healer';
+import logger from '../utils/logger';
 
 const router = Router();
 
@@ -76,7 +78,7 @@ router.get('/health', async (req: Request, res: Response) => {
     
     console.log(`Health check completed in ${Date.now() - startTime}ms - Status: ${overallStatus}`);
   } catch (error) {
-    console.error('Health check failed:', error);
+    logger.error('Health check failed:', error);
     res.status(503).json({
       status: 'unhealthy',
       timestamp: new Date().toISOString(),
@@ -231,5 +233,56 @@ function formatBytes(bytes: number): string {
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
 }
+
+/**
+ * Self-healing status endpoint
+ * GET /api/health/self-heal
+ */
+router.get('/health/self-heal', async (req: Request, res: Response) => {
+  try {
+    const health = await selfHealer.runHealthChecks();
+    
+    res.json({
+      status: health.overall,
+      uptime: health.uptime,
+      recoveryCount: health.recoveryCount,
+      lastRecovery: health.lastRecovery?.toISOString(),
+      checks: health.checks.map(c => ({
+        name: c.name,
+        status: c.status,
+        latency: c.latency,
+        recoveryAttempts: c.recoveryAttempts,
+        lastCheck: c.lastCheck.toISOString(),
+      })),
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 'error',
+      error: error instanceof Error ? error.message : 'Self-heal check failed',
+    });
+  }
+});
+
+/**
+ * Trigger manual recovery
+ * POST /api/health/recover
+ */
+router.post('/health/recover', async (req: Request, res: Response) => {
+  try {
+    const health = await selfHealer.runHealthChecks();
+    
+    res.json({
+      success: true,
+      status: health.overall,
+      recoveryCount: health.recoveryCount,
+      message: 'Recovery checks completed',
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Recovery failed',
+    });
+  }
+});
 
 export default router;

@@ -7,6 +7,7 @@
  */
 
 import { supabase, isSupabaseConfigured } from "../supabase";
+import logger from "../utils/logger";
 
 // ============================================
 // CONSTANTS
