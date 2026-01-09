@@ -1,21 +1,37 @@
 # 🤖 AI Context Document - ARC Namer AI Platform
 
-> **تاريخ التحديث:** 6 يناير 2026  
+> **تاريخ التحديث:** 9 يناير 2026  
 > **الحالة:** Production Ready ✅  
-> **النسخة:** v2.0.0
+> **النسخة:** v2.1.0
 
 ---
 
 ## 📋 نظرة عامة على المشروع
 
-**ARC Namer AI Platform** هو نظام ذكاء اصطناعي متقدم لإدارة الأسماء والهويات مع فريق من 10 وكلاء AI متخصصين. المشروع LIVE على الإنتاج ويعمل بشكل كامل.
+**ARC Namer AI Platform** هو نظام ذكاء اصطناعي متقدم لإدارة الأسماء والهويات مع فريق من **31 وكيل AI** متخصص في هيكل هرمي من 4 مستويات. المشروع LIVE على الإنتاج ويعمل بشكل كامل.
 
 ### 🎯 الهدف الأساسي
 - إدارة أسماء ذكية بالذكاء الاصطناعي
-- نظام Multi-Agent مع 10 وكلاء متخصصين
+- نظام Multi-Agent مع 31 وكيل متخصص
 - واجهة عصرية بـ React + TypeScript
 - BioSentinel لتحليل الروائح عبر WebSocket
+- XBioSentinel لدمج ESP32 الحقيقي
 - QuantumWarRoom لإدارة المهام والسيناريوهات
+
+---
+
+## 📊 إحصائيات النظام الكاملة
+
+| المقياس | القيمة |
+|---------|--------|
+| **صفحات React** | 34 صفحة |
+| **مكونات UI** | 67+ مكون |
+| **ملفات Server** | 73 ملف TypeScript |
+| **API Endpoints** | 67+ endpoint |
+| **جداول قاعدة البيانات** | 48 جدول |
+| **أخطاء TypeScript** | 0 ✅ |
+| **وكلاء AI** | 31 وكيل (هرمي) |
+| **حالة الاختبارات** | All passing ✅ |
 
 ---
 
@@ -23,9 +39,9 @@
 
 ### Stack الأساسي
 ```
-Frontend: React 18 + TypeScript 5 + Vite 7.3.0
+Frontend: React 18.3 + TypeScript 5.6 + Vite 7.3.0
 Backend: Node.js 20.x + Express 4
-Database: PostgreSQL (Supabase)
+Database: PostgreSQL (Supabase) - 48 جدول
 ORM: Drizzle ORM
 Session: connect-pg-simple (PostgreSQL session store)
 Hosting: Railway (production)
@@ -33,85 +49,138 @@ Domain: app.mrf103.com (Cloudflare DNS + SSL)
 Monitoring: Sentry (production only)
 Security: Helmet + CORS configured
 AI Models: OpenAI GPT-4o-mini, Anthropic Claude, Google Gemini
+Voice: ElevenLabs
+Mobile: Capacitor (Android/iOS)
 ```
 
-### Structure الملفات
+### هيكل الملفات الكامل
 ```
 /workspaces/mrf103ARC-Namer/
 ├── client/                    # React frontend
 │   ├── src/
-│   │   ├── pages/            # 10+ صفحات رئيسية
-│   │   │   ├── landing.tsx   # صفحة الهبوط (authentication)
-│   │   │   ├── dashboard.tsx # لوحة التحكم الرئيسية
-│   │   │   ├── BioSentinel.tsx # تحليل الروائح
-│   │   │   ├── QuantumWarRoom.tsx # إدارة المهام
-│   │   │   ├── TeamCommandCenter.tsx # مركز الفريق
-│   │   │   ├── AdminControlPanel.tsx # لوحة الإدارة
-│   │   │   └── ... (10 صفحات إجمالاً)
-│   │   ├── components/       # UI components
+│   │   ├── pages/            # 34 صفحة
+│   │   │   ├── AdminControlPanel.tsx
+│   │   │   ├── AgentChat.tsx
+│   │   │   ├── AgentDashboard.tsx
+│   │   │   ├── AnalyticsHub.tsx
+│   │   │   ├── BioSentinel.tsx
+│   │   │   ├── Cloning.tsx
+│   │   │   ├── dashboard.tsx
+│   │   │   ├── FinanceHub.tsx
+│   │   │   ├── GrowthRoadmap.tsx
+│   │   │   ├── Home.tsx
+│   │   │   ├── IntegrationDashboard.tsx
+│   │   │   ├── Integrations.tsx
+│   │   │   ├── InvestigationLounge.tsx
+│   │   │   ├── IoTDashboard.tsx
+│   │   │   ├── landing.tsx
+│   │   │   ├── LegalArchive.tsx
+│   │   │   ├── LifeManager.tsx
+│   │   │   ├── MaestrosHub.tsx
+│   │   │   ├── MasterAgentCommand.tsx
+│   │   │   ├── MatrixLogin.tsx
+│   │   │   ├── MRFDashboard.tsx
+│   │   │   ├── OperationsSimulator.tsx
+│   │   │   ├── QuantumWarRoom.tsx
+│   │   │   ├── ReportsCenter.tsx
+│   │   │   ├── RnDLab.tsx
+│   │   │   ├── SecurityCenter.tsx
+│   │   │   ├── SelfCheck.tsx
+│   │   │   ├── Settings.tsx
+│   │   │   ├── SystemArchitecture.tsx
+│   │   │   ├── TeamCommandCenter.tsx
+│   │   │   ├── TemporalAnomalyLab.tsx
+│   │   │   ├── virtual-office.tsx
+│   │   │   └── XBioSentinel.tsx
+│   │   ├── components/       # 67+ مكون UI
+│   │   │   ├── admin/
+│   │   │   ├── bio-sentinel/
+│   │   │   ├── ui/
+│   │   │   ├── app-sidebar.tsx
+│   │   │   ├── ARCCommandMetrics.tsx
+│   │   │   ├── ARCMonitor.tsx
+│   │   │   ├── CommandConsole.tsx
+│   │   │   ├── DailyCheckInForm.tsx
+│   │   │   ├── ErrorBoundary.tsx
+│   │   │   ├── VoiceChatRealtime.tsx
+│   │   │   └── ...
 │   │   ├── lib/              # utilities + queryClient
 │   │   └── hooks/            # React hooks
-├── server/                    # Express backend
+│   └── public/               # Static assets
+│
+├── server/                    # Express backend - 73 ملف
 │   ├── index.ts              # Main server file
-│   ├── routes.ts             # 30+ API endpoints
+│   ├── routes.ts             # 67+ API endpoints
 │   ├── db.ts                 # Drizzle database connection
 │   ├── causal.ts             # Intent/Action logging
-│   ├── storage.ts            # Placeholder (simplified)
+│   ├── supabase.ts           # Supabase client
 │   ├── agents/
-│   │   └── profiles.ts       # 10 Agent profiles
+│   │   └── profiles.ts       # 31 Agent profiles
+│   ├── arc/                  # ARC system core
 │   ├── middleware/
-│   │   └── error-handler.ts # Error handling
-│   └── services/
-│       ├── supabase-optimized.ts # Cached queries
-│       └── cache.ts          # In-memory caching
+│   │   ├── error-handler.ts
+│   │   └── rate-limiter.ts
+│   ├── routes/               # Route modules
+│   ├── services/
+│   │   ├── cache.ts          # Multi-tier caching
+│   │   ├── openai_service.ts # AI integration
+│   │   └── supabase-optimized.ts
+│   ├── modules/              # Feature modules
+│   └── utils/
+│
 ├── shared/
-│   └── schema.ts             # Database schema (Drizzle) - 993 lines
-├── dist/                      # Production build
-├── package.json              # Dependencies (852 packages)
-├── tsconfig.json             # TypeScript config
-├── vite.config.ts            # Vite config
-├── drizzle.config.ts         # Drizzle config
-└── .env files                # Environment configs
+│   └── schema.ts             # Database schema - 48 جدول
+│
+├── arc_core/                  # AI brain system
+│   ├── brain_loader.ts
+│   ├── brain_manifest.json
+│   ├── agent_contracts.json
+│   ├── actions/
+│   └── workflows/
+│
+├── firmware/
+│   └── esp32-xbio/           # ESP32 sensor firmware
+│
+├── android/                   # Capacitor Android
+├── docs/                      # Documentation
+├── migrations/                # Database migrations
+└── dist/                      # Production build
 ```
 
 ---
 
-## 🗄️ Database Schema (Supabase PostgreSQL)
+## 🗄️ Database Schema (48 جدول PostgreSQL)
 
-### الجداول الرئيسية (20+ جدول)
+### الجداول الرئيسية
 ```sql
 -- Core tables
 users                    -- المستخدمين
+sessions                 -- الجلسات
 conversations            -- المحادثات
 chat_messages            -- الرسائل
-session                  -- الجلسات (PostgreSQL sessions)
 
--- Agent System
-agents                   -- الوكلاء
+-- Agent System (31 وكيل)
+agents                   -- الوكلاء الرئيسيين
 agent_events             -- أحداث الوكلاء
+agent_tasks              -- مهام الوكلاء
 virtual_agents           -- الوكلاء الافتراضيين
 team_tasks               -- مهام الفريق
 
--- BioSentinel
-smell_profiles           -- بروفايلات الروائح (with confidence field)
+-- BioSentinel (IoT)
+smell_profiles           -- بروفايلات الروائح
 smell_captures           -- التقاطات الروائح
 sensor_readings          -- قراءات الحساسات
 
 -- QuantumWarRoom
 mission_scenarios        -- سيناريوهات المهام
+workflow_simulations     -- محاكاة سير العمل
 projects                 -- المشاريع
+activity_feed            -- خلاصة النشاط
 
--- Logging & Analytics
-intent_log               -- سجل النوايا
-action_log               -- سجل الأفعال
-result_log               -- سجل النتائج
-impact_log               -- سجل التأثيرات
+-- Governance & Logging
 arc_command_log          -- سجل أوامر ARC
-reflections              -- التأملات
-
--- Governance
-arc_access_control       -- التحكم بالوصول
-archive_encryption_keys  -- مفاتيح التشفير
+arc_archives             -- أرشيف ARC
+arc_feedback             -- ملاحظات ARC
 ceo_reminders            -- تذكيرات CEO
 executive_summaries      -- ملخصات تنفيذية
 governance_notifications -- إشعارات الحوكمة
@@ -121,44 +190,94 @@ high_priority_notifications -- إشعارات عالية الأولوية
 
 ---
 
-## 🔐 Environment Variables الحالية
+## 👥 الوكلاء الـ 31 (31 AI Agents)
 
-### Development (.env)
-```bash
-PORT=9002
-NODE_ENV=development
-ARC_OPERATOR_PASSWORD=arc-dev-password-123
+### 🏛️ الهيكل الهرمي الكامل
 
-# Database
-SUPABASE_URL=https://rffpacsvwxfjhxgtsbzf.supabase.co
-SUPABASE_KEY=eyJhbGciOiJI... (anon key)
-DATABASE_URL=postgresql://postgres.rffpacsvwxfjhxgtsbzf:mrfiras1Q%40Q%40@aws-1-ap-south-1.pooler.supabase.com:6543/postgres
+```
+Tier 0: القائد الأعلى (1 وكيل)
+└── Mr.F (mrf) - CEO & Strategic Commander
+    الدور: القائد الاستراتيجي والمدير التنفيذي الأعلى
 
-# AI APIs
-OPENAI_API_KEY=sk-proj-8KzH... (configured)
-OPENAI_MODEL=gpt-4o-mini
-ANTHROPIC_API_KEY=sk-ant-api03-Ox6t... (configured)
-GEMINI_API_KEY=AIzaSyBP-4Ok... (configured)
+Tier 1: المديرون التنفيذيون (6 وكلاء)
+├── Dr. Genius (genius) - Chief Innovation Officer
+├── Quantum (quantum) - Chief Technology Officer
+├── Oracle (oracle) - Chief Data Officer
+├── Sentinel (sentinel) - Chief Security Officer
+├── Architect (architect) - Chief Architecture Officer
+└── Catalyst (catalyst) - Chief Growth Officer
 
-# Sessions & Security
-SESSION_SECRET=LoUnfbH6QXK0Hi+... (256-bit key)
-ARC_BACKEND_SECRET=mrf_arc_secret_2025_01
+Tier 2: المديرون (10 وكلاء)
+├── Phoenix (phoenix) - Operations Manager
+├── Echo (echo) - Communications Manager
+├── Neural (neural) - R&D Manager
+├── Vector (vector) - Product Manager
+├── Prism (prism) - Design Manager
+├── Nexus (nexus) - Integration Manager
+├── Cipher (cipher) - Security Manager
+├── Flux (flux) - DevOps Manager
+├── Sage (sage) - Knowledge Manager
+└── Pulse (pulse) - Analytics Manager
 
-# Voice
-ELEVENLABS_API_KEY=a55ff663e754... (configured)
-
-# Deployment
-RAILWAY=7a39d377-d7cb-4c31-9c30-48304c3f57c5
-REPL_ID=@firas103103
+Tier 3: المتخصصون (14 وكيل)
+├── Alpha (alpha) - Frontend Specialist
+├── Beta (beta) - Backend Specialist
+├── Gamma (gamma) - Database Specialist
+├── Delta (delta) - API Specialist
+├── Epsilon (epsilon) - Testing Specialist
+├── Zeta (zeta) - Documentation Specialist
+├── Eta (eta) - Performance Specialist
+├── Theta (theta) - Security Analyst
+├── Iota (iota) - Cloud Specialist
+├── Kappa (kappa) - Mobile Specialist
+├── Lambda (lambda) - AI/ML Specialist
+├── Mu (mu) - IoT Specialist
+├── Nu (nu) - Blockchain Specialist
+└── Xi (xi) - DevOps Specialist
 ```
 
-### Production (.env.production)
+### مميزات كل وكيل
+كل وكيل لديه:
+- System prompt مخصص
+- Personality محددة
+- Capabilities & Specialties
+- Voice ID (ElevenLabs)
+- Communication style
+- Reporting hierarchy
+- Task capabilities
+
+---
+
+## 🔐 Environment Variables الحالية
+
+### متغيرات البيئة المطلوبة
 ```bash
+# Database (Required)
+DATABASE_URL=postgresql://...
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_KEY=your-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+
+# Authentication (Required)
+ARC_OPERATOR_PASSWORD=your-secure-password
+SESSION_SECRET=your-random-session-secret-min-32-chars
+
+# AI APIs (Required)
+OPENAI_API_KEY=sk-proj-...
+OPENAI_MODEL=gpt-4o-mini
+
+# AI APIs (Optional)
+ANTHROPIC_API_KEY=sk-ant-api03-...
+GEMINI_API_KEY=AIzaSyBP-...
+ELEVENLABS_API_KEY=...
+
+# Server
 PORT=9002
-NODE_ENV=production
+NODE_ENV=development
+
+# Production
 VITE_API_URL=https://app.mrf103.com
-VITE_APP_VERSION=2.0.0
-# (نفس الـ keys أعلاه في production)
+VITE_APP_VERSION=2.1.0
 ```
 
 ---
@@ -167,108 +286,47 @@ VITE_APP_VERSION=2.0.0
 
 ### Production URLs
 - **Main App:** https://app.mrf103.com (✅ LIVE)
-- **Railway:** https://mrf103arc-namer-production-236c.up.railway.app (✅ LIVE)
-- **Supabase Dashboard:** https://supabase.com/dashboard/project/rffpacsvwxfjhxgtsbzf
+- **Railway:** https://mrf103arc-namer-production.up.railway.app (✅ LIVE)
+- **Supabase Dashboard:** https://supabase.com/dashboard
 
 ### DNS Configuration (Cloudflare)
-- **Domain:** mrf103.com (Squarespace Domains via Google Workspace)
-- **Nameservers:** 
-  - lennon.ns.cloudflare.com
-  - gina.ns.cloudflare.com
+- **Domain:** mrf103.com
 - **SSL:** Cloudflare Free SSL (Active, HTTP/2)
 - **CDN:** Enabled
-- **A Record:** app.mrf103.com → Railway IP
-
-### Supabase Configuration
-- **Project:** rffpacsvwxfjhxgtsbzf
-- **Region:** ap-south-1 (AWS Mumbai)
-- **Redirect URLs (8 configured):**
-  - http://localhost:9002/**
-  - http://localhost:5173/**
-  - https://app.mrf103.com/**
-  - https://mrf103arc-namer-production-236c.up.railway.app/**
-
----
-
-## 👥 الوكلاء العشرة (10 AI Agents)
-
-### القائمة الكاملة
-```typescript
-1. Mr.F (mrf) - CEO & Strategic Commander
-   Role: القائد الاستراتيجي والمدير التنفيذي
-   
-2. Dr. Genius (genius) - Chief Innovation Officer
-   Role: مدير الابتكار الأول
-   
-3. Quantum (quantum) - Quantum Computing Specialist
-   Role: متخصص الحوسبة الكمومية
-   
-4. Neural (neural) - Neural Networks Expert
-   Role: خبير الشبكات العصبية
-   
-5. Oracle (oracle) - Data Prophet & Predictor
-   Role: نبي البيانات والتنبؤ
-   
-6. Sentinel (sentinel) - Security Guardian
-   Role: حارس الأمن
-   
-7. Architect (architect) - System Design Master
-   Role: معماري النظام
-   
-8. Catalyst (catalyst) - Growth & Optimization
-   Role: محفز النمو والتحسين
-   
-9. Phoenix (phoenix) - Recovery & Resilience
-   Role: التعافي والمرونة
-   
-10. Echo (echo) - Communication & Integration
-    Role: التواصل والتكامل
-```
-
-كل agent له:
-- System prompt مخصص (150-200 سطر)
-- Personality محددة
-- Capabilities & Specialties
-- Voice ID (ElevenLabs)
-- Communication style
+- **A Record:** app.mrf103.com → Railway
 
 ---
 
 ## 🔄 الحالة الحالية (Real-time Status)
 
-### ✅ ما يعمل
+### ✅ ما يعمل بالكامل
 1. **TypeScript:** 0 errors - نظيف تماماً
 2. **Build:** ✅ Success (Client + Server)
-3. **Tests:** 17/17 passed (4 test files)
+3. **Tests:** All passed
 4. **Production:** ✅ Deployed on Railway
 5. **Domain:** ✅ app.mrf103.com LIVE (HTTP/2 200)
 6. **SSL:** ✅ Cloudflare Free SSL Active
 7. **Authentication:** ✅ Working (session-based)
-8. **Database:** ✅ Supabase connected
-9. **Sessions:** ✅ PostgreSQL store (fixed table.sql issue)
-10. **API Endpoints:** 30+ endpoints working
+8. **Database:** ✅ Supabase connected (48 جدول)
+9. **Sessions:** ✅ PostgreSQL store
+10. **API Endpoints:** 67+ endpoints working
 11. **CORS:** ✅ Configured for all domains
 12. **Security:** ✅ Helmet + CSP + HSTS
-13. **Monitoring:** ✅ Sentry integrated (production)
-14. **Caching:** ✅ In-memory cache working
+13. **Monitoring:** ✅ Sentry integrated
+14. **Caching:** ✅ Multi-tier cache working
+15. **Rate Limiting:** ✅ Active
+16. **AI Integration:** ✅ OpenAI + Claude + Gemini
+17. **Voice:** ✅ ElevenLabs integrated
+18. **31 Agents:** ✅ Hierarchy system complete
 
 ### 📊 Port Configuration (Unified)
 - Development: 9002
 - Production: 9002
 - All .env files: PORT=9002 (consistent)
 
-### 🔧 Recent Fixes (Last 6 Iterations)
-1. ✅ File cleanup (162 files deleted, -66% size)
-2. ✅ Production deployment configured
-3. ✅ SSL/DNS setup (Cloudflare)
-4. ✅ Standard requirements (LICENSE, CHANGELOG, CI/CD, Staging docs)
-5. ✅ Authentication loop fixed
-6. ✅ TypeScript errors fixed (27→0)
-7. ✅ Session store table.sql error fixed (production)
-
 ### 📦 Build Output
 ```
-Client: 2188 modules, 27 chunks
+Client: 34 pages, 67+ components
 Server: 1.4MB (dist/index.cjs)
 Total Build Time: ~10s
 Gzip Compression: Enabled
@@ -276,90 +334,79 @@ Gzip Compression: Enabled
 
 ---
 
-## 🚦 API Endpoints (30+ routes)
+## 🚦 API Endpoints (67+ routes)
 
 ### Authentication
-- POST `/api/auth/login` - تسجيل دخول بكلمة مرور
-- POST `/api/auth/logout` - تسجيل خروج
-- GET `/api/auth/session` - التحقق من الجلسة
+```
+POST /api/auth/login    - تسجيل دخول بكلمة مرور
+POST /api/auth/logout   - تسجيل خروج
+GET  /api/auth/session  - التحقق من الجلسة
+GET  /api/auth/user     - معلومات المستخدم
+```
 
-### Agents
-- GET `/api/agents` - قائمة الوكلاء
-- GET `/api/agents/:id` - معلومات وكيل محدد
-- POST `/api/agents/:id/chat` - محادثة مع وكيل
-- GET `/api/agents/analytics` - تحليلات الوكلاء
-- GET `/api/agents/performance` - أداء الوكلاء
+### Agents (31-Agent System)
+```
+GET  /api/agents             - قائمة الوكلاء (31)
+GET  /api/agents/:id         - معلومات وكيل محدد
+POST /api/agents/:id/chat    - محادثة مع وكيل
+GET  /api/agents/analytics   - تحليلات الوكلاء
+GET  /api/agents/performance - أداء الوكلاء
+GET  /api/agents/hierarchy   - الهيكل الهرمي
+POST /api/agents/task        - إسناد مهمة
+```
+
+### Admin Panel
+```
+GET    /api/admin/agents    - قائمة الوكلاء (admin)
+POST   /api/admin/agents    - إنشاء وكيل
+PUT    /api/admin/agents    - تحديث وكيل
+DELETE /api/admin/agents    - حذف وكيل
+GET    /api/admin/projects  - قائمة المشاريع
+POST   /api/admin/projects  - إنشاء مشروع
+```
+
+### Master Agent
+```
+POST /api/master-agent/execute        - تنفيذ أمر
+GET  /api/master-agent/tasks          - قائمة المهام
+GET  /api/master-agent/stats          - إحصائيات النظام
+GET  /api/master-agent/growth-status  - حالة النمو
+```
 
 ### BioSentinel (WebSocket + REST)
-- GET `/api/smell-profiles` - قائمة البروفايلات
-- POST `/api/smell-profiles` - إضافة بروفايل جديد
-- DELETE `/api/smell-profiles/:id` - حذف بروفايل
-- POST `/api/sensor-readings` - إضافة قراءة حساس
-- GET `/api/sensor-readings` - قائمة القراءات
-- WS `/ws` - WebSocket connection للـ real-time
+```
+GET  /api/smell-profiles      - قائمة البروفايلات
+POST /api/smell-profiles      - إضافة بروفايل
+DELETE /api/smell-profiles/:id - حذف بروفايل
+POST /api/sensor-readings     - إضافة قراءة حساس
+GET  /api/sensor-readings     - قائمة القراءات
+WS   /ws                      - WebSocket connection
+```
 
 ### QuantumWarRoom
-- GET `/api/missions` - قائمة المهام
-- POST `/api/missions` - إنشاء مهمة جديدة
-- PUT `/api/missions/:id` - تحديث مهمة
-- DELETE `/api/missions/:id` - حذف مهمة
+```
+GET  /api/missions     - قائمة المهام
+POST /api/missions     - إنشاء مهمة
+PUT  /api/missions/:id - تحديث مهمة
+DELETE /api/missions/:id - حذف مهمة
+```
 
-### Projects
-- GET `/api/projects` - قائمة المشاريع
-- POST `/api/projects` - إنشاء مشروع
+### Growth Roadmap (20 endpoints)
+```
+GET  /api/growth-roadmap/overview   - خطة 90 يوم
+GET  /api/growth-roadmap/today      - مهام اليوم
+POST /api/growth-roadmap/check-in   - تسجيل التقدم
+GET  /api/growth-roadmap/metrics    - مؤشرات الأداء
+GET  /api/growth-roadmap/phases     - المراحل
+```
 
 ### Health & Monitoring
-- GET `/api/health` - فحص الصحة
-- GET `/api/cache/stats` - إحصائيات الـ cache
-
----
-
-## 🐛 المشاكل المحلولة (Problem History)
-
-### 1. File Bloat (Solved ✅)
-- **المشكلة:** 440 ملف مع 162 ملف غير ضروري
-- **الحل:** حذف test results, temp files, android folder
-- **النتيجة:** 440→280 files (-66% size)
-
-### 2. PORT Inconsistency (Solved ✅)
-- **المشكلة:** .env.example had PORT=5001, others had 9002
-- **الحل:** توحيد جميع الملفات على PORT=9002
-- **النتيجة:** Consistency across all environments
-
-### 3. Authentication Loop (Solved ✅)
-- **المشكلة:** Landing page stuck after login
-- **الحل:** 
-  - Added `credentials: 'include'` to fetch
-  - Session save callback before response
-  - 100ms delay for session propagation
-  - Redirect to /dashboard instead of /
-- **النتيجة:** Authentication working perfectly
-
-### 4. TypeScript Errors: 27→0 (Solved ✅)
-- **المشاكل:**
-  - Missing schema types (MissionScenario, InsertIntentLog, etc.)
-  - Sentry.Handlers type issues
-  - cachedSelect signature mismatches
-  - BioSentinel confidence property missing
-  - causal.ts normalize functions
-  - storage.ts 600+ lines unused code
-- **الحلول:**
-  - Added 6 new types to schema.ts
-  - @ts-ignore for Sentry handlers (3 places)
-  - Fixed cachedSelect parameters
-  - Added confidence field to smellProfiles
-  - Cleaned causal.ts normalize functions
-  - Simplified storage.ts (600→8 lines)
-- **النتيجة:** 0 TypeScript errors
-
-### 5. Session Store table.sql Error (Solved ✅)
-- **المشكلة:** `ENOENT: no such file or directory, open '/app/dist/table.sql'`
-- **السبب:** connect-pg-simple trying to read table.sql from filesystem in production
-- **الحل:** 
-  - Manual table creation using pgPool.query()
-  - Disabled createTableIfMissing
-  - Added CREATE TABLE IF NOT EXISTS with index
-- **النتيجة:** Sessions working in production
+```
+GET /api/health       - فحص الصحة الكامل
+GET /api/health/live  - Kubernetes liveness
+GET /api/health/ready - Kubernetes readiness
+GET /api/cache/stats  - إحصائيات الـ cache
+```
 
 ---
 
@@ -371,7 +418,7 @@ allowedOrigins = [
   'http://localhost:9002',
   'http://localhost:5173',
   'https://app.mrf103.com',
-  'https://mrf103arc-namer-production-236c.up.railway.app'
+  'https://mrf103arc-namer-production.up.railway.app'
 ]
 credentials: true
 methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS']
@@ -401,34 +448,42 @@ store: PostgreSQL (connect-pg-simple)
 secret: 256-bit SESSION_SECRET
 ```
 
----
-
-## 📝 Documentation Files
-
-### Available Docs
-- `README.md` - Project overview
-- `LICENSE` - MIT License (Copyright 2026)
-- `CHANGELOG.md` - Version history (220 lines)
-- `STAGING_SETUP.md` - Complete staging guide (450 lines)
-- `BUILD_APK_GUIDE.md` - Android build guide
-- `DOMAIN_SETUP.md` - Domain configuration
-- `ARC_COMPLETE_DOCUMENTATION.md` - Full system docs
-- `FINAL_SYSTEM_AUDIT.md` - System audit report
-- `design_guidelines.md` - UI/UX guidelines
-
----
-
-## 🧪 Testing Status
-
-### Test Files (4 files, 17 tests)
+### Rate Limiting
+```typescript
+GENERAL_API: 100 requests/minute
+AI_ENDPOINTS: 20 requests/minute
+AUTHENTICATION: 5 attempts/15 minutes
 ```
-✓ server/middleware/error-handler.test.ts (4 tests)
-✓ server/utils/logger.test.ts (4 tests)
-✓ server/modules/integration_manager.test.ts (5 tests)
-✓ server/modules/archive_manager.test.ts (4 tests)
 
-Duration: 838ms
-Status: ALL PASSED ✅
+---
+
+## 📈 Performance Metrics
+
+### Cache Statistics
+```typescript
+API_CACHE: 60 seconds TTL
+DATABASE_CACHE: 300 seconds (5 min) TTL
+STATIC_CACHE: 3600 seconds (1 hour) TTL
+AI_CACHE: 600 seconds (10 min) TTL
+
+Expected:
+- 60-80% cache hit rate
+- 70% reduction in database queries
+- 50% reduction in AI API costs
+```
+
+### Response Times
+```
+API: <300ms average
+Database queries: <150ms
+WebSocket: Real-time (<10ms)
+Build time: ~10 seconds
+```
+
+### Bundle Sizes
+```
+Client: 956 KB (260 KB gzipped)
+Server: 1.4 MB
 ```
 
 ---
@@ -438,28 +493,58 @@ Status: ALL PASSED ✅
 ### Frontend
 - react@18.3.1
 - react-router-dom@7.5.0
-- @tanstack/react-query@5.64.2
+- @tanstack/react-query@5.90.16
 - lucide-react@0.468.0
 - tailwindcss@3.4.17
 - vite@7.3.0
+- @radix-ui/* (complete UI kit)
 
 ### Backend
 - express@4.21.2
 - drizzle-orm@0.38.3
-- @supabase/supabase-js@2.48.2
+- @supabase/supabase-js@2.89.0
 - express-session@1.18.1
 - connect-pg-simple@10.0.0
 - pg@8.13.1
 - @sentry/node@10.32.1
 - helmet@8.1.0
 - ws@8.18.0 (WebSocket)
+- node-cache (caching)
 
 ### AI/ML
 - openai@4.77.3
 - @anthropic-ai/sdk@0.36.1
 - @google/generative-ai@0.21.0
 
-### Total: 852 packages
+### Mobile
+- @capacitor/android@8.0.0
+- @capacitor/core@8.0.0
+
+### Total: 850+ packages
+
+---
+
+## 🛠️ Development Commands
+
+```bash
+# Development
+npm run dev              # Start dev server (port 9002)
+npm run build            # Build for production
+npm run start            # Start production server
+npm run check            # TypeScript type check
+npm test                 # Run tests with Vitest
+npm run db:push          # Push schema to database
+npm run db:studio        # Open Drizzle Studio
+npm run lint             # ESLint check
+npm run lint:fix         # Fix linting issues
+npm run format           # Prettier format
+
+# Git
+git status               # Check status
+git add -A              # Stage all changes
+git commit -m "..."     # Commit with message
+git push origin main    # Push to GitHub
+```
 
 ---
 
@@ -475,7 +560,7 @@ Build starts (npm run build)
   ↓
 Deploy to europe-west4
   ↓
-Health check
+Health check (/api/health/ready)
   ↓
 Live on app.mrf103.com
 ```
@@ -489,181 +574,59 @@ Live on app.mrf103.com
 
 ---
 
-## 🔄 Recent Git Commits (Last 5)
+## 📝 Documentation Files الموجودة
 
-```
-4fbfe07 (HEAD) 🔧 fix(session): Fix production session store table.sql missing error
-408e5fa 🔧 fix: توحيد الإعدادات وإصلاح جميع أخطاء TypeScript (الدورة الخامسة)
-dc281a8 🔒 fix(auth): Fix landing page authentication flow
-6f39a14 ✨ feat: Complete production readiness requirements
-b3b5a65 📋 docs(closure): Complete project closure and assessment report
-```
+| الملف | الوصف |
+|-------|-------|
+| README.md | نظرة عامة على المشروع |
+| AI_CONTEXT.md | سياق AI للوكلاء |
+| LICENSE | رخصة MIT |
+| CHANGELOG.md | تاريخ الإصدارات |
+| ARC_2.0_COMPLETE_DOCUMENTATION.md | توثيق ARC 2.0 الكامل |
+| DATABASE_SETUP_GUIDE.md | دليل إعداد قاعدة البيانات |
+| DEPLOYMENT_CHECKLIST.md | قائمة التحقق للنشر |
+| BUSINESS_PLAN.md | خطة العمل |
+| GDPR_COMPLIANCE.md | التوافق مع GDPR |
+| PRIVACY_POLICY.md | سياسة الخصوصية |
+| TERMS_OF_SERVICE.md | شروط الخدمة |
 
 ---
 
 ## 🎨 UI/UX Features
 
 ### Design System
-- **Framework:** Tailwind CSS + shadcn/ui
+- **Framework:** Tailwind CSS + shadcn/ui + Radix UI
 - **Theme:** Dark mode with cyan/blue accents
 - **Typography:** Modern sans-serif
 - **Icons:** Lucide React (468 icons)
 - **Animations:** Tailwind animations + custom keyframes
 - **Responsive:** Mobile-first design
+- **RTL:** Full Arabic support
 
 ### Key Components
-- Dashboard with agent cards
+- Dashboard with agent cards (31 agents)
 - Real-time chat interface
 - WebSocket status indicators
 - Toast notifications
 - Loading states
 - Error boundaries
 - Skeleton loaders
+- Hierarchical tree views
 
 ---
 
-## 🔍 Debugging & Logging
+## 🔄 Git History (آخر التحديثات)
 
-### Console Logs
-```typescript
-// Info logs
-console.log('✅ Success message')
-console.log('📊 Stats:', data)
-
-// Warnings
-console.warn('⚠️ Warning message')
-
-// Errors
-console.error('❌ Error:', error)
-
-// Sentry (production only)
-Sentry.captureException(error)
 ```
-
-### Log Levels
-- Development: All logs visible
-- Production: Errors sent to Sentry
-- Cache stats logged every 5 minutes
-
----
-
-## 📈 Performance Metrics
-
-### Cache Statistics
-```typescript
-{
-  keys: 0,
-  hits: 0,
-  misses: 0,
-  hitRate: '0.00%',
-  memoryUsage: {
-    rss: 72MB,
-    heapTotal: 21MB,
-    heapUsed: 19MB
-  }
-}
+92b4242 docs: Update README badges and version info
+00997cd docs: Update DATABASE_SETUP_GUIDE.md
+9fa75e4 fix: Resolve ESLint and TypeScript type errors
+34529aa fix: Correct AgentDefinition type in openai_service
+ca8f428 feat: Add OpenAI integration + Database schema + Setup guides
+e5ec33a 🏛️ ARC 2.0 - Complete 31-Agent Hierarchy System
+2148552 🔧 Fix all 73 TypeScript errors - Complete system modernization
+90693cf feat: Fix React hooks error, add self-healing server system
 ```
-
-### Response Times
-- API: <100ms average
-- Database queries: Cached (300s TTL)
-- WebSocket: Real-time (<10ms)
-
----
-
-## 🛠️ Development Commands
-
-```bash
-# Development
-npm run dev              # Start dev server (port 9002)
-npm run build            # Build for production
-npm run check            # TypeScript type check
-npm test                 # Run tests with Vitest
-npm run db:push          # Push schema to database
-npm run db:studio        # Open Drizzle Studio
-
-# Git
-git status               # Check status
-git add -A              # Stage all changes
-git commit -m "..."     # Commit with message
-git push origin main    # Push to GitHub
-```
-
----
-
-## 🎯 Next Steps / Roadmap
-
-### v2.1.0 (Planned)
-- [ ] Advanced agent collaboration
-- [ ] Voice command integration (ElevenLabs)
-- [ ] Enhanced BioSentinel features
-- [ ] Multi-language support improvements
-
-### v2.2.0 (Planned)
-- [ ] Mobile app (React Native)
-- [ ] Advanced analytics dashboard
-- [ ] Team collaboration features
-
-### v3.0.0 (Future)
-- [ ] Quantum computing integration
-- [ ] Blockchain integration
-- [ ] AR/VR interfaces
-
----
-
-## 🆘 Common Issues & Solutions
-
-### Issue 1: Port already in use
-```bash
-# Kill process on port 9002
-lsof -ti:9002 | xargs kill -9
-```
-
-### Issue 2: Database connection failed
-- Check SUPABASE_URL and DATABASE_URL
-- Verify Supabase project is active
-- Check network/firewall
-
-### Issue 3: Session not persisting
-- Verify SESSION_SECRET is set
-- Check cookie settings (secure in production)
-- Ensure PostgreSQL session table exists
-
-### Issue 4: Build fails
-```bash
-# Clean and rebuild
-rm -rf dist node_modules
-npm install
-npm run build
-```
-
----
-
-## 📞 Support & Resources
-
-### Repository
-- **GitHub:** https://github.com/firas103103-oss/mrf103ARC-Namer
-- **Branch:** main
-- **Owner:** firas103103-oss
-
-### External Services
-- **Supabase:** https://supabase.com
-- **Railway:** https://railway.app
-- **Cloudflare:** https://dash.cloudflare.com
-- **Sentry:** https://sentry.io
-
----
-
-## 🔐 Credentials Location
-
-**⚠️ IMPORTANT:** All sensitive keys are stored in `.env` (NOT in git)
-
-Files to check:
-- `.env` (development)
-- `.env.production` (production)
-- `.env.example` (template with no real keys)
-
-**Never commit `.env` files to git!**
 
 ---
 
@@ -677,21 +640,41 @@ Files to check:
 - [x] DNS: Configured
 - [x] Sessions: Working
 - [x] Authentication: Working
-- [x] Database: Connected
-- [x] APIs: Functional
+- [x] Database: 48 tables connected
+- [x] APIs: 67+ endpoints functional
 - [x] Security: Configured
 - [x] Monitoring: Active
+- [x] 31 Agents: Hierarchy complete
+- [x] Voice: ElevenLabs integrated
+- [x] AI: OpenAI + Claude + Gemini
 - [x] Documentation: Complete
 
 ---
 
 ## 🎉 Project Status: PRODUCTION READY ✅
 
-**Last Updated:** January 6, 2026  
-**Version:** 2.0.0  
-**Status:** Fully operational and deployed  
-**Health:** Excellent 💚
+| المقياس | القيمة |
+|---------|--------|
+| **Last Updated** | 9 يناير 2026 |
+| **Version** | 2.1.0 |
+| **Status** | Fully operational |
+| **Health** | 100% 💚 |
+| **Agents** | 31 (4-tier hierarchy) |
+| **Pages** | 34 |
+| **API Endpoints** | 67+ |
+| **Database Tables** | 48 |
+| **TypeScript Errors** | 0 |
 
 ---
 
-*This document contains complete context for AI agents to understand and work with this project.*
+*هذا المستند يحتوي على السياق الكامل لوكلاء AI للفهم والعمل مع هذا المشروع.*
+
+---
+
+<div align="center">
+
+**MRF103 ARC Namer - Enterprise AI Command Center**
+
+**v2.1.0** | **January 2026** | **Production Ready**
+
+</div>

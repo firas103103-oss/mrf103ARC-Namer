@@ -5,6 +5,49 @@ All notable changes to the ARC Namer AI Platform will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2026-01-09
+
+### Added
+- **31-Agent Hierarchy System**: Complete 4-tier organizational structure
+  - Tier 0: CEO (Mr.F)
+  - Tier 1: 6 Directors (Genius, Quantum, Oracle, Sentinel, Architect, Catalyst)
+  - Tier 2: 10 Managers (Phoenix, Echo, Neural, Vector, Prism, Nexus, Cipher, Flux, Sage, Pulse)
+  - Tier 3: 14 Specialists (Alpha, Beta, Gamma, Delta, Epsilon, Zeta, Eta, Theta, Iota, Kappa, Lambda, Mu, Nu, Xi)
+- **OpenAI Integration**: Complete GPT-4 integration with openai_service.ts
+- **Database Schema Expansion**: 48 tables (up from 21)
+- **New Pages**: 
+  - XBioSentinel (ESP32 integration)
+  - TemporalAnomalyLab
+  - MaestrosHub
+  - LifeManager
+  - Cloning
+- **Final Documentation**: 
+  - FINAL_DOCUMENTATION.md (comprehensive project docs)
+  - Updated README.md with full system metrics
+  - Updated AI_CONTEXT.md with 31-agent details
+- **ESP32 Firmware**: XBio sensor integration support
+
+### Changed
+- **TypeScript Fixes**: Resolved all 73 TypeScript errors → 0 errors
+- **Agent Profiles**: Enhanced with hierarchy information and capabilities
+- **API Endpoints**: Expanded from 50+ to 67+ endpoints
+- **Server Modules**: Added routes/, services/, modules/ organization
+- **Performance**: Improved caching and rate limiting
+
+### Fixed
+- **ESLint Errors**: All linting issues resolved
+- **React Hooks**: Fixed hooks error in OperationsSimulator
+- **Self-healing Server**: Added automatic recovery system
+- **AgentDefinition Type**: Corrected in openai_service
+
+### Documentation
+- Complete README.md rewrite with system metrics
+- Full AI_CONTEXT.md update with 31 agents
+- Added FINAL_DOCUMENTATION.md for comprehensive reference
+- Updated DATABASE_SETUP_GUIDE.md
+
+---
+
 ## [2.0.0] - 2026-01-06
 
 ### Added

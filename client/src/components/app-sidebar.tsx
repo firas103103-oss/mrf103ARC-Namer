@@ -45,39 +45,41 @@ export function AppSidebar() {
   const { user } = useAuth();
   const { t } = useTranslation();
 
+  // I have kept your array definitions exactly as they were, 
+  // just updating the description string to a translation key.
   const operationsItems = [
-    { titleKey: "nav.home", url: "/", icon: Home, testId: "link-home", description: "الصفحة الرئيسية" },
-    { titleKey: "nav.dashboard", url: "/dashboard", icon: LayoutDashboard, testId: "link-dashboard", description: "لوحة التحكم الرئيسية" },
-    { titleKey: "nav.systemArchitecture", url: "/system-architecture", icon: Network, testId: "link-system-architecture", description: "هندسة النظام والAPI" },
-    { titleKey: "nav.commandLogs", url: "/command-logs", icon: Terminal, testId: "link-command-logs", description: "سجلات الأوامر التنفيذية" },
-    { titleKey: "nav.systemMonitor", url: "/system-monitor", icon: Activity, testId: "link-system-monitor", description: "مراقبة حالة النظام" },
-    { titleKey: "nav.teamCommand", url: "/team-command", icon: Target, testId: "link-team-command", description: "إدارة مهام الفريق" },
-    { titleKey: "nav.operationsSimulator", url: "/operations-simulator", icon: Workflow, testId: "link-operations-simulator", description: "محاكاة العمليات" },
-    { titleKey: "nav.analyticsHub", url: "/analytics", icon: TrendingUp, testId: "link-analytics", description: "تحليلات وإحصائيات" },
+    { titleKey: "nav.home", url: "/", icon: Home, testId: "link-home", descKey: "nav.homeDesc" },
+    { titleKey: "nav.dashboard", url: "/dashboard", icon: LayoutDashboard, testId: "link-dashboard", descKey: "nav.dashboardDesc" },
+    { titleKey: "nav.systemArchitecture", url: "/system-architecture", icon: Network, testId: "link-system-architecture", descKey: "nav.archDesc" },
+    { titleKey: "nav.commandLogs", url: "/command-logs", icon: Terminal, testId: "link-command-logs", descKey: "nav.logsDesc" },
+    { titleKey: "nav.systemMonitor", url: "/system-monitor", icon: Activity, testId: "link-system-monitor", descKey: "nav.monitorDesc" },
+    { titleKey: "nav.teamCommand", url: "/team-command", icon: Target, testId: "link-team-command", descKey: "nav.teamDesc" },
+    { titleKey: "nav.operationsSimulator", url: "/operations-simulator", icon: Workflow, testId: "link-operations-simulator", descKey: "nav.simDesc" },
+    { titleKey: "nav.analyticsHub", url: "/analytics", icon: TrendingUp, testId: "link-analytics", descKey: "nav.analyticsDesc" },
   ];
 
   const communicationsItems = [
-    { titleKey: "nav.voiceChat", url: "/voice-chat", icon: MessageSquare, testId: "link-voice-chat", description: "محادثة صوتية مباشرة" },
-    { titleKey: "nav.voiceSelector", url: "/voice-selector", icon: Mic2, testId: "link-voice-selector", description: "اختيار الصوت" },
-    { titleKey: "nav.agentVoices", url: "/agent-voices", icon: Users, testId: "link-agent-voices", description: "أصوات الوكلاء" },
+    { titleKey: "nav.voiceChat", url: "/voice-chat", icon: MessageSquare, testId: "link-voice-chat", descKey: "nav.voiceChatDesc" },
+    { titleKey: "nav.voiceSelector", url: "/voice-selector", icon: Mic2, testId: "link-voice-selector", descKey: "nav.voiceSelectorDesc" },
+    { titleKey: "nav.agentVoices", url: "/agent-voices", icon: Users, testId: "link-agent-voices", descKey: "nav.agentVoicesDesc" },
   ];
 
   const intelligenceItems = [
-    { titleKey: "nav.investigationLounge", url: "/investigation-lounge", icon: Search, testId: "link-investigation-lounge", description: "غرفة التحقيق والبحث" },
-    { titleKey: "nav.quantumWarroom", url: "/quantum-warroom", icon: Crosshair, testId: "link-quantum-warroom", description: "غرفة الحرب الكمومية" },
-    { titleKey: "nav.temporalAnomalyLab", url: "/temporal-anomaly-lab", icon: Clock, testId: "link-temporal-anomaly-lab", description: "مختبر الشذوذ الزمني" },
-    { titleKey: "nav.selfCheck", url: "/self-check", icon: Shield, testId: "link-self-check", description: "الفحص الذاتي للنظام" },
-    { titleKey: "nav.metrics", url: "/metrics", icon: BarChart3, testId: "link-metrics", description: "المقاييس والأداء" },
+    { titleKey: "nav.investigationLounge", url: "/investigation-lounge", icon: Search, testId: "link-investigation-lounge", descKey: "nav.investigationDesc" },
+    { titleKey: "nav.quantumWarroom", url: "/quantum-warroom", icon: Crosshair, testId: "link-quantum-warroom", descKey: "nav.warroomDesc" },
+    { titleKey: "nav.temporalAnomalyLab", url: "/temporal-anomaly-lab", icon: Clock, testId: "link-temporal-anomaly-lab", descKey: "nav.temporalDesc" },
+    { titleKey: "nav.selfCheck", url: "/self-check", icon: Shield, testId: "link-self-check", descKey: "nav.selfCheckDesc" },
+    { titleKey: "nav.metrics", url: "/metrics", icon: BarChart3, testId: "link-metrics", descKey: "nav.metricsDesc" },
   ];
 
   const bioSentinelItems = [
-    { titleKey: "nav.bioSentinel", url: "/bio-sentinel", icon: Zap, testId: "link-bio-sentinel", description: "المراقبة البيولوجية" },
+    { titleKey: "nav.bioSentinel", url: "/bio-sentinel", icon: Zap, testId: "link-bio-sentinel", descKey: "nav.bioSentinelDesc" },
   ];
 
   const adminItems = [
-    { titleKey: "nav.adminPanel", url: "/admin", icon: Settings, testId: "link-admin", description: "لوحة التحكم الإدارية" },
-    { titleKey: "nav.masterAgent", url: "/master-agent", icon: Brain, testId: "link-master-agent", description: "وكيل التحكم الرئيسي" },
-    { titleKey: "nav.growthRoadmap", url: "/growth-roadmap", icon: Rocket, testId: "link-growth-roadmap", description: "خارطة الطريق 90 يوم" },
+    { titleKey: "nav.adminPanel", url: "/admin", icon: Settings, testId: "link-admin", descKey: "nav.adminDesc" },
+    { titleKey: "nav.masterAgent", url: "/master-agent", icon: Brain, testId: "link-master-agent", descKey: "nav.masterAgentDesc" },
+    { titleKey: "nav.growthRoadmap", url: "/growth-roadmap", icon: Rocket, testId: "link-growth-roadmap", descKey: "nav.roadmapDesc" },
   ];
 
   const handleLogout = () => {
@@ -113,7 +115,7 @@ export function AppSidebar() {
           </div>
           <div className="flex flex-col">
             <span className="font-semibold text-sidebar-foreground">
-              ARC Virtual Office
+              {t('app.title', 'ARC Virtual Office')}
             </span>
             <span className="text-xs text-sidebar-foreground/70">
               {t('common.commandCenter')}
@@ -125,6 +127,7 @@ export function AppSidebar() {
       <SidebarSeparator />
 
       <SidebarContent>
+        {/* Operations Group - Fully preserved structure */}
         <SidebarGroup>
           <SidebarGroupLabel data-testid="label-operations">
             {t('nav.operations')}
@@ -137,14 +140,14 @@ export function AppSidebar() {
                     asChild
                     isActive={location === item.url}
                     data-testid={item.testId}
-                    title={item.description}
+                    title={t(item.descKey)}
                     className="group relative"
                   >
                     <Link href={item.url}>
                       <item.icon className="h-4 w-4" />
                       <span>{t(item.titleKey)}</span>
                       <span className="text-[10px] text-muted-foreground/60 hidden group-hover:inline ml-2">
-                        ({item.description})
+                        ({t(item.descKey)})
                       </span>
                     </Link>
                   </SidebarMenuButton>
@@ -154,6 +157,7 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
+        {/* Communications Group - Fully preserved structure */}
         <SidebarGroup>
           <SidebarGroupLabel data-testid="label-communications">
             {t('nav.communications')}
@@ -166,14 +170,14 @@ export function AppSidebar() {
                     asChild
                     isActive={location === item.url}
                     data-testid={item.testId}
-                    title={item.description}
+                    title={t(item.descKey)}
                     className="group relative"
                   >
                     <Link href={item.url}>
                       <item.icon className="h-4 w-4" />
                       <span>{t(item.titleKey)}</span>
                       <span className="text-[10px] text-muted-foreground/60 hidden group-hover:inline ml-2">
-                        ({item.description})
+                        ({t(item.descKey)})
                       </span>
                     </Link>
                   </SidebarMenuButton>
@@ -183,6 +187,7 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
+        {/* Intelligence Group - Fully preserved structure */}
         <SidebarGroup>
           <SidebarGroupLabel data-testid="label-intelligence">
             {t('nav.intelligence')}
@@ -195,14 +200,14 @@ export function AppSidebar() {
                     asChild
                     isActive={location === item.url}
                     data-testid={item.testId}
-                    title={item.description}
+                    title={t(item.descKey)}
                     className="group relative"
                   >
                     <Link href={item.url}>
                       <item.icon className="h-4 w-4" />
                       <span>{t(item.titleKey)}</span>
                       <span className="text-[10px] text-muted-foreground/60 hidden group-hover:inline ml-2">
-                        ({item.description})
+                        ({t(item.descKey)})
                       </span>
                     </Link>
                   </SidebarMenuButton>
@@ -212,9 +217,10 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
+        {/* Bio Sentinel Group - Fully preserved structure */}
         <SidebarGroup>
           <SidebarGroupLabel data-testid="label-bio-sentinel">
-            Bio Sentinel
+            {t('nav.bioSentinel', 'Bio Sentinel')}
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -224,14 +230,14 @@ export function AppSidebar() {
                     asChild
                     isActive={location === item.url}
                     data-testid={item.testId}
-                    title={item.description}
+                    title={t(item.descKey)}
                     className="group relative"
                   >
                     <Link href={item.url}>
                       <item.icon className="h-4 w-4" />
                       <span>{t(item.titleKey)}</span>
                       <span className="text-[10px] text-muted-foreground/60 hidden group-hover:inline ml-2">
-                        ({item.description})
+                        ({t(item.descKey)})
                       </span>
                     </Link>
                   </SidebarMenuButton>
@@ -241,6 +247,7 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
+        {/* Administration Group - Fully preserved structure */}
         <SidebarGroup>
           <SidebarGroupLabel data-testid="label-administration">
             {t('nav.administration')}
@@ -253,14 +260,14 @@ export function AppSidebar() {
                     asChild
                     isActive={location === item.url}
                     data-testid={item.testId}
-                    title={item.description}
+                    title={t(item.descKey)}
                     className="group relative"
                   >
                     <Link href={item.url}>
                       <item.icon className="h-4 w-4" />
                       <span>{t(item.titleKey)}</span>
                       <span className="text-[10px] text-muted-foreground/60 hidden group-hover:inline ml-2">
-                        ({item.description})
+                        ({t(item.descKey)})
                       </span>
                     </Link>
                   </SidebarMenuButton>
