@@ -230,7 +230,7 @@ async function checkDatabase(): Promise<HealthComponent> {
     const latency = Date.now() - start;
 
     if (error) {
-      return { status: "down", latency, error: error.message, lastChecked: checked };
+      return { status: "down", latency, error: (error instanceof Error ? error.message : 'Unknown error'), lastChecked: checked };
     }
 
     // Degraded if latency > 500ms
@@ -259,8 +259,8 @@ async function checkSessions(): Promise<HealthComponent> {
     const latency = Date.now() - start;
 
     // 42P01 = table doesn't exist, which is OK for first run
-    if (error && !error.message.includes("42P01")) {
-      return { status: "degraded", latency, error: error.message, lastChecked: checked };
+    if (error && !(error instanceof Error ? error.message : 'Unknown error').includes("42P01")) {
+      return { status: "degraded", latency, error: (error instanceof Error ? error.message : 'Unknown error'), lastChecked: checked };
     }
 
     return { status: "up", latency, lastChecked: checked };
@@ -286,7 +286,7 @@ async function checkEventLedger(): Promise<HealthComponent> {
     const latency = Date.now() - start;
 
     if (error) {
-      return { status: "degraded", latency, error: error.message, lastChecked: checked };
+      return { status: "degraded", latency, error: (error instanceof Error ? error.message : 'Unknown error'), lastChecked: checked };
     }
 
     return { status: "up", latency, lastChecked: checked };
@@ -312,7 +312,7 @@ async function checkAgentRegistry(): Promise<HealthComponent> {
     const latency = Date.now() - start;
 
     if (error) {
-      return { status: "degraded", latency, error: error.message, lastChecked: checked };
+      return { status: "degraded", latency, error: (error instanceof Error ? error.message : 'Unknown error'), lastChecked: checked };
     }
 
     // Check if any agents are unhealthy

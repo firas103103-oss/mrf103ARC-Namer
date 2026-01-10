@@ -196,7 +196,7 @@ export async function createArchive(
       const { data, error } = await supabase!.from("arc_archives").insert(archiveEntry).select();
       
       if (error) {
-        log(`❌ Failed to store archive metadata: ${error.message}`, "archive_manager");
+        log(`❌ Failed to store archive metadata: ${(error instanceof Error ? error.message : 'Unknown error')}`, "archive_manager");
       } else {
         archiveEntry.id = data?.[0]?.id;
         log(`✅ Archive created: ${archiveName} (${stats.size} bytes)`, "archive_manager");
@@ -240,7 +240,7 @@ export async function grantAccess(
     const { error } = await supabase!.from("arc_access_control").insert(accessControl);
 
     if (error) {
-      log(`❌ Failed to grant access: ${error.message}`, "archive_manager");
+      log(`❌ Failed to grant access: ${(error instanceof Error ? error.message : 'Unknown error')}`, "archive_manager");
       return false;
     }
 
@@ -306,7 +306,7 @@ export async function listArchives(
     const { data, error } = await query.order("created_at", { ascending: false });
 
     if (error) {
-      log(`❌ Failed to list archives: ${error.message}`, "archive_manager");
+      log(`❌ Failed to list archives: ${(error instanceof Error ? error.message : 'Unknown error')}`, "archive_manager");
       return [];
     }
 

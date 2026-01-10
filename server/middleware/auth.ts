@@ -119,7 +119,7 @@ export const authenticateToken = (req: Request, res: Response, next: NextFunctio
     next();
   } catch (error) {
     logger.warn('Token verification failed:', {
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: error instanceof Error ? (error instanceof Error ? error.message : 'Unknown error') : 'Unknown error',
       ip: req.ip,
       path: req.path
     });

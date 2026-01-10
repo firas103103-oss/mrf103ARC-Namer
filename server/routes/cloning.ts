@@ -233,12 +233,12 @@ router.post(
           devicesCount: addedDevices.length,
         },
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error("خطأ في التسجيل:", error);
       return res.status(500).json({
         success: false,
         message: "حدث خطأ أثناء التسجيل",
-        error: error.message,
+        error: (error instanceof Error ? error.message : 'Unknown error'),
       });
     }
   }
@@ -295,12 +295,12 @@ router.get("/profile/:userId", async (req: Request, res: Response) => {
         devices,
       },
     });
-  } catch (error: any) {
+  } catch (error) {
     logger.error("خطأ في جلب معلومات المستخدم:", error);
     return res.status(500).json({
       success: false,
       message: "حدث خطأ أثناء جلب المعلومات",
-      error: error.message,
+      error: (error instanceof Error ? error.message : 'Unknown error'),
     });
   }
 });
@@ -384,12 +384,12 @@ router.put(
           newFilesCount: uploadedFiles.length,
         },
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error("خطأ في تحديث المعلومات:", error);
       return res.status(500).json({
         success: false,
         message: "حدث خطأ أثناء التحديث",
-        error: error.message,
+        error: (error instanceof Error ? error.message : 'Unknown error'),
       });
     }
   }

@@ -3,10 +3,25 @@
  * API endpoints للنظام الهرمي الجديد
  */
 
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import { arcHierarchy, CEO, MAESTROS, ALL_AGENTS } from '../arc/hierarchy_system';
-import { arcReporting, ReportType } from '../arc/reporting_system';
-import { arcLearning } from '../arc/learning_system';import { arcOpenAI } from '../arc/openai_service';
+import { arcReporting } from '../arc/reporting_system';
+import { arcLearning } from '../arc/learning_system';
+import { arcOpenAI } from '../arc/openai_service';
+import type { 
+  ApiResponse, 
+  Agent, 
+  HierarchyStats, 
+  ReportingChain, 
+  HierarchyTree,
+  Report,
+  DailyReport,
+  WeeklyReport,
+  SectorType,
+  AgentStatus,
+  AsyncOperationResult
+} from '../types';
+
 export const arcRouter = Router();
 
 // ===============================
@@ -29,45 +44,46 @@ arcRouter.get('/agents', (req, res) => {
 });
 
 // Get agent by ID
-arcRouter.get('/agents/:id', (req, res) => {
+arcRouter.get('/agents/:id', (req: Request, res: Response) => {
   const agent = arcHierarchy.getAgent(req.params.id);
   if (!agent) {
     return res.status(404).json({ success: false, error: 'Agent not found' });
   }
-  res.json({ success: true, data: agent });
+  res.json({ success: true, data: agent } as ApiResponse<Agent>);
 });
 
 // Get hierarchy tree
-arcRouter.get('/hierarchy/tree', (req, res) => {
+arcRouter.get('/hierarchy/tree', (req: Request, res: Response) => {
   const tree = arcHierarchy.getHierarchyTree();
-  res.json({ success: true, data: tree });
+  res.json({ success: true, data: tree } as ApiResponse<HierarchyTree>);
 });
 
 // Get hierarchy stats
-arcRouter.get('/hierarchy/stats', (req, res) => {
+arcRouter.get('/hierarchy/stats', (req: Request, res: Response) => {
   const stats = arcHierarchy.getStats();
-  res.json({ success: true, data: stats });
+  res.json({ success: true, data: stats } as ApiResponse<HierarchyStats>);
 });
 
 // Get specialists by sector
-arcRouter.get('/sector/:sector/specialists', (req, res) => {
-  const specialists = arcHierarchy.getSpecialists(req.params.sector as any);
-  res.json({ success: true, data: specialists });
+arcRouter.get('/sector/:sector/specialists', (req: Request, res: Response) => {
+  const specialists = arcHierarchy.getSpecialists(req.params.sector as SectorType);
+  res.json({ success: true, data: specialists } as ApiResponse<Agent[]>);
 });
 
 // Get reporting chain for agent
-arcRouter.get('/agents/:id/reporting-chain', (req, res) => {
+arcRouter.get('/agents/:id/reporting-chain', (req: Request, res: Response) => {
   const chain = arcHierarchy.getReportingChain(req.params.id);
-  res.json({ success: true, data: chain });
+  res.json({ success: true, data: chain } as ApiResponse<ReportingChain>);
 });
 
 // Update agent status
-arcRouter.patch('/agents/:id/status', (req, res) => {
-  const { status } = req.body;
-  if (!['active', 'idle', 'busy', 'offline', 'learning'].includes(status)) {
+arcRouter.patch('/agents/:id/status', (req: Request, res: Response) => {
+  const { status } = req.body as { status: unknown };
+  const validStatuses: AgentStatus[] = ['active', 'idle', 'busy', 'offline', 'learning'];
+  if (!status || !validStatuses.includes(status as AgentStatus)) {
     return res.status(400).json({ success: false, error: 'Invalid status' });
   }
-  arcHierarchy.updateStatus(req.params.id, status);
+  arcHierarchy.updateStatus(req.params.id, status as AgentStatus);
   res.json({ success: true, message: 'Status updated' });
 });
 
@@ -80,8 +96,8 @@ arcRouter.post('/reports/daily/:agentId', async (req, res) => {
   try {
     const report = await arcReporting.generateDailyReport(req.params.agentId);
     res.json({ success: true, data: report });
-  } catch (error: any) {
-    res.status(500).json({ success: false, error: error.message });
+  } catch (error) {
+    res.status(500).json({ success: false, error: (error instanceof Error ? error.message : 'Unknown error') });
   }
 });
 
@@ -90,8 +106,8 @@ arcRouter.post('/reports/weekly/:agentId', async (req, res) => {
   try {
     const report = await arcReporting.generateWeeklyReport(req.params.agentId);
     res.json({ success: true, data: report });
-  } catch (error: any) {
-    res.status(500).json({ success: false, error: error.message });
+  } catch (error) {
+    res.status(500).json({ success: false, error: (error instanceof Error ? error.message : 'Unknown error') });
   }
 });
 
@@ -100,8 +116,8 @@ arcRouter.post('/reports/monthly/:agentId', async (req, res) => {
   try {
     const report = await arcReporting.generateMonthlyReport(req.params.agentId);
     res.json({ success: true, data: report });
-  } catch (error: any) {
-    res.status(500).json({ success: false, error: error.message });
+  } catch (error) {
+    res.status(500).json({ success: false, error: (error instanceof Error ? error.message : 'Unknown error') });
   }
 });
 
@@ -110,8 +126,8 @@ arcRouter.post('/reports/semi-annual/:agentId', async (req, res) => {
   try {
     const report = await arcReporting.generateSemiAnnualReport(req.params.agentId);
     res.json({ success: true, data: report });
-  } catch (error: any) {
-    res.status(500).json({ success: false, error: error.message });
+  } catch (error) {
+    res.status(500).json({ success: false, error: (error instanceof Error ? error.message : 'Unknown error') });
   }
 });
 
@@ -127,8 +143,8 @@ arcRouter.post('/reports/sector/:sector', async (req, res) => {
       type as ReportType
     );
     res.json({ success: true, data: report });
-  } catch (error: any) {
-    res.status(500).json({ success: false, error: error.message });
+  } catch (error) {
+    res.status(500).json({ success: false, error: (error instanceof Error ? error.message : 'Unknown error') });
   }
 });
 
@@ -141,8 +157,8 @@ arcRouter.post('/reports/executive', async (req, res) => {
     }
     const report = await arcReporting.generateExecutiveReport(type as ReportType);
     res.json({ success: true, data: report });
-  } catch (error: any) {
-    res.status(500).json({ success: false, error: error.message });
+  } catch (error) {
+    res.status(500).json({ success: false, error: (error instanceof Error ? error.message : 'Unknown error') });
   }
 });
 
@@ -184,8 +200,8 @@ arcRouter.post('/learning/experience', async (req, res) => {
       feedback
     );
     res.json({ success: true, data: experience });
-  } catch (error: any) {
-    res.status(500).json({ success: false, error: error.message });
+  } catch (error) {
+    res.status(500).json({ success: false, error: (error instanceof Error ? error.message : 'Unknown error') });
   }
 });
 
@@ -195,8 +211,8 @@ arcRouter.post('/learning/skills', async (req, res) => {
     const { agentId, skillName, category } = req.body;
     const skill = await arcLearning.learnNewSkill(agentId, skillName, category);
     res.json({ success: true, data: skill });
-  } catch (error: any) {
-    res.status(500).json({ success: false, error: error.message });
+  } catch (error) {
+    res.status(500).json({ success: false, error: (error instanceof Error ? error.message : 'Unknown error') });
   }
 });
 
@@ -211,8 +227,8 @@ arcRouter.post('/learning/goals', async (req, res) => {
       milestones
     );
     res.json({ success: true, data: learningGoal });
-  } catch (error: any) {
-    res.status(500).json({ success: false, error: error.message });
+  } catch (error) {
+    res.status(500).json({ success: false, error: (error instanceof Error ? error.message : 'Unknown error') });
   }
 });
 
@@ -221,8 +237,8 @@ arcRouter.patch('/learning/goals/:goalId/milestone/:milestoneIndex', async (req,
   try {
     await arcLearning.updateGoalProgress(req.params.goalId, parseInt(req.params.milestoneIndex));
     res.json({ success: true, message: 'Goal progress updated' });
-  } catch (error: any) {
-    res.status(500).json({ success: false, error: error.message });
+  } catch (error) {
+    res.status(500).json({ success: false, error: (error instanceof Error ? error.message : 'Unknown error') });
   }
 });
 
@@ -306,8 +322,8 @@ arcRouter.post('/chat/send', async (req, res) => {
     };
 
     res.json({ success: true, data: response });
-  } catch (error: any) {
-    res.status(500).json({ success: false, error: error.message });
+  } catch (error) {
+    res.status(500).json({ success: false, error: (error instanceof Error ? error.message : 'Unknown error') });
   }
 });
 
@@ -317,8 +333,8 @@ arcRouter.get('/chat/history/:agentId/:userId', (req, res) => {
     const { agentId, userId } = req.params;
     const history = arcOpenAI.getHistory(agentId, userId);
     res.json({ success: true, data: history });
-  } catch (error: any) {
-    res.status(500).json({ success: false, error: error.message });
+  } catch (error) {
+    res.status(500).json({ success: false, error: (error instanceof Error ? error.message : 'Unknown error') });
   }
 });
 
@@ -328,8 +344,8 @@ arcRouter.delete('/chat/history/:agentId/:userId', (req, res) => {
     const { agentId, userId } = req.params;
     arcOpenAI.clearHistory(agentId, userId);
     res.json({ success: true, message: 'Chat history cleared' });
-  } catch (error: any) {
-    res.status(500).json({ success: false, error: error.message });
+  } catch (error) {
+    res.status(500).json({ success: false, error: (error instanceof Error ? error.message : 'Unknown error') });
   }
 });
 
@@ -413,8 +429,8 @@ arcRouter.post('/master-agent/execute', async (req, res) => {
     };
 
     res.json({ success: true, data: result });
-  } catch (error: any) {
-    res.status(500).json({ success: false, error: error.message });
+  } catch (error) {
+    res.status(500).json({ success: false, error: (error instanceof Error ? error.message : 'Unknown error') });
   }
 });
 
@@ -435,8 +451,8 @@ arcRouter.post('/master-agent/approve-decision', async (req, res) => {
     };
 
     res.json({ success: true, data: result });
-  } catch (error: any) {
-    res.status(500).json({ success: false, error: error.message });
+  } catch (error) {
+    res.status(500).json({ success: false, error: (error instanceof Error ? error.message : 'Unknown error') });
   }
 });
 
@@ -469,8 +485,8 @@ arcRouter.post('/scenarios', async (req, res) => {
     };
     
     res.json({ success: true, data: newScenario });
-  } catch (error: any) {
-    res.status(500).json({ success: false, error: error.message });
+  } catch (error) {
+    res.status(500).json({ success: false, error: (error instanceof Error ? error.message : 'Unknown error') });
   }
 });
 
@@ -542,8 +558,8 @@ arcRouter.get('/overview', async (req, res) => {
       timestamp: new Date()
     };
     res.json({ success: true, data: overview });
-  } catch (error: any) {
-    res.status(500).json({ success: false, error: error.message });
+  } catch (error) {
+    res.status(500).json({ success: false, error: (error instanceof Error ? error.message : 'Unknown error') });
   }
 });
 

@@ -390,7 +390,7 @@ export class SelfArchiver extends EventEmitter {
 
     } catch (error) {
       archive.status = 'failed';
-      archive.metadata.error = error instanceof Error ? error.message : 'Unknown error';
+      archive.metadata.error = error instanceof Error ? (error instanceof Error ? error.message : 'Unknown error') : 'Unknown error';
       await this.logArchiveAction(policyId, archive.id, 'error', 0, `Archive failed: ${archive.metadata.error}`);
       this.emit('archive_failed', { policy, archive, error });
     }

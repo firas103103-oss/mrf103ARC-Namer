@@ -68,7 +68,7 @@ export class WebSocketManager {
         logSecurityEvent('WEBSOCKET_AUTH_FAILED', {
           socketId: socket.id,
           ip: socket.handshake.address,
-          error: error instanceof Error ? error.message : 'Unknown error'
+          error: error instanceof Error ? (error instanceof Error ? error.message : 'Unknown error') : 'Unknown error'
         }, 'high');
         
         next(new Error('Invalid authentication token'));
@@ -115,7 +115,7 @@ export class WebSocketManager {
         logger.error('WebSocket error', {
           socketId: socket.id,
           userId: socket.userId,
-          error: error.message
+          error: (error instanceof Error ? error.message : 'Unknown error')
         });
       });
 

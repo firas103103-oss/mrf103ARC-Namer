@@ -208,7 +208,7 @@ class HealthMonitor {
         results[name] = false;
         logger.error('Health check failed', {
           check: name,
-          error: error instanceof Error ? error.message : 'Unknown error'
+          error: error instanceof Error ? (error instanceof Error ? error.message : 'Unknown error') : 'Unknown error'
         });
       }
     }
@@ -251,7 +251,7 @@ export const logStructuredError = (error: Partial<StructuredError>, context?: an
   const structuredError: StructuredError = {
     category: error.category || ErrorCategory.INTERNAL_SERVER,
     code: error.code || 'UNKNOWN_ERROR',
-    message: error.message || 'An unknown error occurred',
+    message: (error instanceof Error ? error.message : 'Unknown error') || 'An unknown error occurred',
     stack: error.stack,
     metadata: { ...error.metadata, ...context },
     timestamp: new Date(),

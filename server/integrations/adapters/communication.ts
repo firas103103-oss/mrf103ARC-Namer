@@ -236,7 +236,7 @@ export class TwilioAdapter implements IntegrationAdapter {
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(`Twilio error: ${error.message}`);
+      throw new Error(`Twilio error: ${(error instanceof Error ? error.message : 'Unknown error')}`);
     }
   }
 }

@@ -112,7 +112,7 @@ export async function query<T = any>(
   } catch (error) {
     performanceMonitor.endTimer(timerId, 'database_query', {
       query: text.substring(0, 100),
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? (error instanceof Error ? error.message : 'Unknown error') : 'Unknown error'
     });
 
     logStructuredError({
@@ -123,7 +123,7 @@ export async function query<T = any>(
       metadata: {
         query: text,
         params,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? (error instanceof Error ? error.message : 'Unknown error') : 'Unknown error'
       }
     });
 
@@ -155,7 +155,7 @@ export async function transaction<T>(
     
     performanceMonitor.endTimer(timerId, 'database_transaction', {
       status: 'rolled_back',
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? (error instanceof Error ? error.message : 'Unknown error') : 'Unknown error'
     });
 
     logStructuredError({
@@ -164,7 +164,7 @@ export async function transaction<T>(
       message: 'Database transaction failed',
       stack: error instanceof Error ? error.stack : undefined,
       metadata: {
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? (error instanceof Error ? error.message : 'Unknown error') : 'Unknown error'
       }
     });
 

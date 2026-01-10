@@ -82,7 +82,7 @@ router.get('/health', async (req: Request, res: Response) => {
     res.status(503).json({
       status: 'unhealthy',
       timestamp: new Date().toISOString(),
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: error instanceof Error ? (error instanceof Error ? error.message : 'Unknown error') : 'Unknown error',
     });
   }
 });
@@ -139,7 +139,7 @@ async function checkDatabase(): Promise<ServiceStatus> {
       return {
         status: 'down',
         responseTime,
-        message: error.message,
+        message: (error instanceof Error ? error.message : 'Unknown error'),
       };
     }
     
@@ -151,7 +151,7 @@ async function checkDatabase(): Promise<ServiceStatus> {
     return {
       status: 'down',
       responseTime: Date.now() - start,
-      message: error instanceof Error ? error.message : 'Unknown error',
+      message: error instanceof Error ? (error instanceof Error ? error.message : 'Unknown error') : 'Unknown error',
     };
   }
 }
@@ -177,7 +177,7 @@ async function checkSupabase(): Promise<ServiceStatus> {
       return {
         status: 'down',
         responseTime,
-        message: error.message,
+        message: (error instanceof Error ? error.message : 'Unknown error'),
       };
     }
     
@@ -189,7 +189,7 @@ async function checkSupabase(): Promise<ServiceStatus> {
     return {
       status: 'down',
       responseTime: Date.now() - start,
-      message: error instanceof Error ? error.message : 'Unknown error',
+      message: error instanceof Error ? (error instanceof Error ? error.message : 'Unknown error') : 'Unknown error',
     };
   }
 }
@@ -258,7 +258,7 @@ router.get('/health/self-heal', async (req: Request, res: Response) => {
   } catch (error) {
     res.status(500).json({
       status: 'error',
-      error: error instanceof Error ? error.message : 'Self-heal check failed',
+      error: error instanceof Error ? (error instanceof Error ? error.message : 'Unknown error') : 'Self-heal check failed',
     });
   }
 });
@@ -280,7 +280,7 @@ router.post('/health/recover', async (req: Request, res: Response) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error instanceof Error ? error.message : 'Recovery failed',
+      error: error instanceof Error ? (error instanceof Error ? error.message : 'Unknown error') : 'Recovery failed',
     });
   }
 });

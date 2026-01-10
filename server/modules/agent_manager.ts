@@ -55,7 +55,7 @@ export async function createTask(taskInput: TaskInput): Promise<string | null> {
       .single();
 
     if (error) {
-      log(`❌ Failed to create task: ${error.message}`, "agent_manager");
+      log(`❌ Failed to create task: ${(error instanceof Error ? error.message : 'Unknown error')}`, "agent_manager");
       return null;
     }
 
@@ -123,7 +123,7 @@ export async function updateTaskStatus(
       .eq("id", taskId);
 
     if (error) {
-      log(`❌ Failed to update task: ${error.message}`, "agent_manager");
+      log(`❌ Failed to update task: ${(error instanceof Error ? error.message : 'Unknown error')}`, "agent_manager");
       return false;
     }
 
@@ -157,7 +157,7 @@ export async function getAgentTasks(
     const { data, error } = await query;
 
     if (error) {
-      log(`❌ Failed to fetch tasks: ${error.message}`, "agent_manager");
+      log(`❌ Failed to fetch tasks: ${(error instanceof Error ? error.message : 'Unknown error')}`, "agent_manager");
       return [];
     }
 
@@ -202,7 +202,7 @@ export async function recordLearning(learningInput: LearningInput): Promise<stri
       .single();
 
     if (error) {
-      log(`❌ Failed to record learning: ${error.message}`, "agent_manager");
+      log(`❌ Failed to record learning: ${(error instanceof Error ? error.message : 'Unknown error')}`, "agent_manager");
       return null;
     }
 
@@ -232,7 +232,7 @@ export async function applyLearning(
       .eq("id", learningId);
 
     if (error) {
-      log(`❌ Failed to apply learning: ${error.message}`, "agent_manager");
+      log(`❌ Failed to apply learning: ${(error instanceof Error ? error.message : 'Unknown error')}`, "agent_manager");
       return false;
     }
 
@@ -268,7 +268,7 @@ export async function getAgentLearning(
     const { data, error } = await query;
 
     if (error) {
-      log(`❌ Failed to fetch learning data: ${error.message}`, "agent_manager");
+      log(`❌ Failed to fetch learning data: ${(error instanceof Error ? error.message : 'Unknown error')}`, "agent_manager");
       return [];
     }
 
@@ -308,7 +308,7 @@ export async function recordPerformance(metric: PerformanceMetric): Promise<bool
     });
 
     if (error) {
-      log(`❌ Failed to record performance: ${error.message}`, "agent_manager");
+      log(`❌ Failed to record performance: ${(error instanceof Error ? error.message : 'Unknown error')}`, "agent_manager");
       return false;
     }
 
@@ -336,7 +336,7 @@ export async function getAgentPerformance(
     const { data, error } = await query;
 
     if (error) {
-      log(`❌ Failed to fetch performance data: ${error.message}`, "agent_manager");
+      log(`❌ Failed to fetch performance data: ${(error instanceof Error ? error.message : 'Unknown error')}`, "agent_manager");
       return [];
     }
 

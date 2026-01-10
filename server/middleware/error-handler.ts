@@ -152,7 +152,7 @@ export const globalErrorHandler: ErrorRequestHandler = (
     const structuredError = logStructuredError({
       category: error.category,
       code: error.code,
-      message: error.message,
+      message: (error instanceof Error ? error.message : 'Unknown error'),
       stack: error.stack,
       metadata: {
         ...error.metadata,
@@ -167,7 +167,7 @@ export const globalErrorHandler: ErrorRequestHandler = (
     const errorResponse: ErrorResponse = {
       error: {
         code: error.code,
-        message: error.message,
+        message: (error instanceof Error ? error.message : 'Unknown error'),
         category: error.category,
         timestamp: new Date().toISOString(),
         requestId,
@@ -182,7 +182,7 @@ export const globalErrorHandler: ErrorRequestHandler = (
   const unexpectedError = logStructuredError({
     category: ErrorCategory.INTERNAL_SERVER,
     code: 'UNEXPECTED_ERROR',
-    message: error.message || 'An unexpected error occurred',
+    message: (error instanceof Error ? error.message : 'Unknown error') || 'An unexpected error occurred',
     stack: error.stack,
     metadata: {
       path: req.path,
@@ -202,7 +202,7 @@ export const globalErrorHandler: ErrorRequestHandler = (
       code: 'INTERNAL_SERVER_ERROR',
       message: process.env.NODE_ENV === 'production' 
         ? 'An internal server error occurred' 
-        : error.message,
+        : (error instanceof Error ? error.message : 'Unknown error'),
       category: ErrorCategory.INTERNAL_SERVER,
       timestamp: new Date().toISOString(),
       requestId,
@@ -243,7 +243,7 @@ export const unhandledRejectionHandler = (reason: any, promise: Promise<any>) =>
 // Uncaught exception handler
 export const uncaughtExceptionHandler = (error: Error) => {
   logger.error('Uncaught Exception', {
-    message: error.message,
+    message: (error instanceof Error ? error.message : 'Unknown error'),
     stack: error.stack
   });
   

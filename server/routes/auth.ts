@@ -242,7 +242,7 @@ router.post('/refresh', [
     logSecurityEvent('INVALID_REFRESH_TOKEN', {
       token: refreshToken.substring(0, 20) + '...',
       ip: req.ip,
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? (error instanceof Error ? error.message : 'Unknown error') : 'Unknown error'
     }, 'high');
     
     throw new AuthenticationError('Invalid or expired refresh token');

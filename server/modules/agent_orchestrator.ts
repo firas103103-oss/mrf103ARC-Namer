@@ -429,7 +429,7 @@ export class AgentOrchestrator extends EventEmitter {
         this.emit('task_retry', { task, error });
       } else {
         task.status = TaskStatus.FAILED;
-        task.metadata.error = error instanceof Error ? error.message : 'Unknown error';
+        task.metadata.error = error instanceof Error ? (error instanceof Error ? error.message : 'Unknown error') : 'Unknown error';
         this.stats.failedTasks++;
         this.updateAgentPerformance(task.assignedAgent!, false);
         this.emit('task_failed', { task, error });

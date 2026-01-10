@@ -754,7 +754,7 @@ export class IntegrationManager extends EventEmitter {
       return true;
     } catch (error) {
       console.error(`Send failed for ${integration.type}:`, error);
-      integration.lastError = error instanceof Error ? error.message : 'Unknown error';
+      integration.lastError = error instanceof Error ? (error instanceof Error ? error.message : 'Unknown error') : 'Unknown error';
       integration.updatedAt = new Date();
       return false;
     }

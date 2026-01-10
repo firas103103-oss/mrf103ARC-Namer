@@ -46,7 +46,7 @@ export async function insertCommandLog(entry: CommandLogEntry): Promise<{ succes
       .select();
 
     if (error) {
-      return { success: false, error: error.message };
+      return { success: false, error: (error instanceof Error ? error.message : 'Unknown error') };
     }
 
     return { success: true, data };
@@ -71,7 +71,7 @@ export async function updateCommandLog(
       .select();
 
     if (error) {
-      return { success: false, error: error.message };
+      return { success: false, error: (error instanceof Error ? error.message : 'Unknown error') };
     }
 
     return { success: true, data };
@@ -106,7 +106,7 @@ export async function fetchAgentsFromSupabase(): Promise<{ success: boolean; dat
       .order("agent_code", { ascending: true });
 
     if (error) {
-      return { success: false, error: error.message };
+      return { success: false, error: (error instanceof Error ? error.message : 'Unknown error') };
     }
 
     return { success: true, data: data as SupabaseAgent[] };
@@ -135,7 +135,7 @@ export async function fetchDepartmentsFromSupabase(): Promise<{ success: boolean
       .order("name", { ascending: true });
 
     if (error) {
-      return { success: false, error: error.message };
+      return { success: false, error: (error instanceof Error ? error.message : 'Unknown error') };
     }
 
     return { success: true, data: data as SupabaseDepartment[] };
@@ -166,7 +166,7 @@ export async function fetchMemoriesFromSupabase(limit = 100): Promise<{ success:
       .limit(limit);
 
     if (error) {
-      return { success: false, error: error.message };
+      return { success: false, error: (error instanceof Error ? error.message : 'Unknown error') };
     }
 
     return { success: true, data: data as SupabaseMemory[] };
@@ -186,7 +186,7 @@ export async function testSupabaseConnection(): Promise<{ connected: boolean; er
     const { error } = await supabase.from("agents").select("agent_code").limit(1);
     
     if (error) {
-      return { connected: false, error: error.message };
+      return { connected: false, error: (error instanceof Error ? error.message : 'Unknown error') };
     }
 
     return { connected: true };

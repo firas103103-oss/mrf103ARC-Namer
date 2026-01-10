@@ -112,10 +112,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const statusCode = health.status === "healthy" ? 200 : 
                          health.status === "degraded" ? 200 : 503;
       res.status(statusCode).json(health);
-    } catch (error: any) {
+    } catch (error) {
       res.status(503).json({
         status: "unhealthy",
-        error: error.message,
+        error: (error instanceof Error ? error.message : 'Unknown error'),
         timestamp: new Date().toISOString(),
       });
     }
@@ -132,10 +132,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const readiness = await ProductionMetrics.readinessCheck();
       const statusCode = readiness.ready ? 200 : 503;
       res.status(statusCode).json(readiness);
-    } catch (error: any) {
+    } catch (error) {
       res.status(503).json({
         ready: false,
-        error: error.message,
+        error: (error instanceof Error ? error.message : 'Unknown error'),
         timestamp: new Date().toISOString(),
       });
     }
@@ -374,7 +374,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       EventLedger.logAsync({
         type: "command.failed",
         actor: "operator",
-        payload: { action: "set_feature_flag", key, error: error.message },
+        payload: { action: "set_feature_flag", key, error: (error instanceof Error ? error.message : 'Unknown error') },
         severity: "error",
       });
       return res.status(500).json({ error: "update_failed" });
@@ -418,8 +418,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const workflows = await getJarvisWorkflows();
       const brief = await workflows.generateDailyBrief();
       res.json({ success: true, brief });
-    } catch (error: any) {
-      res.status(500).json({ error: "daily_brief_failed", message: error.message });
+    } catch (error) {
+      res.status(500).json({ error: "daily_brief_failed", message: (error instanceof Error ? error.message : 'Unknown error') });
     }
   });
 
@@ -429,8 +429,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const workflows = await getJarvisWorkflows();
       const projects = await workflows.getActiveProjects();
       res.json({ projects });
-    } catch (error: any) {
-      res.status(500).json({ error: "projects_failed", message: error.message });
+    } catch (error) {
+      res.status(500).json({ error: "projects_failed", message: (error instanceof Error ? error.message : 'Unknown error') });
     }
   });
 
@@ -443,8 +443,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(500).json({ error: "create_failed" });
       }
       res.json({ success: true, project });
-    } catch (error: any) {
-      res.status(500).json({ error: "create_failed", message: error.message });
+    } catch (error) {
+      res.status(500).json({ error: "create_failed", message: (error instanceof Error ? error.message : 'Unknown error') });
     }
   });
 
@@ -458,8 +458,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         req.body.progress
       );
       res.json({ success });
-    } catch (error: any) {
-      res.status(500).json({ error: "update_failed", message: error.message });
+    } catch (error) {
+      res.status(500).json({ error: "update_failed", message: (error instanceof Error ? error.message : 'Unknown error') });
     }
   });
 
@@ -469,8 +469,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const workflows = await getJarvisWorkflows();
       const status = await workflows.getIoTDeviceStatus(req.query.deviceId);
       res.json({ status });
-    } catch (error: any) {
-      res.status(500).json({ error: "iot_status_failed", message: error.message });
+    } catch (error) {
+      res.status(500).json({ error: "iot_status_failed", message: (error instanceof Error ? error.message : 'Unknown error') });
     }
   });
 
@@ -488,8 +488,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const workflows = await getJarvisWorkflows();
       const success = await workflows.ingestSensorReading(req.body);
       res.json({ success });
-    } catch (error: any) {
-      res.status(500).json({ error: "ingest_failed", message: error.message });
+    } catch (error) {
+      res.status(500).json({ error: "ingest_failed", message: (error instanceof Error ? error.message : 'Unknown error') });
     }
   });
 
@@ -499,8 +499,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const workflows = await getJarvisWorkflows();
       const success = await workflows.resolveIoTAlert(req.params.id);
       res.json({ success });
-    } catch (error: any) {
-      res.status(500).json({ error: "resolve_failed", message: error.message });
+    } catch (error) {
+      res.status(500).json({ error: "resolve_failed", message: (error instanceof Error ? error.message : 'Unknown error') });
     }
   });
 
@@ -669,7 +669,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const reply = completion.choices?.[0]?.message?.content || "(no response)";
       res.json({ reply: reply.trim(), offline: false });
-    } catch (error: any) {
+    } catch (error) {
       logger.error("[Mr.F Brain] OpenAI error:", error);
       res.status(500).json({ error: "openai_request_failed" });
     }
@@ -693,7 +693,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       .gte("detected_at", since)
       .order("detected_at", { ascending: false });
       
-    if (error) return res.status(500).json({ error: error.message });
+    if (error) return res.status(500).json({ error: (error instanceof Error ? error.message : 'Unknown error') });
     res.json(data || []);
   });
 
@@ -706,7 +706,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       .select("*")
       .order("created_at", { ascending: false });
       
-    if (error) return res.status(500).json({ error: error.message });
+    if (error) return res.status(500).json({ error: (error instanceof Error ? error.message : 'Unknown error') });
     res.json(data || []);
   });
 
@@ -731,7 +731,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       .select()
       .single();
       
-    if (error) return res.status(500).json({ error: error.message });
+    if (error) return res.status(500).json({ error: (error instanceof Error ? error.message : 'Unknown error') });
     res.json(data);
   });
 
@@ -744,7 +744,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       .select("*")
       .order("created_at", { ascending: false });
       
-    if (error) return res.status(500).json({ error: error.message });
+    if (error) return res.status(500).json({ error: (error instanceof Error ? error.message : 'Unknown error') });
     res.json(data || []);
   });
 
@@ -768,7 +768,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       .select()
       .single();
       
-    if (error) return res.status(500).json({ error: error.message });
+    if (error) return res.status(500).json({ error: (error instanceof Error ? error.message : 'Unknown error') });
     res.json(data);
   });
 
@@ -786,7 +786,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       .select()
       .single();
       
-    if (error) return res.status(500).json({ error: error.message });
+    if (error) return res.status(500).json({ error: (error instanceof Error ? error.message : 'Unknown error') });
     res.json(data);
   });
 
@@ -833,9 +833,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }));
       
       res.json(result);
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Agent analytics error:', error);
-      res.status(500).json({ error: error.message || 'Failed to fetch agent analytics' });
+      res.status(500).json({ error: (error instanceof Error ? error.message : 'Unknown error') || 'Failed to fetch agent analytics' });
     }
   });
 
@@ -918,9 +918,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       cache.set(cacheKey, result, 300);
       
       res.json(result);
-    } catch (error: any) {
+    } catch (error) {
       console.error('Agent performance error:', error);
-      res.status(500).json({ error: error.message || 'Failed to fetch agent performance' });
+      res.status(500).json({ error: (error instanceof Error ? error.message : 'Unknown error') || 'Failed to fetch agent performance' });
     }
   });
 
@@ -1022,7 +1022,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       .order("created_at", { ascending: false })
       .limit(50);
       
-    if (error) return res.status(500).json({ error: error.message });
+    if (error) return res.status(500).json({ error: (error instanceof Error ? error.message : 'Unknown error') });
     
     const activity = (data || []).map((evt: any) => ({
       id: evt.id,
@@ -1052,7 +1052,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       .select()
       .single();
       
-    if (error) return res.status(500).json({ error: error.message });
+    if (error) return res.status(500).json({ error: (error instanceof Error ? error.message : 'Unknown error') });
     res.json(data);
   });
 
@@ -1065,9 +1065,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .orderBy(desc(workflowSimulations.createdAt));
       
       res.json(simulations);
-    } catch (error: any) {
+    } catch (error) {
       logger.error("[/api/simulations GET]", error);
-      res.status(500).json({ error: "database_error", message: error.message });
+      res.status(500).json({ error: "database_error", message: (error instanceof Error ? error.message : 'Unknown error') });
     }
   });
 
@@ -1090,9 +1090,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .returning();
       
       res.json(newSim);
-    } catch (error: any) {
+    } catch (error) {
       logger.error("[/api/simulations POST]", error);
-      res.status(500).json({ error: "database_error", message: error.message });
+      res.status(500).json({ error: "database_error", message: (error instanceof Error ? error.message : 'Unknown error') });
     }
   });
 
@@ -1119,9 +1119,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       res.json(updated);
-    } catch (error: any) {
+    } catch (error) {
       console.error("[/api/simulations/:id PATCH]", error);
-      res.status(500).json({ error: "database_error", message: error.message });
+      res.status(500).json({ error: "database_error", message: (error instanceof Error ? error.message : 'Unknown error') });
     }
   });
 
@@ -1160,12 +1160,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
             status: "success",
             duration: Date.now() - stepStart,
           });
-        } catch (error: any) {
+        } catch (error) {
           stepResults.push({
             stepId: step.id,
             status: "error",
             duration: Date.now() - stepStart,
-            error: error.message,
+            error: (error instanceof Error ? error.message : 'Unknown error'),
           });
         }
       }
@@ -1190,9 +1190,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .where(eq(workflowSimulations.id, id));
       
       res.json({ id, result });
-    } catch (error: any) {
+    } catch (error) {
       logger.error("[/api/simulations/:id/run POST]", error);
-      res.status(500).json({ error: "execution_error", message: error.message });
+      res.status(500).json({ error: "execution_error", message: (error instanceof Error ? error.message : 'Unknown error') });
     }
   });
 
@@ -1376,7 +1376,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         agent: profile.name,
         agentId: id
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error(`[${profile.name} Chat] OpenAI error:`, error);
       res.status(500).json({ error: "chat_failed" });
     }

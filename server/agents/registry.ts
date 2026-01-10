@@ -92,7 +92,7 @@ async function loadAgentsFromDB(): Promise<void> {
       .order("name");
 
     if (error) {
-      logger.error("[AgentRegistry] Failed to load from DB:", error.message);
+      logger.error("[AgentRegistry] Failed to load from DB:", (error instanceof Error ? error.message : 'Unknown error'));
       // Fallback to static
       Object.values(STATIC_AGENTS).forEach(agent => {
         agentCache.set(agent.slug, agent);

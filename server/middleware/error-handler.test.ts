@@ -34,7 +34,7 @@ describe("Error Handler Middleware", () => {
     expect(res.status).toBe(400);
     expect(res.body.success).toBe(false);
     expect(res.body.error.code).toBe("VALIDATION_ERROR");
-    expect(res.body.error.message).toBe("Invalid input");
+    expect(res.body.(error instanceof Error ? error.message : 'Unknown error')).toBe("Invalid input");
   });
 
   it("should handle AuthenticationError", async () => {

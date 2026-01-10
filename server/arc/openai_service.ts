@@ -38,8 +38,8 @@ class ARCOpenAIService {
     try {
       this.openai = new OpenAI({ apiKey });
       console.log('✅ OpenAI service initialized for ARC agents');
-    } catch (error: any) {
-      console.error('❌ Failed to initialize OpenAI:', error.message);
+    } catch (error) {
+      console.error('❌ Failed to initialize OpenAI:', (error instanceof Error ? error.message : 'Unknown error'));
     }
   }
 
@@ -204,8 +204,8 @@ ${agent.capabilities.map((c: string) => `- ${c.replace(/_/g, ' ')}`).join('\n')}
 
       return response;
 
-    } catch (error: any) {
-      console.error(`❌ OpenAI error for ${agent.name}:`, error.message);
+    } catch (error) {
+      console.error(`❌ OpenAI error for ${agent.name}:`, (error instanceof Error ? error.message : 'Unknown error'));
       
       // Fallback to simulated response
       return this.simulateResponse(agent, userMessage);
@@ -304,8 +304,8 @@ Format:
 
       return completion.choices[0]?.message?.content || this.simulateReport(agent, reportType, data);
 
-    } catch (error: any) {
-      console.error(`❌ Report generation error for ${agent.name}:`, error.message);
+    } catch (error) {
+      console.error(`❌ Report generation error for ${agent.name}:`, (error instanceof Error ? error.message : 'Unknown error'));
       return this.simulateReport(agent, reportType, data);
     }
   }

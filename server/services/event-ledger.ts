@@ -134,7 +134,7 @@ export async function logEvent(params: CreateEventParams): Promise<ArcEvent | nu
       });
 
       if (error) {
-        console.error("[EventLedger] Supabase insert error:", error.message);
+        console.error("[EventLedger] Supabase insert error:", (error instanceof Error ? error.message : 'Unknown error'));
       }
     } catch (err) {
       console.error("[EventLedger] Supabase error:", err);
@@ -198,7 +198,7 @@ export async function getRecentEvents(options: {
   const { data, error } = await query;
 
   if (error) {
-    console.error("[EventLedger] Query error:", error.message);
+    console.error("[EventLedger] Query error:", (error instanceof Error ? error.message : 'Unknown error'));
     return [];
   }
 

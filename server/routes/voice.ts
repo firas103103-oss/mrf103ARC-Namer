@@ -72,7 +72,7 @@ voiceRouter.post(
       logger.error("[Voice Synthesis Error]", error);
       res.status(500).json({ 
         error: "Voice synthesis failed",
-        reason: error instanceof Error ? error.message : "unknown error"
+        reason: error instanceof Error ? (error instanceof Error ? error.message : 'Unknown error') : "unknown error"
       });
     }
   }

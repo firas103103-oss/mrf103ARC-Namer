@@ -64,7 +64,7 @@ export async function getCurrentTenant(): Promise<Tenant | null> {
     .single();
 
   if (error) {
-    console.error("[TenantService] Failed to get tenant:", error.message);
+    console.error("[TenantService] Failed to get tenant:", (error instanceof Error ? error.message : 'Unknown error'));
     return null;
   }
 
@@ -157,7 +157,7 @@ export async function addUserToTenant(
   });
 
   if (error) {
-    console.error("[TenantService] Failed to add user:", error.message);
+    console.error("[TenantService] Failed to add user:", (error instanceof Error ? error.message : 'Unknown error'));
     return false;
   }
 
@@ -181,7 +181,7 @@ export async function updateUserRole(
     .eq("user_id", userId);
 
   if (error) {
-    console.error("[TenantService] Failed to update role:", error.message);
+    console.error("[TenantService] Failed to update role:", (error instanceof Error ? error.message : 'Unknown error'));
     return false;
   }
 
@@ -204,7 +204,7 @@ export async function removeUserFromTenant(
     .eq("user_id", userId);
 
   if (error) {
-    console.error("[TenantService] Failed to remove user:", error.message);
+    console.error("[TenantService] Failed to remove user:", (error instanceof Error ? error.message : 'Unknown error'));
     return false;
   }
 
@@ -258,7 +258,7 @@ export async function setFeatureFlag(key: string, enabled: boolean): Promise<boo
     .eq("key", key);
 
   if (error) {
-    console.error("[TenantService] Failed to set flag:", error.message);
+    console.error("[TenantService] Failed to set flag:", (error instanceof Error ? error.message : 'Unknown error'));
     return false;
   }
 

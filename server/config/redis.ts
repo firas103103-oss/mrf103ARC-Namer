@@ -76,7 +76,7 @@ export async function connectRedis(): Promise<void> {
       message: 'Failed to connect to Redis',
       stack: error instanceof Error ? error.stack : undefined,
       metadata: {
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: error instanceof Error ? (error instanceof Error ? error.message : 'Unknown error') : 'Unknown error',
         host: redisConfig.host,
         port: redisConfig.port
       }
@@ -122,7 +122,7 @@ export async function getCache<T = any>(key: string): Promise<T | null> {
   } catch (error) {
     performanceMonitor.endTimer(timerId, 'redis_get', {
       key,
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? (error instanceof Error ? error.message : 'Unknown error') : 'Unknown error'
     });
     
     logger.error('Redis GET error:', { key, error });
@@ -157,7 +157,7 @@ export async function setCache(
   } catch (error) {
     performanceMonitor.endTimer(timerId, 'redis_set', {
       key,
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? (error instanceof Error ? error.message : 'Unknown error') : 'Unknown error'
     });
     
     logger.error('Redis SET error:', { key, error });

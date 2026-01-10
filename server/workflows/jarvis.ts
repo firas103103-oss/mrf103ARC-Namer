@@ -149,7 +149,7 @@ export async function generateDailyBrief(): Promise<DailyBriefData> {
 
     return brief;
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorMessage = error instanceof Error ? (error instanceof Error ? error.message : 'Unknown error') : String(error);
     
     await EventLedger.log({
       type: "workflow.failed",
@@ -330,7 +330,7 @@ export async function getActiveProjects(): Promise<Project[]> {
     .order("created_at", { ascending: false });
 
   if (error) {
-    logger.error("[Workflows] Projects query error:", error.message);
+    logger.error("[Workflows] Projects query error:", (error instanceof Error ? error.message : 'Unknown error'));
     return [];
   }
 
@@ -386,7 +386,7 @@ export async function createProject(project: Partial<Project>): Promise<Project 
       type: "command.failed",
       actor: "operator",
       traceId,
-      payload: { command: "create_project", error: error.message },
+      payload: { command: "create_project", error: (error instanceof Error ? error.message : 'Unknown error') },
       severity: "error",
     });
     return null;
@@ -446,7 +446,7 @@ export async function updateProjectStatus(
       type: "command.failed",
       actor: "operator",
       traceId,
-      payload: { command: "update_project", error: error.message },
+      payload: { command: "update_project", error: (error instanceof Error ? error.message : 'Unknown error') },
       severity: "error",
     });
     return false;
@@ -510,7 +510,7 @@ export async function ingestSensorReading(reading: {
       type: "command.failed",
       actor: "system",
       traceId,
-      payload: { command: "ingest_sensor", error: error.message },
+      payload: { command: "ingest_sensor", error: (error instanceof Error ? error.message : 'Unknown error') },
       severity: "error",
     });
     return false;
@@ -646,7 +646,7 @@ export async function resolveIoTAlert(anomalyId: string): Promise<boolean> {
       type: "command.failed",
       actor: "operator",
       traceId,
-      payload: { command: "resolve_alert", error: error.message },
+      payload: { command: "resolve_alert", error: (error instanceof Error ? error.message : 'Unknown error') },
       severity: "error",
     });
     return false;
