@@ -7,12 +7,12 @@ import { Lock, Terminal, Cpu, ShieldCheck } from "lucide-react";
 
 export function OperatorLogin() {
   const { loginMutation } = useAuth();
-  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    loginMutation.mutate({ username, password });
+    if (!password.trim()) return;
+    loginMutation.mutate({ password });
   };
 
   return (
@@ -39,28 +39,16 @@ export function OperatorLogin() {
 
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-6">
-            <div className="space-y-4">
-              <div className="relative group">
-                <Cpu className="absolute left-3 top-3 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                <Input
-                  type="text"
-                  placeholder="OPERATOR ID"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="pl-10 bg-black/40 border-primary/20 text-white placeholder:text-gray-600 focus:border-primary focus:ring-1 focus:ring-primary h-12 font-mono tracking-wider transition-all"
-                />
-              </div>
-              
-              <div className="relative group">
-                <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                <Input
-                  type="password"
-                  placeholder="ACCESS CODE"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10 bg-black/40 border-primary/20 text-white placeholder:text-gray-600 focus:border-primary focus:ring-1 focus:ring-primary h-12 font-mono tracking-wider transition-all"
-                />
-              </div>
+            <div className="relative group">
+              <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+              <Input
+                type="password"
+                placeholder="ENTER PASSKEY..."
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="pl-10 bg-black/40 border-primary/20 text-white placeholder:text-gray-600 focus:border-primary focus:ring-1 focus:ring-primary h-12 font-mono tracking-wider transition-all text-center"
+                autoFocus
+              />
             </div>
 
             <Button
@@ -69,17 +57,17 @@ export function OperatorLogin() {
               disabled={loginMutation.isPending}
             >
               {loginMutation.isPending ? (
-                <span className="animate-pulse">Authenticating...</span>
+                <span className="animate-pulse">AUTHENTICATING...</span>
               ) : (
                 <span className="flex items-center justify-center gap-2">
-                  <ShieldCheck className="w-4 h-4" /> Initialize Session
+                  <ShieldCheck className="w-4 h-4" /> INITIALIZE SESSION
                 </span>
               )}
             </Button>
           </form>
 
           <div className="mt-6 flex justify-between text-[10px] font-mono text-gray-600 uppercase">
-            <span>System: <span className="text-success">Online</span></span>
+            <span>System: <span className="text-success">ONLINE</span></span>
             <span>Encryption: <span className="text-primary">AES-256</span></span>
             <span>Version: 2.1.0</span>
           </div>
