@@ -44,7 +44,7 @@ export default function Landing() {
       // Navigate using wouter for proper SPA routing
       setLocation("/virtual-office");
     } catch (err) {
-      console.error('Login error:', err);
+      // Handle login error silently
       setError(t("landing.errors.invalidKey") || "Invalid security key");
     }
   };

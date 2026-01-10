@@ -6,7 +6,6 @@ import { cartographer } from "@replit/vite-plugin-cartographer";
 import { devBanner } from "@replit/vite-plugin-dev-banner";
 import tailwindcss from "tailwindcss";
 import autoprefixer from "autoprefixer";
-import tailwindConfig from "./tailwind.config.ts";
 
 export default defineConfig({
   plugins: [
@@ -17,7 +16,7 @@ export default defineConfig({
   ],
   css: {
     postcss: {
-      plugins: [tailwindcss(tailwindConfig), autoprefixer],
+      plugins: [tailwindcss("./tailwind.config.ts"), autoprefixer],
     },
   },
   resolve: {
