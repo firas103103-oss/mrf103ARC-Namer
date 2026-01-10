@@ -56,10 +56,10 @@ export default function FinanceHub() {
 
       {/* Financial Overview */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div className="bg-gradient-to-br from-green-500/20 to-green-600/20 rounded-lg p-6 border border-green-500/30">
+        <div className="bg-gradient-to-br from-success/20 to-success/30 rounded-lg p-6 border border-success/30">
           <div className="flex items-center justify-between mb-2">
-            <TrendingUp className="w-8 h-8 text-green-400" />
-            <span className="text-xs text-green-400 font-bold">+15.2%</span>
+            <TrendingUp className="w-8 h-8 text-success" />
+            <span className="text-xs text-success font-bold">+15.2%</span>
           </div>
           <div className="text-3xl font-bold mb-1">${(financialData.totalRevenue / 1000).toFixed(1)}K</div>
           <div className="text-sm text-gray-300">Total Revenue</div>
@@ -119,7 +119,7 @@ export default function FinanceHub() {
               </div>
               <p className="text-sm text-gray-400 mb-3">{agent.role}</p>
               <div className="flex items-center justify-between">
-                <span className="px-2 py-1 rounded text-xs font-bold bg-green-500/20 text-green-400">
+                <span className="px-2 py-1 rounded text-xs font-bold bg-success/20 text-success">
                   ACTIVE
                 </span>
                 <span className="text-sm text-gray-400">{agent.tasksToday} tasks</span>
@@ -183,8 +183,8 @@ export default function FinanceHub() {
               <div key={transaction.id} className="flex items-center justify-between p-3 bg-gray-700/30 rounded-lg">
                 <div className="flex items-center gap-3">
                   {transaction.type === 'income' ? (
-                    <div className="w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center">
-                      <TrendingUp className="w-5 h-5 text-green-400" />
+                    <div className="w-10 h-10 rounded-lg bg-success/20 flex items-center justify-center">
+                      <TrendingUp className="w-5 h-5 text-success" />
                     </div>
                   ) : transaction.type === 'expense' ? (
                     <div className="w-10 h-10 rounded-lg bg-red-500/20 flex items-center justify-center">
@@ -202,7 +202,7 @@ export default function FinanceHub() {
                     </div>
                   </div>
                 </div>
-                <div className={`font-bold ${transaction.amount > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                <div className={`font-bold ${transaction.amount > 0 ? 'text-success' : 'text-red-400'}`}>
                   {transaction.amount > 0 ? '+' : ''}${Math.abs(transaction.amount).toLocaleString()}
                 </div>
               </div>
