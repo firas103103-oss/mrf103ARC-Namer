@@ -157,7 +157,7 @@ export default function MaestrosHub() {
           <div className="text-3xl font-bold mb-2">6</div>
           <div className="text-sm text-gray-300">Active Maestros</div>
         </div>
-        <div className="bg-gradient-to-br from-green-500/20 to-green-600/20 rounded-lg p-6 border border-success/30">
+        <div className="bg-gradient-to-br from-success/20 to-success/20 rounded-lg p-6 border border-success/30">
           <div className="text-3xl font-bold mb-2">24</div>
           <div className="text-sm text-gray-300">Total Specialists</div>
         </div>

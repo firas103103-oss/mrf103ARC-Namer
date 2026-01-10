@@ -148,7 +148,7 @@ export default function XBioSentinel() {
             <div className="text-xs text-gray-500">Ohms</div>
           </div>
 
-          <div className="bg-gradient-to-br from-green-500/20 to-green-600/20 rounded-lg p-6 border border-success/30">
+          <div className="bg-gradient-to-br from-success/20 to-success/20 rounded-lg p-6 border border-success/30">
             <div className="flex items-center gap-3 mb-3">
               <TrendingUp className="w-8 h-8 text-success" />
               <div>
@@ -157,7 +157,7 @@ export default function XBioSentinel() {
               </div>
             </div>
             <div className="w-full bg-gray-700 rounded-full h-2">
-              <div className="h-2 rounded-full bg-gradient-to-r from-green-500 to-green-600" style={{ width: `${sensorData.airQuality}%` }} />
+              <div className="h-2 rounded-full bg-gradient-to-r from-success to-success" style={{ width: `${sensorData.airQuality}%` }} />
             </div>
           </div>
         </div>

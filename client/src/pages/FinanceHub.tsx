@@ -143,7 +143,7 @@ export default function FinanceHub() {
             </div>
             <div className="w-full bg-gray-700 rounded-full h-3">
               <div
-                className="h-3 rounded-full bg-gradient-to-r from-green-500 to-green-600"
+                className="h-3 rounded-full bg-gradient-to-r from-success to-success"
                 style={{ width: `${(financialData.budgetUsed / financialData.monthlyBudget * 100)}%` }}
               />
             </div>

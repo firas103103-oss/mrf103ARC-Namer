@@ -184,8 +184,8 @@ const LayerSection: React.FC<{
 }> = ({ title, titleAr, layer, agents }) => {
   const layerConfig = {
     executive: { color: 'layer-executive', gradient: 'from-yellow-500 to-amber-500' },
-    administrative: { color: 'layer-administrative', gradient: 'from-cyan-500 to-teal-500' },
-    productive: { color: 'layer-productive', gradient: 'from-green-500 to-emerald-500' },
+    administrative: { color: 'layer-administrative', gradient: 'from-primary to-secondary' },
+    productive: { color: 'layer-productive', gradient: 'from-success to-success' },
   };
 
   const config = layerConfig[layer];

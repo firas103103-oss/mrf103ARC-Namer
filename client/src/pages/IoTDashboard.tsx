@@ -196,8 +196,8 @@ const getIAQLabel = (iaq: number): { label: string; color: string } => {
 
 const getIAQProgress = (iaq: number): { width: string; gradient: string } => {
   const percentage = Math.min(100, (iaq / 300) * 100);
-  let gradient = 'from-green-500 to-emerald-500';
-  if (iaq > 50) gradient = 'from-cyan-500 to-teal-500';
+  let gradient = 'from-success to-success';
+  if (iaq > 50) gradient = 'from-primary to-secondary';
   if (iaq > 100) gradient = 'from-yellow-500 to-amber-500';
   if (iaq > 150) gradient = 'from-orange-500 to-red-500';
   if (iaq > 200) gradient = 'from-red-500 to-red-700';

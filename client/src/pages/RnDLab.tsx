@@ -59,7 +59,7 @@ export default function RnDLab() {
           <div className="text-xs text-gray-500 mt-1">Running</div>
         </div>
 
-        <div className="bg-gradient-to-br from-green-500/20 to-green-600/20 rounded-lg p-6 border border-success/30">
+        <div className="bg-gradient-to-br from-success/20 to-success/20 rounded-lg p-6 border border-success/30">
           <div className="flex items-center justify-between mb-2">
             <Zap className="w-8 h-8 text-success" />
             <span className="text-3xl font-bold">{stats.evolutionIndex}</span>
