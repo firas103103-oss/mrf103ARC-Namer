@@ -200,7 +200,7 @@ const getAvatarIcon = (avatar: string) => {
 const getCategoryColor = (category: string) => {
   const colors: Record<string, string> = {
     Executive: "bg-amber-500/20 text-amber-400 border-amber-500/30",
-    Ops: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
+    Ops: "bg-success/20 text-success border-success/30",
     Comms: "bg-blue-500/20 text-blue-400 border-blue-500/30",
     Intel: "bg-purple-500/20 text-purple-400 border-purple-500/30",
     Creative: "bg-pink-500/20 text-pink-400 border-pink-500/30",

@@ -157,7 +157,7 @@ export default function Dashboard() {
   const getActionStatusIcon = (status: string | null) => {
     switch (status) {
       case "success":
-        return <CheckCircle className="h-4 w-4 text-green-500" />;
+        return <CheckCircle className="h-4 w-4 text-success" />;
       case "failed":
         return <XCircle className="h-4 w-4 text-red-500" />;
       case "running":

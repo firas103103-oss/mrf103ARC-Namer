@@ -50,7 +50,7 @@ import {
 const VIRTUAL_AGENTS = [
   { id: "mrf", name: "Mr.F", role: "Executive Orchestrator", icon: "crown", color: "text-yellow-500" },
   { id: "l0-ops", name: "L0-Ops", role: "Operations Commander", icon: "settings", color: "text-blue-500" },
-  { id: "l0-comms", name: "L0-Comms", role: "Communications Director", icon: "radio", color: "text-green-500" },
+  { id: "l0-comms", name: "L0-Comms", role: "Communications Director", icon: "radio", color: "text-success" },
   { id: "l0-intel", name: "L0-Intel", role: "Intelligence Analyst", icon: "brain", color: "text-purple-500" },
   { id: "photographer", name: "Alex Vision", role: "Photography Specialist", icon: "camera", color: "text-pink-500" },
   { id: "grants", name: "Diana Grant", role: "Grants Specialist", icon: "file-text", color: "text-orange-500" },
@@ -168,14 +168,14 @@ const DATABASE_TABLES = [
 ];
 
 const INTEGRATIONS = [
-  { name: "OpenAI", description: "GPT-4 for all agent responses", icon: Brain, status: "active", color: "text-green-500" },
+  { name: "OpenAI", description: "GPT-4 for all agent responses", icon: Brain, status: "active", color: "text-success" },
   { name: "ElevenLabs", description: "Text-to-speech synthesis", icon: Mic2, status: "active", color: "text-purple-500" },
   { name: "Replit Auth", description: "OpenID Connect authentication", icon: Lock, status: "active", color: "text-blue-500" },
   { name: "PostgreSQL", description: "Primary database storage", icon: Database, status: "active", color: "text-cyan-500" },
   { name: "n8n", description: "Workflow automation webhooks", icon: Workflow, status: "ready", color: "text-orange-500" },
   { name: "Supabase", description: "Legacy queries only", icon: Cloud, status: "legacy", color: "text-gray-500" },
   { name: "Twilio", description: "SMS capabilities", icon: MessageSquare, status: "configured", color: "text-red-500" },
-  { name: "Capacitor", description: "Android APK generation", icon: Smartphone, status: "ready", color: "text-green-500" },
+  { name: "Capacitor", description: "Android APK generation", icon: Smartphone, status: "ready", color: "text-success" },
 ];
 
 const FILE_STRUCTURE = [

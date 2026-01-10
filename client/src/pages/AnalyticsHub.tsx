@@ -87,8 +87,8 @@ export default function AnalyticsHub() {
               </div>
               <p className="text-3xl font-bold">{commandMetrics.total}</p>
               <div className="flex items-center gap-1 mt-1 text-xs">
-                <TrendingUp className="h-3 w-3 text-green-500" />
-                <span className="text-green-500">+12%</span>
+                <TrendingUp className="h-3 w-3 text-success" />
+                <span className="text-success">+12%</span>
                 <span className="text-muted-foreground">from last week</span>
               </div>
             </CardContent>
@@ -98,12 +98,12 @@ export default function AnalyticsHub() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm text-muted-foreground">Success Rate</span>
-                <CheckCircle2 className="h-4 w-4 text-green-500" />
+                <CheckCircle2 className="h-4 w-4 text-success" />
               </div>
               <p className="text-3xl font-bold">{successRate}%</p>
               <div className="flex items-center gap-1 mt-1 text-xs">
-                <ArrowUpRight className="h-3 w-3 text-green-500" />
-                <span className="text-green-500">+2.5%</span>
+                <ArrowUpRight className="h-3 w-3 text-success" />
+                <span className="text-success">+2.5%</span>
                 <span className="text-muted-foreground">improvement</span>
               </div>
             </CardContent>
@@ -148,7 +148,7 @@ export default function AnalyticsHub() {
             <CardContent>
               <div className="grid grid-cols-3 gap-4 mb-6">
                 <div className="text-center p-4 rounded-md bg-muted">
-                  <p className="text-3xl font-bold text-green-500">{commandMetrics.success}</p>
+                  <p className="text-3xl font-bold text-success">{commandMetrics.success}</p>
                   <p className="text-sm text-muted-foreground">Successful</p>
                 </div>
                 <div className="text-center p-4 rounded-md bg-muted">
@@ -271,7 +271,7 @@ export default function AnalyticsHub() {
                           <span className="text-muted-foreground">{agent.avgResponseTime > 0 ? `${agent.avgResponseTime}ms` : '-'}</span>
                         </td>
                         <td className="py-3 px-4 text-right">
-                          <span className={agent.successRate >= 90 ? "text-green-500" : agent.successRate >= 80 ? "text-yellow-500" : "text-destructive"}>
+                          <span className={agent.successRate >= 90 ? "text-success" : agent.successRate >= 80 ? "text-yellow-500" : "text-destructive"}>
                             {agent.successRate}%
                           </span>
                         </td>
