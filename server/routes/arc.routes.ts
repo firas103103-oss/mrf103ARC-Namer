@@ -345,7 +345,189 @@ arcRouter.get('/chat/status', (req, res) => {
 });
 
 // ===============================
-// 📊 SYSTEM OVERVIEW
+// 🎯 MASTER AGENT COMMAND
+// ===============================
+
+// Get tasks for master agent
+arcRouter.get('/master-agent/tasks', (req, res) => {
+  // Mock tasks data - replace with real DB query
+  const tasks = [
+    { id: '1', title: 'System Status Check', status: 'active', priority: 'high', assignedTo: 'system', progress: 85 },
+    { id: '2', title: 'Data Backup Process', status: 'completed', priority: 'medium', assignedTo: 'cipher', progress: 100 },
+    { id: '3', title: 'Security Audit', status: 'pending', priority: 'critical', assignedTo: 'aegis', progress: 0 }
+  ];
+  res.json({ success: true, data: tasks });
+});
+
+// Get decisions for master agent
+arcRouter.get('/master-agent/decisions', (req, res) => {
+  // Mock decisions data
+  const decisions = [
+    { id: '1', title: 'Resource Allocation', description: 'Allocate compute resources for AI training', status: 'pending', urgency: 'high' },
+    { id: '2', title: 'Security Protocol Update', description: 'Update firewall rules', status: 'approved', urgency: 'critical' }
+  ];
+  res.json({ success: true, data: decisions });
+});
+
+// Get agents status for master agent
+arcRouter.get('/master-agent/agents-status', (req, res) => {
+  const agentsStatus = ALL_AGENTS.map(agent => ({
+    id: agent.id,
+    name: agent.name,
+    status: agent.status || 'active',
+    performance: Math.floor(Math.random() * 30) + 70, // 70-100%
+    lastActive: new Date()
+  }));
+  res.json({ success: true, data: agentsStatus });
+});
+
+// Get system stats for master agent
+arcRouter.get('/master-agent/stats', (req, res) => {
+  const stats = {
+    totalTasks: 156,
+    completedTasks: 142,
+    activeTasks: 12,
+    pendingDecisions: 3,
+    systemHealth: 94,
+    uptime: '15d 4h 32m'
+  };
+  res.json({ success: true, data: stats });
+});
+
+// Execute command
+arcRouter.post('/master-agent/execute', async (req, res) => {
+  try {
+    const { command, params } = req.body;
+    
+    if (!command) {
+      return res.status(400).json({ success: false, error: 'Command is required' });
+    }
+
+    // Mock execution - replace with real command execution
+    const result = {
+      commandId: Date.now().toString(),
+      command,
+      status: 'executed',
+      result: `Command "${command}" executed successfully`,
+      timestamp: new Date()
+    };
+
+    res.json({ success: true, data: result });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Approve decision
+arcRouter.post('/master-agent/approve-decision', async (req, res) => {
+  try {
+    const { decisionId, approved } = req.body;
+    
+    if (!decisionId) {
+      return res.status(400).json({ success: false, error: 'Decision ID is required' });
+    }
+
+    // Mock approval - replace with real DB update
+    const result = {
+      decisionId,
+      status: approved ? 'approved' : 'rejected',
+      timestamp: new Date()
+    };
+
+    res.json({ success: true, data: result });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ===============================
+// ⚔️ QUANTUM WAR ROOM
+// ===============================
+
+// Get scenarios
+arcRouter.get('/scenarios', (req, res) => {
+  const scenarios = [
+    { id: '1', name: 'Data Breach Response', description: 'Simulated cyber attack response', objectives: ['Contain breach', 'Identify threat', 'Restore systems'], riskLevel: 'high', category: 'Security' },
+    { id: '2', name: 'System Overload', description: 'High traffic load management', objectives: ['Scale resources', 'Load balance', 'Monitor performance'], riskLevel: 'medium', category: 'Operations' }
+  ];
+  res.json({ success: true, data: scenarios });
+});
+
+// Create scenario
+arcRouter.post('/scenarios', async (req, res) => {
+  try {
+    const { name, description, objectives, riskLevel, category } = req.body;
+    
+    const newScenario = {
+      id: Date.now().toString(),
+      name,
+      description,
+      objectives,
+      riskLevel,
+      category,
+      createdAt: new Date()
+    };
+    
+    res.json({ success: true, data: newScenario });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Get agents (alias for backwards compatibility)
+arcRouter.get('/agents', (req, res) => {
+  const agents = ALL_AGENTS.map(agent => ({
+    ...agent,
+    status: agent.status || 'active',
+    performance: Math.floor(Math.random() * 30) + 70
+  }));
+  res.json({ success: true, data: agents });
+});
+
+// ===============================
+// 🔍 INVESTIGATION LOUNGE  
+// ===============================
+
+// Get investigation activity
+arcRouter.get('/investigation/activity', (req, res) => {
+  const activity = [
+    { id: '1', type: 'data_analysis', message: 'Analyzing security logs...', timestamp: new Date(), agent: 'Aegis' },
+    { id: '2', type: 'threat_detection', message: 'Scanning network for anomalies', timestamp: new Date(), agent: 'Phantom' }
+  ];
+  res.json({ success: true, data: activity });
+});
+
+// ===============================
+// � ANALYTICS & DASHBOARD
+// ===============================
+
+// Get dashboard metrics
+arcRouter.get('/dashboard/metrics', (req, res) => {
+  const metrics = {
+    totalAgents: ALL_AGENTS.length,
+    activeAgents: ALL_AGENTS.filter(a => (a.status || 'active') === 'active').length,
+    tasksCompleted: 847,
+    systemUptime: 99.7,
+    performance: 94.2
+  };
+  res.json({ success: true, data: metrics });
+});
+
+// Get agent analytics
+arcRouter.get('/agents/analytics', (req, res) => {
+  const analytics = ALL_AGENTS.map(agent => ({
+    id: agent.id,
+    name: agent.name,
+    performance: Math.floor(Math.random() * 30) + 70,
+    tasksCompleted: Math.floor(Math.random() * 50) + 10,
+    efficiency: Math.floor(Math.random() * 25) + 75,
+    uptime: Math.floor(Math.random() * 20) + 80
+  }));
+  res.json({ success: true, data: analytics });
+});
+
+// ===============================
+// �📊 SYSTEM OVERVIEW
 // ===============================
 
 // Get complete system overview
