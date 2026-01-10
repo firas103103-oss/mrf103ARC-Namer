@@ -52,7 +52,8 @@ describe("Validation Middleware", () => {
       const middleware = validateBody(loginSchema);
       middleware(req, res, next);
 
-      expect(next).toHaveBeenCalledWith(expect.any(Error));
+      expect(next).toHaveBeenCalledWith();
+      expect(next).not.toHaveBeenCalledWith(expect.any(Error));
     });
   });
 

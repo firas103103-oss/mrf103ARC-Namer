@@ -1,5 +1,6 @@
 import { Router } from "express";
-import { z } from "zod";
+import { z, ZodError } from "zod";
+import { AppError, ValidationError } from "../middleware/error-handler";
 import { db } from "../db";
 import logger from "../utils/logger";
 import { eq, desc, sql, and, gte } from "drizzle-orm";
@@ -8,10 +9,6 @@ import OpenAI from "openai";
 import { validateBody, sensorReadingSchema } from "../middleware/validation";
 
 export const bioSentinelRouter = Router();
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
 
 // ============================================
 // SENSOR READINGS
@@ -83,6 +80,12 @@ bioSentinelRouter.post("/readings", validateBody(sensorReadingSchema), async (re
 bioSentinelRouter.post("/analyze", async (req, res) => {
   try {
     const { deviceId, question, context } = req.body;
+    if (!process.env.OPENAI_API_KEY) {
+      return res.status(503).json({ error: "openai_not_configured" });
+    }
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
 
     // Get recent readings
     const recentReadings = await db
@@ -385,6 +388,17 @@ bioSentinelRouter.get("/analytics", async (req, res) => {
     logger.error("Error in analytics:", error);
     res.status(500).json({ error: "Failed to generate analytics" });
   }
+});
+
+// Local error handler to provide consistent JSON responses in isolated routers/tests
+bioSentinelRouter.use((err: any, _req, res, _next) => {
+  const status = err instanceof AppError
+    ? err.statusCode
+    : err instanceof ZodError || err instanceof ValidationError
+      ? 400
+      : err?.status || 500;
+  const message = err?.message || "Failed to process request";
+  res.status(status).json({ error: message });
 });
 
 // ============================================
