@@ -2,80 +2,87 @@ import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
-import { SiMatrix } from "react-icons/si";
-import { useLocation } from "wouter"; // ضروري للتوجيه
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Lock, Terminal, Cpu, ShieldCheck } from "lucide-react";
 
 export function OperatorLogin() {
-  const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const { loginMutation } = useAuth();
-  const { toast } = useToast();
-  const [, setLocation] = useLocation();
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!password) return;
-
-    setIsLoading(true);
-    try {
-      await loginMutation.mutateAsync({ password });
-      
-      toast({
-        title: "Access Granted",
-        description: "Welcome back, Operator.",
-        variant: "default",
-      });
-
-      // Force page reload to ensure session is loaded
-      // This avoids race conditions with query cache
-      window.location.href = "/virtual-office";
-
-    } catch (error) {
-      toast({
-        title: "Access Denied",
-        description: "Invalid operator credentials.",
-        variant: "destructive",
-      });
-      setIsLoading(false);
-    }
+    loginMutation.mutate({ username, password });
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-black/95 text-green-500 font-mono p-4">
-      <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1518544806352-a228605200bd?q=80&w=2069&auto=format&fit=crop')] opacity-10 bg-cover bg-center pointer-events-none" />
+    <div className="flex min-h-screen items-center justify-center relative overflow-hidden">
+      {/* Background Ambience */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-primary/10 via-background to-background z-0" />
       
-      <Card className="w-full max-w-md border-green-500/30 bg-black/80 backdrop-blur-md shadow-[0_0_30px_rgba(34,197,94,0.2)]">
-        <CardHeader className="text-center space-y-4">
-          <div className="mx-auto bg-green-900/20 p-4 rounded-full w-20 h-20 flex items-center justify-center border border-green-500/50 animate-pulse">
-            <SiMatrix className="w-10 h-10 text-green-500" />
+      <Card className="w-full max-w-md relative z-10 glass border-primary/30 shadow-[0_0_50px_rgba(0,240,255,0.15)]">
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent opacity-50" />
+        
+        <CardHeader className="text-center space-y-4 pb-2">
+          <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center border border-primary/50 shadow-[0_0_20px_rgba(0,240,255,0.3)] animate-pulse-glow">
+            <Terminal className="w-8 h-8 text-primary" />
           </div>
-          <CardTitle className="text-2xl text-green-400 tracking-wider">SYSTEM ACCESS</CardTitle>
-          <CardDescription className="text-green-600/80">
-            Enter ARC Operator Credentials
-          </CardDescription>
+          <div className="space-y-1">
+            <CardTitle className="text-3xl font-bold tracking-widest font-mono text-white text-glow">
+              ARC <span className="text-primary">2.0</span>
+            </CardTitle>
+            <p className="text-xs text-muted-foreground tracking-[0.2em] uppercase">
+              Secure Access Required
+            </p>
+          </div>
         </CardHeader>
+
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-6">
-            <div className="space-y-2">
-              <Input
-                type="password"
-                placeholder="Enter Passkey..."
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="bg-black/50 border-green-500/30 text-green-400 placeholder:text-green-800 text-center tracking-widest text-lg focus:border-green-400 focus:ring-green-400/20"
-                autoFocus
-              />
+            <div className="space-y-4">
+              <div className="relative group">
+                <Cpu className="absolute left-3 top-3 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                <Input
+                  type="text"
+                  placeholder="OPERATOR ID"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="pl-10 bg-black/40 border-primary/20 text-white placeholder:text-gray-600 focus:border-primary focus:ring-1 focus:ring-primary h-12 font-mono tracking-wider transition-all"
+                />
+              </div>
+              
+              <div className="relative group">
+                <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                <Input
+                  type="password"
+                  placeholder="ACCESS CODE"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="pl-10 bg-black/40 border-primary/20 text-white placeholder:text-gray-600 focus:border-primary focus:ring-1 focus:ring-primary h-12 font-mono tracking-wider transition-all"
+                />
+              </div>
             </div>
-            <Button 
-              type="submit" 
-              className="w-full bg-green-600/20 hover:bg-green-600/40 text-green-400 border border-green-500/50 hover:shadow-[0_0_20px_rgba(34,197,94,0.4)] transition-all duration-300"
-              disabled={isLoading}
+
+            <Button
+              type="submit"
+              className="w-full h-12 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/50 hover:border-primary transition-all duration-300 uppercase tracking-widest font-bold text-glow shadow-[0_0_20px_rgba(0,240,255,0.1)] hover:shadow-[0_0_30px_rgba(0,240,255,0.3)]"
+              disabled={loginMutation.isPending}
             >
-              {isLoading ? "AUTHENTICATING..." : "INITIALIZE SESSION"}
+              {loginMutation.isPending ? (
+                <span className="animate-pulse">Authenticating...</span>
+              ) : (
+                <span className="flex items-center justify-center gap-2">
+                  <ShieldCheck className="w-4 h-4" /> Initialize Session
+                </span>
+              )}
             </Button>
           </form>
+
+          <div className="mt-6 flex justify-between text-[10px] font-mono text-gray-600 uppercase">
+            <span>System: <span className="text-success">Online</span></span>
+            <span>Encryption: <span className="text-primary">AES-256</span></span>
+            <span>Version: 2.1.0</span>
+          </div>
         </CardContent>
       </Card>
     </div>

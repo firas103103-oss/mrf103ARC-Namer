@@ -1,173 +1,91 @@
 import { Link } from "wouter";
-import { useTranslation } from "react-i18next";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { useAuth } from "@/hooks/useAuth";
-import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/app-sidebar";
-import {
-  Zap,
-  LayoutDashboard,
-  Users,
-  BarChart3,
-  Radio,
-  Shield,
-  Activity,
-  Brain,
-  Cpu,
-  Settings,
-  ArrowRight,
-  Wifi,
-  FlaskConical,
-  Smartphone,
-  Download,
+import { 
+  Shield, Activity, Globe, Cpu, Database, 
+  Users, Zap, Radio, Search, Terminal, Settings 
 } from "lucide-react";
 
-interface QuickAccessCard {
-  titleKey: string;
-  descriptionKey: string;
-  icon: React.ElementType;
-  href: string;
-  color: string;
-  badge?: string;
-}
-
 export default function Home() {
-  const { t } = useTranslation();
-  const { user } = useAuth();
-
-  const quickAccessCards: QuickAccessCard[] = [
-    {
-      titleKey: "nav.bioSentinel",
-      descriptionKey: "bioSentinel.subtitle",
-      icon: Zap,
-      href: "/bio-sentinel",
-      color: "text-chart-4",
-      badge: "IoT",
-    },
-    {
-      titleKey: "nav.dashboard",
-      descriptionKey: "dashboard.subtitle",
-      icon: LayoutDashboard,
-      href: "/dashboard",
-      color: "text-primary",
-    },
-    {
-      titleKey: "nav.teamCommand",
-      descriptionKey: "teamCommand.subtitle",
-      icon: Users,
-      href: "/team-command",
-      color: "text-secondary",
-    },
-    {
-      titleKey: "nav.analyticsHub",
-      descriptionKey: "analytics.subtitle",
-      icon: BarChart3,
-      href: "/analytics",
-      color: "text-chart-3",
-    },
-    {
-      titleKey: "nav.voiceChat",
-      descriptionKey: "voiceChat.subtitle",
-      icon: Radio,
-      href: "/voice-chat",
-      color: "text-primary",
-    },
-    {
-      titleKey: "nav.operationsSimulator",
-      descriptionKey: "operations.subtitle",
-      icon: Cpu,
-      href: "/operations-simulator",
-      color: "text-secondary",
-    },
-  ];
-
-  const systemStats = [
-    { label: t("dashboard.activeAgents"), value: "10", icon: Brain, color: "text-secondary" },
-    { label: t("common.systemOnline"), value: "99.9%", icon: Activity, color: "text-secondary" },
-    { label: t("common.secure"), value: "AES-256", icon: Shield, color: "text-primary" },
+  const domains = [
+    { name: "ARC 2.0", icon: Cpu, path: "/mrf", color: "text-primary", desc: "AI Orchestration Core" },
+    { name: "Maestros", icon: Users, path: "/maestros", color: "text-secondary", desc: "Strategic Command" },
+    { name: "Security", icon: Shield, path: "/security", color: "text-destructive", desc: "Cipher Defense Grid" },
+    { name: "Finance", icon: Database, path: "/finance", color: "text-success", desc: "Vault Asset Manager" },
+    { name: "Ops & War", icon: Globe, path: "/ops", color: "text-warning", desc: "Global Operations" },
+    { name: "Bio-Sentinel", icon: Radio, path: "/bio-sentinel", color: "text-success", desc: "IoT Sensor Network" },
+    { name: "Analytics", icon: Activity, path: "/analytics", color: "text-primary", desc: "Data Intelligence" },
+    { name: "Dev Portal", icon: Terminal, path: "/system-architecture", color: "text-warning", desc: "System Internals" },
+    { name: "Investigations", icon: Search, path: "/investigation-lounge", color: "text-accent", desc: "Deep Trace Labs" },
+    { name: "Admin", icon: Settings, path: "/admin", color: "text-muted-foreground", desc: "System Control" },
+    { name: "Cloning", icon: Zap, path: "/cloning", color: "text-secondary", desc: "Digital Replication" },
+    { name: "Chat", icon: Terminal, path: "/chat", color: "text-white", desc: "Direct Uplink" },
   ];
 
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-          <SidebarTrigger className="-ml-1" />
-          <div className="flex-1">
-            <h1 className="text-lg font-semibold">{t("landing.title")}</h1>
-          </div>
-        </header>
-        <main className="flex flex-1 flex-col gap-4 p-6">
-    <div className="space-y-8 max-w-7xl mx-auto w-full" data-testid="page-home">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <div className="min-h-screen p-6 md:p-12 relative z-10 flex flex-col items-center">
+      {/* HUD Header */}
+      <header className="w-full max-w-7xl mb-12 flex justify-between items-end border-b border-white/10 pb-6">
         <div>
-          <h1 className="text-3xl font-display font-bold text-foreground" data-testid="text-welcome">
-            {t("landing.title")}
+          <h1 className="text-5xl md:text-7xl font-bold font-sans tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-white to-white/50 mb-2">
+            SYSTEM <span className="text-primary text-glow">OVERVIEW</span>
           </h1>
-          <p className="text-muted-foreground mt-2 max-w-xl">
-            {user?.firstName ? `${t("common.online")}, ${user.firstName}` : t("common.commandCenter")} - {t("landing.missionCriticalFeatures")}
+          <p className="text-primary/60 font-mono tracking-[0.3em] uppercase text-sm">
+            Command Level: Alpha // Status: Green
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <Badge variant="outline" className="bg-secondary/10 text-secondary border-secondary/30">
-            <Activity className="w-3 h-3 ltr:mr-1 rtl:ml-1" />
-            {t("common.online")}
-          </Badge>
-          <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30">
-            <Shield className="w-3 h-3 ltr:mr-1 rtl:ml-1" />
-            {t("common.secure")}
-          </Badge>
+        <div className="text-right hidden md:block">
+          <div className="text-4xl font-mono font-bold text-white/20">MRF-103</div>
         </div>
-      </div>
+      </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {systemStats.map((stat, index) => (
-          <Card key={index} className="bg-card/50" data-testid={`card-stat-${index}`}>
-            <CardContent className="p-4 flex items-center gap-4">
-              <div className={`p-3 rounded-md bg-muted ${stat.color}`}>
-                <stat.icon className="h-5 w-5" />
+      {/* Grid System */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 w-full max-w-7xl">
+        {domains.map((domain) => (
+          <Link key={domain.name} href={domain.path}>
+            <div className="group relative h-48 cursor-pointer overflow-hidden">
+              {/* Card Container */}
+              <div className="absolute inset-0 glass hover:bg-white/5 transition-all duration-300 hud-border flex flex-col justify-between p-6">
+                
+                {/* Header */}
+                <div className="flex justify-between items-start">
+                  <domain.icon className={`w-8 h-8 ${domain.color} drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]`} />
+                  <span className="text-[10px] font-mono text-white/30 group-hover:text-primary transition-colors">
+                    ACCESS &gt;&gt;
+                  </span>
+                </div>
+
+                {/* Content */}
+                <div>
+                  <h3 className="text-2xl font-bold font-sans text-white group-hover:text-primary transition-colors tracking-wide">
+                    {domain.name}
+                  </h3>
+                  <p className="text-xs text-white/50 font-mono mt-1 group-hover:text-white/80 transition-colors uppercase">
+                    {domain.desc}
+                  </p>
+                </div>
+
+                {/* Hover Effect Line */}
+                <div className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-500 ease-out" />
               </div>
-              <div>
-                <p className="text-2xl font-mono font-bold text-foreground">{stat.value}</p>
-                <p className="text-sm text-muted-foreground">{stat.label}</p>
-              </div>
-            </CardContent>
-          </Card>
+            </div>
+          </Link>
         ))}
       </div>
 
-      <Card className="border-primary/20 bg-gradient-to-r from-primary/5 to-chart-4/5" data-testid="card-bio-sentinel-featured">
-        <CardContent className="p-6">
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            <div className="flex items-start gap-4">
-              <div className="p-4 rounded-md bg-chart-4/10 border border-chart-4/20">
-                <Zap className="h-8 w-8 text-chart-4" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <h2 className="text-xl font-display font-semibold text-foreground">
-                    {t("nav.bioSentinel")}
-                  </h2>
-                  <Badge variant="outline" className="bg-chart-4/10 text-chart-4 border-chart-4/30 text-[10px]">
-                    ESP32-S3
-                  </Badge>
-                </div>
-                <p className="text-muted-foreground max-w-md">
-                  {t("bioSentinel.subtitle")}
-                </p>
-                <div className="flex items-center gap-4 mt-3 text-sm text-muted-foreground">
-                  <span className="flex items-center gap-1">
-                    <FlaskConical className="h-4 w-4" />
-                    BME688
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Wifi className="h-4 w-4" />
-                    WebSocket
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Brain className="h-4 w-4" />
+      {/* Status Footer */}
+      <footer className="mt-20 w-full max-w-7xl border-t border-white/5 pt-6 flex justify-between items-center text-xs font-mono text-white/30">
+        <div className="flex gap-6">
+          <span className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-success animate-pulse" /> NET: SECURE
+          </span>
+          <span className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-primary animate-pulse delay-75" /> DB: CONNECTED
+          </span>
+        </div>
+        <div>SESSION_ID: {Math.random().toString(36).substring(7).toUpperCase()}</div>
+      </footer>
+    </div>
+  );
+}
                     AI Analysis
                   </span>
                 </div>

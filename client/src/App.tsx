@@ -110,15 +110,15 @@ function Router() {
 
 function App() {
   return (
-    <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
+    <QueryClientProvider client={queryClient}>
+      <ErrorBoundary>
         <div className="stellar-scanlines" />
-        <div className="min-h-screen bg-background text-foreground font-sans antialiased">
+        <div className="min-h-screen bg-background text-foreground font-sans antialiased selection:bg-primary selection:text-black">
           <Router />
           <Toaster />
         </div>
-      </QueryClientProvider>
-    </ErrorBoundary>
+      </ErrorBoundary>
+    </QueryClientProvider>
   );
 }
 
