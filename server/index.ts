@@ -8,9 +8,14 @@ import connectPgSimple from "connect-pg-simple";
 import pg from "pg";
 import path from "path";
 import * as Sentry from "@sentry/node";
-import logger from "./utils/logger";
+// Import our new enterprise middleware
+import logger, { requestLogger, healthMonitor, performanceMonitor, logAudit } from "./utils/logger";
+import { globalErrorHandler, notFoundHandler, requestIdMiddleware, unhandledRejectionHandler, uncaughtExceptionHandler } from "./middleware/error-handler";
+import { securityHeaders, apiRateLimit, authRateLimit, sanitizeInput } from "./middleware/security";
+import authRoutes from "./routes/auth";
+import healthRoutes from "./routes/health";
 import { registerRoutes } from "./routes";
-import { initializeRealtimeSubscriptions } from "./realtime"; // Import the new initializer
+import { initializeRealtimeSubscriptions } from "./realtime";
 import { handleRealtimeChatUpgrade } from "./chatRealtime";
 import { validateEnv } from "./utils/env-validator";
 import { TenantService } from "./services/tenant-service";
@@ -22,30 +27,31 @@ import metricsRoutes from "../src/routes/metrics.routes";
 import { superSystem } from "../src/SuperIntegration";
 import { metricsCollector } from "../src/infrastructure/monitoring/MetricsCollector";
 
+// Register process handlers for graceful shutdown
+process.on('unhandledRejection', unhandledRejectionHandler);
+process.on('uncaughtException', uncaughtExceptionHandler);
+
 // Initialize Sentry (only in production)
 if (process.env.NODE_ENV === 'production' && process.env.SENTRY_DSN) {
   Sentry.init({
     dsn: process.env.SENTRY_DSN,
     environment: process.env.NODE_ENV || 'development',
     tracesSampleRate: 1.0,
-    // Optional: Set release version from package.json
-    // release: "arc-namer@" + process.env.npm_package_version,
   });
-  console.log('✅ Sentry monitoring initialized');
+  logger.info('✅ Sentry monitoring initialized');
 }
 
 // Validate environment variables before starting
 try {
   validateEnv();
 } catch (error) {
-  logger.error('❌ Environment validation failed:');
-  logger.error(error instanceof Error ? error.message : error);
+  logger.error('❌ Environment validation failed:', error);
   process.exit(1);
 }
 
 export function log(message: unknown, scope?: string) {
   if (scope) {
-    console.log(`[${scope}]`, message);
+    logger.info(`[${scope}] ${message}`);
     return;
   }
   console.log(message);
@@ -72,8 +78,23 @@ function serveStatic(app: Express) {
 const app = express();
 
 // Trust proxy - CRITICAL for Railway/Cloudflare
-// Without this, secure cookies won't work behind reverse proxy
 app.set("trust proxy", 1);
+
+// Add request ID to all requests
+app.use(requestIdMiddleware);
+
+// Enterprise security headers
+app.use(securityHeaders);
+
+// Request logging middleware
+app.use(requestLogger);
+
+// Input sanitization
+app.use(sanitizeInput);
+
+// Apply rate limiting to different routes
+app.use('/api/auth', authRateLimit);
+app.use('/api/', apiRateLimit);
 
 // CORS Configuration
 const allowedOrigins = [
@@ -111,28 +132,26 @@ app.use((req, res, next) => {
   next();
 });
 
+// Remove duplicate helmet usage (already included in securityHeaders)
 // Security headers with Helmet
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'", "https:"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"], // Allow inline scripts for React
-      imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: ["'self'", "https:", "wss:"],
-      fontSrc: ["'self'", "data:", "https:"],
-      objectSrc: ["'none'"],
-      mediaSrc: ["'self'"],
-      frameSrc: ["'none'"],
-    },
-  },
-  crossOriginEmbedderPolicy: false, // Allow external resources
-  hsts: {
-    maxAge: 31536000, // 1 year
-    includeSubDomains: true,
-    preload: true,
-  },
-}));
+// app.use(helmet({
+//   contentSecurityPolicy: {
+//     directives: {
+//       defaultSrc: ["'self'"],
+//       styleSrc: ["'self'", "'unsafe-inline'", "https:"],
+//       scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"], // Allow inline scripts for React
+//       imgSrc: ["'self'", "data:", "https:"],
+//       connectSrc: ["'self'", "https:", "wss:"],
+//       fontSrc: ["'self'", "data:", "https:"],
+//       objectSrc: ["'none'"],
+//       mediaSrc: ["'self'"],
+//       frameSrc: ["'none'"],
+//     },
+//   },
+//   crossOriginEmbedderPolicy: false, // Allow external resources
+// }));
+
+// Legacy helmet configuration is replaced by our security middleware
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -145,40 +164,61 @@ if (process.env.NODE_ENV === 'production' && process.env.SENTRY_DSN) {
   app.use(Sentry.Handlers.tracingHandler());
 }
 
-// PostgreSQL Session Store (production-ready)
-const PgStore = connectPgSimple(session);
-const pgPool = new pg.Pool({
-  connectionString: process.env.DATABASE_URL,
-});
+// Database and Session Configuration
+let sessionMiddleware: any;
 
-// Initialize session table manually to avoid file system issues in production
-pgPool.query(`
-  CREATE TABLE IF NOT EXISTS session (
-    sid VARCHAR NOT NULL COLLATE "default" PRIMARY KEY,
-    sess JSON NOT NULL,
-    expire TIMESTAMP(6) NOT NULL
-  );
-  CREATE INDEX IF NOT EXISTS "IDX_session_expire" ON session ("expire");
-`).catch(err => logger.error('Session table creation error (non-fatal):', err.message));
+if (process.env.NODE_ENV === 'development') {
+  // Development: Use simple in-memory sessions
+  sessionMiddleware = session({
+    name: "arc.sid",
+    secret: process.env.SESSION_SECRET || "dev-session-secret",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: false,
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    },
+  });
+  logger.info('✅ Using development session store (memory)');
+} else {
+  // Production: PostgreSQL Session Store
+  const PgStore = connectPgSimple(session);
+  const pgPool = new pg.Pool({
+    connectionString: process.env.DATABASE_URL,
+  });
 
-const sessionMiddleware = session({
-  name: "arc.sid",
-  secret: process.env.SESSION_SECRET || process.env.ARC_BACKEND_SECRET || "dev-session-secret",
-  resave: false,
-  saveUninitialized: false,
-  store: new PgStore({
-    pool: pgPool,
-    tableName: "session",
-    createTableIfMissing: false, // We create it manually above
-  }),
-  cookie: {
-    httpOnly: true,
-    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-    secure: process.env.NODE_ENV === "production", // Always true in production with trust proxy
-    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-    domain: process.env.NODE_ENV === "production" ? ".mrf103.com" : undefined, // Allow subdomains
-  },
-});
+  // Initialize session table manually to avoid file system issues in production
+  pgPool.query(`
+    CREATE TABLE IF NOT EXISTS session (
+      sid VARCHAR NOT NULL COLLATE "default" PRIMARY KEY,
+      sess JSON NOT NULL,
+      expire TIMESTAMP(6) NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS "IDX_session_expire" ON session ("expire");
+  `).catch(err => logger.error('Session table creation error (non-fatal):', err.message));
+
+  sessionMiddleware = session({
+    name: "arc.sid",
+    secret: process.env.SESSION_SECRET || process.env.ARC_BACKEND_SECRET || "dev-session-secret",
+    resave: false,
+    saveUninitialized: false,
+    store: new PgStore({
+      pool: pgPool,
+      tableName: "session",
+      createTableIfMissing: false,
+    }),
+    cookie: {
+      httpOnly: true,
+      sameSite: "none",
+      secure: true,
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+      domain: ".mrf103.com",
+    },
+  });
+  logger.info('✅ Using production session store (PostgreSQL)');
+}
 
 app.use(sessionMiddleware);
 
@@ -255,18 +295,11 @@ app.use("/api/arc", arcRouter);
     app.use(Sentry.Handlers.errorHandler());
   }
 
-  // Error handling (should be last)
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
-    
-    // Log error to console in development
-    if (process.env.NODE_ENV !== 'production') {
-      logger.error('❌ Error:', err);
-    }
-    
-    res.status(status).json({ message });
-  });
+  // Add 404 handler for unmatched routes
+  app.use(notFoundHandler);
+
+  // Enterprise error handler (should be last)
+  app.use(globalErrorHandler);
 
   // Use the PORT environment variable (Railway provides this automatically)
   // Default to 5001 for local development (9002 was old port)

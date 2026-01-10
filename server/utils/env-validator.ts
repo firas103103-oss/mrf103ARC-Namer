@@ -86,6 +86,22 @@ export function validateEnv(): void {
 
 function validateDatabaseUrl(): void {
   const dbUrl = process.env.DATABASE_URL;
+  
+  // Allow more flexible DATABASE_URL in development
+  if (process.env.NODE_ENV === 'development') {
+    if (!dbUrl) {
+      logger.warn('DATABASE_URL not set in development, using mock database');
+      return;
+    }
+    // Allow file:// URLs and mock URLs in development
+    if (dbUrl.startsWith('postgresql://') || 
+        dbUrl.startsWith('file:') || 
+        dbUrl.includes('dev:dev@localhost')) {
+      return;
+    }
+  }
+  
+  // Production validation
   if (!dbUrl || !dbUrl.startsWith('postgresql://')) {
     throw new EnvValidationError(
       'DATABASE_URL must be a valid PostgreSQL connection string (starting with postgresql://)'
@@ -94,8 +110,16 @@ function validateDatabaseUrl(): void {
 }
 
 function validateSupabaseConfig(): void {
+  // Skip Supabase validation in development
+  if (process.env.NODE_ENV === 'development') {
+    if (!process.env.SUPABASE_URL) {
+      logger.warn('Supabase not configured: Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY');
+      return;
+    }
+  }
+
   const supabaseUrl = process.env.SUPABASE_URL;
-  if (!supabaseUrl?.startsWith('https://')) {
+  if (supabaseUrl && !supabaseUrl.startsWith('https://')) {
     throw new EnvValidationError(
       'SUPABASE_URL must be a valid HTTPS URL'
     );

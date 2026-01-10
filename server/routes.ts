@@ -61,6 +61,10 @@ function pick<T extends Record<string, any>, K extends keyof T>(obj: T, keys: K[
 export async function registerRoutes(app: Express): Promise<Server> {
   // Register health check routes (no rate limiting)
   app.use("/api", healthRouter);
+  
+  // Register authentication routes (JWT-based enterprise auth)
+  const authRoutes = (await import("./routes/auth")).default;
+  app.use("/api/auth", authRoutes);
 
   // --- KAYAN NEURAL BRIDGE (Webhook for n8n) ---
   app.post("/api/execute", apiLimiter.middleware(), async (req, res) => {
