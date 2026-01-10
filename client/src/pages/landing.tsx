@@ -56,14 +56,14 @@ export default function Landing() {
         <div className="matrix-rain h-full w-full"></div>
       </div>
 
-      {/* Gradient Overlays */}
-      <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-gradient-to-br from-cyan-500/5 via-transparent to-transparent blur-3xl"></div>
-      <div className="absolute bottom-0 right-0 w-1/2 h-1/2 bg-gradient-to-tl from-purple-500/5 via-transparent to-transparent blur-3xl"></div>
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-gradient-radial from-blue-500/3 via-transparent to-transparent blur-3xl"></div>
+      {/* Gradient Overlays - Stellar Command */}
+      <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-gradient-to-br from-primary/5 via-transparent to-transparent blur-3xl"></div>
+      <div className="absolute bottom-0 right-0 w-1/2 h-1/2 bg-gradient-to-tl from-secondary/5 via-transparent to-transparent blur-3xl"></div>
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-gradient-radial from-primary/3 via-transparent to-transparent blur-3xl"></div>
 
       {/* Lock Animation Overlay */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-5">
-        <Lock className="w-[800px] h-[800px] text-cyan-400 animate-pulse" strokeWidth={0.5} />
+        <Lock className="w-[800px] h-[800px] text-primary animate-pulse" strokeWidth={0.5} />
       </div>
 
       {/* Main Content */}
@@ -73,8 +73,8 @@ export default function Landing() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 opacity-70 hover:opacity-100 transition-opacity">
               <div className="relative">
-                <Shield className="h-6 w-6 text-cyan-400" strokeWidth={1.5} />
-                <div className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse" />
+                <Shield className="h-6 w-6 text-primary" strokeWidth={1.5} />
+                <div className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-primary rounded-full animate-pulse" />
               </div>
             </div>
             <LanguageToggle />
@@ -90,9 +90,9 @@ export default function Landing() {
                 {/* Lock Icon */}
                 <div className="flex justify-center">
                   <div className="relative">
-                    <div className="absolute inset-0 bg-cyan-500/20 blur-3xl rounded-full animate-pulse"></div>
-                    <div className="relative p-8 rounded-full border border-cyan-500/20 bg-black/50 backdrop-blur-sm">
-                      <Lock className="w-16 h-16 text-cyan-400" strokeWidth={1.5} />
+                    <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full animate-pulse"></div>
+                    <div className="relative p-8 rounded-full border border-primary/20 bg-black/50 backdrop-blur-sm">
+                      <Lock className="w-16 h-16 text-primary" strokeWidth={1.5} />
                     </div>
                   </div>
                 </div>
@@ -100,7 +100,7 @@ export default function Landing() {
                 {/* Title */}
                 <div className="space-y-3">
                   <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
-                    <span className="bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text text-transparent">
+                    <span className="bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
                       SECURE ACCESS
                     </span>
                   </h1>
@@ -112,7 +112,7 @@ export default function Landing() {
                 {/* Access Button */}
                 <Button
                   onClick={() => setShowAuth(true)}
-                  className="w-full h-12 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white border-0 shadow-lg shadow-cyan-500/20 transition-all duration-300"
+                  className="w-full h-12 bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white border-0 shadow-lg shadow-primary/20 transition-all duration-300"
                   data-testid="button-unlock"
                 >
                   <KeyRound className="w-5 h-5 mr-2" />
@@ -125,7 +125,7 @@ export default function Landing() {
                 {/* Header */}
                 <div className="text-center space-y-2">
                   <div className="flex justify-center mb-4">
-                    <Fingerprint className="w-12 h-12 text-cyan-400 animate-pulse" strokeWidth={1.5} />
+                    <Fingerprint className="w-12 h-12 text-primary animate-pulse" strokeWidth={1.5} />
                   </div>
                   <h2 className="text-2xl font-bold text-white">Authentication Required</h2>
                   <p className="text-sm text-zinc-500">Enter your credentials to proceed</p>
@@ -149,7 +149,7 @@ export default function Landing() {
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder="••••••••"
                         disabled={loginMutation.isPending}
-                        className="bg-black/50 border-zinc-800 text-white placeholder:text-zinc-600 focus:border-cyan-500/50"
+                        className="bg-black/50 border-zinc-800 text-white placeholder:text-zinc-600 focus:border-primary/50"
                         required
                       />
                     </div>
@@ -157,7 +157,7 @@ export default function Landing() {
                     <Button
                       type="submit"
                       disabled={loginMutation.isPending || !password}
-                      className="w-full h-11 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white border-0 disabled:opacity-50"
+                      className="w-full h-11 bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white border-0 disabled:opacity-50"
                       data-testid="button-login"
                     >
                       {loginMutation.isPending ? (
@@ -201,11 +201,11 @@ export default function Landing() {
             {/* Logo */}
             <div className="flex flex-col items-center gap-1">
               <div className="text-2xl font-bold tracking-tighter">
-                <span className="bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                   MRF
                 </span>
               </div>
-              <div className="h-px w-16 bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent"></div>
+              <div className="h-px w-16 bg-gradient-to-r from-transparent via-primary/50 to-transparent"></div>
               <p className="text-[10px] text-zinc-600 tracking-widest uppercase">
                 Multi-Agent Research Framework
               </p>
@@ -214,7 +214,7 @@ export default function Landing() {
             {/* Status Indicators */}
             <div className="flex items-center gap-4 text-[10px]">
               <div className="flex items-center gap-1.5 text-zinc-600">
-                <div className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse"></div>
+                <div className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse"></div>
                 <span>SYSTEM ACTIVE</span>
               </div>
               <div className="w-px h-3 bg-zinc-800"></div>
@@ -233,7 +233,7 @@ export default function Landing() {
       </div>
 
       {/* Scanline Effect */}
-      <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(transparent_50%,rgba(0,255,255,0.01)_50%)] bg-[length:100%_4px] animate-scanline"></div>
+      <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(transparent_50%,rgba(0,128,255,0.01)_50%)] bg-[length:100%_4px] animate-scanline"></div>
 
       <style>{`
         @keyframes matrix-fall {
@@ -263,8 +263,8 @@ export default function Landing() {
         }
         .matrix-rain {
           background-image: 
-            linear-gradient(transparent 0%, rgba(0, 255, 255, 0.1) 50%, transparent 100%),
-            repeating-linear-gradient(90deg, transparent, transparent 1px, rgba(0, 255, 255, 0.03) 2px, transparent 3px);
+            linear-gradient(transparent 0%, rgba(0, 128, 255, 0.1) 50%, transparent 100%),
+            repeating-linear-gradient(90deg, transparent, transparent 1px, rgba(0, 128, 255, 0.03) 2px, transparent 3px);
           animation: matrix-fall 20s linear infinite;
         }
       `}</style>
