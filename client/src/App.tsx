@@ -112,8 +112,11 @@ function App() {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        <Router />
-        <Toaster />
+        <div className="stellar-scanlines" />
+        <div className="min-h-screen bg-background text-foreground font-sans antialiased">
+          <Router />
+          <Toaster />
+        </div>
       </QueryClientProvider>
     </ErrorBoundary>
   );
