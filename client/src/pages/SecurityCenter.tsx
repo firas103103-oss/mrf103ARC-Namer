@@ -53,7 +53,7 @@ export default function SecurityCenter() {
     switch (type) {
       case 'threat': return <AlertTriangle className="w-5 h-5 text-red-400" />;
       case 'alert': return <Eye className="w-5 h-5 text-yellow-400" />;
-      case 'success': return <CheckCircle className="w-5 h-5 text-green-400" />;
+      case 'success': return <CheckCircle className="w-5 h-5 text-success" />;
       case 'access': return <Lock className="w-5 h-5 text-blue-400" />;
     }
   };
@@ -63,7 +63,7 @@ export default function SecurityCenter() {
       case 'critical': return 'bg-red-500/20 text-red-400 border-red-500/30';
       case 'high': return 'bg-orange-500/20 text-orange-400 border-orange-500/30';
       case 'medium': return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
-      case 'low': return 'bg-green-500/20 text-green-400 border-green-500/30';
+      case 'low': return 'bg-success/20 text-success border-success/30';
     }
   };
 
@@ -107,9 +107,9 @@ export default function SecurityCenter() {
           <div className="text-xs text-gray-500 mt-1">24/7 surveillance</div>
         </div>
 
-        <div className="bg-gradient-to-br from-green-500/20 to-green-600/20 rounded-lg p-6 border border-green-500/30">
+        <div className="bg-gradient-to-br from-success/20 to-success/30 rounded-lg p-6 border border-success/30">
           <div className="flex items-center justify-between mb-2">
-            <Shield className="w-8 h-8 text-green-400" />
+            <Shield className="w-8 h-8 text-success" />
             <span className="text-3xl font-bold">{stats.securityScore}%</span>
           </div>
           <div className="text-sm text-gray-300">Security Score</div>
@@ -140,7 +140,7 @@ export default function SecurityCenter() {
               <p className="text-sm text-gray-400 mb-3">{agent.role}</p>
               <div className="flex items-center justify-between">
                 <span className={`px-2 py-1 rounded text-xs font-bold ${
-                  agent.status === 'active' ? 'bg-green-500/20 text-green-400' :
+                  agent.status === 'active' ? 'bg-success/20 text-success' :
                   agent.status === 'alert' ? 'bg-red-500/20 text-red-400' :
                   'bg-gray-500/20 text-gray-400'
                 }`}>
