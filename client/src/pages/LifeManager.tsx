@@ -15,9 +15,9 @@ export default function LifeManager() {
   });
 
   const [agents] = useState([
-    { id: 'wellness', name: 'Wellness', nameAr: 'العافية', role: 'Health & Wellness', icon: '❤️', color: '#F43F5E', tasks: 34 },
-    { id: 'social', name: 'Social', nameAr: 'الاجتماعي', role: 'Relationships & Social', icon: '👥', color: '#EC4899', tasks: 28 },
-    { id: 'routine', name: 'Routine', nameAr: 'الروتين', role: 'Daily Tasks & Routines', icon: '📅', color: '#DB2777', tasks: 45 },
+    { id: 'wellness', name: 'Wellness', nameAr: 'العافية', role: 'Health & Wellness', icon: '❤️', color: 'hsl(var(--accent))', tasks: 34 },
+    { id: 'social', name: 'Social', nameAr: 'الاجتماعي', role: 'Relationships & Social', icon: '👥', color: 'hsl(var(--accent))', tasks: 28 },
+    { id: 'routine', name: 'Routine', nameAr: 'الروتين', role: 'Daily Tasks & Routines', icon: '📅', color: 'hsl(var(--accent))', tasks: 45 },
     { id: 'growth', name: 'Growth', nameAr: 'النمو', role: 'Personal Development', icon: '🌱', color: '#BE185D', tasks: 21 }
   ]);
 

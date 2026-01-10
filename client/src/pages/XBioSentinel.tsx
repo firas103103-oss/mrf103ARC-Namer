@@ -39,16 +39,16 @@ export default function XBioSentinel() {
   const [instinctAlerts, setInstinctAlerts] = useState<string[]>([]);
 
   const [agents] = useState([
-    { id: 'olfactory', name: 'Olfactory', nameAr: 'الشمي', role: 'Smell Detection & Classification', icon: '👃', color: '#14B8A6', tasks: 156 },
-    { id: 'instinct', name: 'Instinct', nameAr: 'الغريزة', role: 'Digital Instinct', icon: '🧠', color: '#0D9488', tasks: 89 },
-    { id: 'environ', name: 'Environ', nameAr: 'البيئة', role: 'Environmental Analysis', icon: '🌍', color: '#2DD4BF', tasks: 112 },
-    { id: 'sensor', name: 'Sensor', nameAr: 'المستشعر', role: 'Hardware & Sensors', icon: '📡', color: '#5EEAD4', tasks: 67 }
+    { id: 'olfactory', name: 'Olfactory', nameAr: 'الشمي', role: 'Smell Detection & Classification', icon: '👃', color: 'hsl(var(--success))', tasks: 156 },
+    { id: 'instinct', name: 'Instinct', nameAr: 'الغريزة', role: 'Digital Instinct', icon: '🧠', color: 'hsl(var(--success))', tasks: 89 },
+    { id: 'environ', name: 'Environ', nameAr: 'البيئة', role: 'Environmental Analysis', icon: '🌍', color: 'hsl(var(--success))', tasks: 112 },
+    { id: 'sensor', name: 'Sensor', nameAr: 'المستشعر', role: 'Hardware & Sensors', icon: '📡', color: 'hsl(var(--success))', tasks: 67 }
   ]);
 
   const [smellProfiles, setSmellProfiles] = useState<SmellProfile[]>([
-    { id: '1', name: 'Fresh Air', nameAr: 'هواء منعش', category: 'clean', confidence: 95, color: '#10B981', lastDetected: new Date() },
-    { id: '2', name: 'Coffee', nameAr: 'قهوة', category: 'food', confidence: 88, color: '#F59E0B', lastDetected: new Date(Date.now() - 3600000) },
-    { id: '3', name: 'Smoke', nameAr: 'دخان', category: 'alert', confidence: 0, color: '#EF4444', lastDetected: new Date(Date.now() - 86400000) }
+    { id: '1', name: 'Fresh Air', nameAr: 'هواء منعش', category: 'clean', confidence: 95, color: 'hsl(var(--success))', lastDetected: new Date() },
+    { id: '2', name: 'Coffee', nameAr: 'قهوة', category: 'food', confidence: 88, color: 'hsl(var(--warning))', lastDetected: new Date(Date.now() - 3600000) },
+    { id: '3', name: 'Smoke', nameAr: 'دخان', category: 'alert', confidence: 0, color: 'hsl(var(--destructive))', lastDetected: new Date(Date.now() - 86400000) }
   ]);
 
   // Simulate real-time sensor updates

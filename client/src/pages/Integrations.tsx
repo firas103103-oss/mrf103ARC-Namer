@@ -54,7 +54,7 @@ export default function Integrations() {
       name: 'Local Computer',
       icon: '💻',
       status: 'connected',
-      color: '#10B981',
+      color: 'hsl(var(--success))',
       description: 'Access local computer files'
     }
   ]);

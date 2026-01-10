@@ -17,12 +17,12 @@ interface SectorStatus {
 
 export default function MRFDashboard() {
   const [sectors, setSectors] = useState<SectorStatus[]>([
-    { sector: 'Security', maestro: 'Cipher', status: 'excellent', performance: 98, icon: '🛡️', color: '#DC2626' },
-    { sector: 'Finance', maestro: 'Vault', status: 'good', performance: 92, icon: '💰', color: '#059669' },
-    { sector: 'Legal', maestro: 'Lexis', status: 'good', performance: 89, icon: '⚖️', color: '#7C3AED' },
-    { sector: 'Life', maestro: 'Harmony', status: 'excellent', performance: 95, icon: '🏠', color: '#EC4899' },
-    { sector: 'R&D', maestro: 'Nova', status: 'good', performance: 91, icon: '🔬', color: '#0EA5E9' },
-    { sector: 'xBio', maestro: 'Scent', status: 'excellent', performance: 97, icon: '🧬', color: '#14B8A6' }
+    { sector: 'Security', maestro: 'Cipher', status: 'excellent', performance: 98, icon: '🛡️', color: 'hsl(var(--destructive))' },
+    { sector: 'Finance', maestro: 'Vault', status: 'good', performance: 92, icon: '💰', color: 'hsl(var(--success))' },
+    { sector: 'Legal', maestro: 'Lexis', status: 'good', performance: 89, icon: '⚖️', color: 'hsl(var(--secondary))' },
+    { sector: 'Life', maestro: 'Harmony', status: 'excellent', performance: 95, icon: '🏠', color: 'hsl(var(--accent))' },
+    { sector: 'R&D', maestro: 'Nova', status: 'good', performance: 91, icon: '🔬', color: 'hsl(var(--primary))' },
+    { sector: 'xBio', maestro: 'Scent', status: 'excellent', performance: 97, icon: '🧬', color: 'hsl(var(--success))' }
   ]);
 
   const [systemHealth, setSystemHealth] = useState({
@@ -163,11 +163,11 @@ export default function MRFDashboard() {
           </h3>
           <div className="space-y-3">
             {[
-              { agent: 'Cipher', action: 'Detected and blocked threat', time: '2m ago', color: '#DC2626' },
-              { agent: 'Vault', action: 'Processed financial report', time: '5m ago', color: '#059669' },
-              { agent: 'Nova', action: 'Completed research analysis', time: '8m ago', color: '#0EA5E9' },
-              { agent: 'Scent', action: 'Classified new smell pattern', time: '12m ago', color: '#14B8A6' },
-              { agent: 'Harmony', action: 'Updated daily schedule', time: '15m ago', color: '#EC4899' }
+              { agent: 'Cipher', action: 'Detected and blocked threat', time: '2m ago', color: 'hsl(var(--destructive))' },
+              { agent: 'Vault', action: 'Processed financial report', time: '5m ago', color: 'hsl(var(--success))' },
+              { agent: 'Nova', action: 'Completed research analysis', time: '8m ago', color: 'hsl(var(--primary))' },
+              { agent: 'Scent', action: 'Classified new smell pattern', time: '12m ago', color: 'hsl(var(--success))' },
+              { agent: 'Harmony', action: 'Updated daily schedule', time: '15m ago', color: 'hsl(var(--accent))' }
             ].map((activity, idx) => (
               <div key={idx} className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
                 <div className="w-2 h-2 rounded-full" style={{ backgroundColor: activity.color }} />

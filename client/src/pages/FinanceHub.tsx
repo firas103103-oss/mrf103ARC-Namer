@@ -18,10 +18,10 @@ interface FinanceAgent {
 
 export default function FinanceHub() {
   const [agents] = useState<FinanceAgent[]>([
-    { id: 'ledger', name: 'Ledger', nameAr: 'ليدجر', role: 'Accounting & Books', icon: '📒', color: '#10B981', tasksToday: 67 },
-    { id: 'treasury', name: 'Treasury', nameAr: 'الخزينة', role: 'Budget & Planning', icon: '🏦', color: '#047857', tasksToday: 42 },
-    { id: 'venture', name: 'Venture', nameAr: 'فينشر', role: 'Investment Analysis', icon: '📈', color: '#065F46', tasksToday: 38 },
-    { id: 'merchant', name: 'Merchant', nameAr: 'التاجر', role: 'Business Operations', icon: '🏪', color: '#34D399', tasksToday: 51 }
+    { id: 'ledger', name: 'Ledger', nameAr: 'ليدجر', role: 'Accounting & Books', icon: '📒', color: 'hsl(var(--success))', tasksToday: 67 },
+    { id: 'treasury', name: 'Treasury', nameAr: 'الخزينة', role: 'Budget & Planning', icon: '🏦', color: 'hsl(var(--success))', tasksToday: 42 },
+    { id: 'venture', name: 'Venture', nameAr: 'فينشر', role: 'Investment Analysis', icon: '📈', color: 'hsl(var(--success))', tasksToday: 38 },
+    { id: 'merchant', name: 'Merchant', nameAr: 'التاجر', role: 'Business Operations', icon: '🏪', color: 'hsl(var(--success))', tasksToday: 51 }
   ]);
 
   const [financialData] = useState({

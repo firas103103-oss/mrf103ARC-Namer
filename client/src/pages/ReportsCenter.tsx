@@ -10,10 +10,10 @@ export default function ReportsCenter() {
   const [reportType, setReportType] = useState<'daily' | 'weekly' | 'monthly' | 'semi_annual'>('daily');
 
   const reportTypes = [
-    { id: 'daily', name: 'Daily', nameAr: 'يومي', icon: '📅', color: '#3B82F6' },
-    { id: 'weekly', name: 'Weekly', nameAr: 'أسبوعي', icon: '📆', color: '#8B5CF6' },
-    { id: 'monthly', name: 'Monthly', nameAr: 'شهري', icon: '📊', color: '#EC4899' },
-    { id: 'semi_annual', name: 'Semi-Annual', nameAr: 'نصف سنوي', icon: '📈', color: '#F59E0B' }
+    { id: 'daily', name: 'Daily', nameAr: 'يومي', icon: '📅', color: 'hsl(var(--primary))' },
+    { id: 'weekly', name: 'Weekly', nameAr: 'أسبوعي', icon: '📆', color: 'hsl(var(--secondary))' },
+    { id: 'monthly', name: 'Monthly', nameAr: 'شهري', icon: '📊', color: 'hsl(var(--accent))' },
+    { id: 'semi_annual', name: 'Semi-Annual', nameAr: 'نصف سنوي', icon: '📈', color: 'hsl(var(--warning))' }
   ];
 
   const sampleReports = [

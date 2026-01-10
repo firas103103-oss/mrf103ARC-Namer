@@ -15,10 +15,10 @@ export default function RnDLab() {
   });
 
   const [agents] = useState([
-    { id: 'lab', name: 'Lab', nameAr: 'المختبر', role: 'Research & Studies', icon: '🧪', color: '#0284C7', tasks: 52 },
-    { id: 'forge', name: 'Forge', nameAr: 'المصنع', role: 'Development & Engineering', icon: '⚙️', color: '#0369A1', tasks: 67 },
-    { id: 'spark', name: 'Spark', nameAr: 'الشرارة', role: 'Innovation & Ideas', icon: '✨', color: '#0EA5E9', tasks: 41 },
-    { id: 'darwin', name: 'Darwin', nameAr: 'داروين', role: 'Self-Learning & Evolution', icon: '🧬', color: '#38BDF8', tasks: 38 }
+    { id: 'lab', name: 'Lab', nameAr: 'المختبر', role: 'Research & Studies', icon: '🧪', color: 'hsl(var(--primary))', tasks: 52 },
+    { id: 'forge', name: 'Forge', nameAr: 'المصنع', role: 'Development & Engineering', icon: '⚙️', color: 'hsl(var(--primary))', tasks: 67 },
+    { id: 'spark', name: 'Spark', nameAr: 'الشرارة', role: 'Innovation & Ideas', icon: '✨', color: 'hsl(var(--primary))', tasks: 41 },
+    { id: 'darwin', name: 'Darwin', nameAr: 'داروين', role: 'Self-Learning & Evolution', icon: '🧬', color: 'hsl(var(--primary))', tasks: 38 }
   ]);
 
   return (

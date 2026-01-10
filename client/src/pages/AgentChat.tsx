@@ -34,16 +34,16 @@ export default function AgentChat() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const agents = [
-    { id: 'mrf_ceo', name: 'MRF', icon: '👑', color: '#FFD700', layer: 'CEO' },
-    { id: 'maestro_security', name: 'Cipher', icon: '🛡️', color: '#DC2626', layer: 'Maestro' },
-    { id: 'maestro_finance', name: 'Vault', icon: '💰', color: '#059669', layer: 'Maestro' },
-    { id: 'maestro_legal', name: 'Lexis', icon: '⚖️', color: '#7C3AED', layer: 'Maestro' },
-    { id: 'maestro_life', name: 'Harmony', icon: '🏠', color: '#EC4899', layer: 'Maestro' },
-    { id: 'maestro_rnd', name: 'Nova', icon: '🔬', color: '#0EA5E9', layer: 'Maestro' },
-    { id: 'maestro_xbio', name: 'Scent', icon: '🧬', color: '#14B8A6', layer: 'Maestro' },
-    { id: 'aegis', name: 'Aegis', icon: '🔥', color: '#EF4444', layer: 'Specialist' },
-    { id: 'phantom', name: 'Phantom', icon: '🔐', color: '#6B7280', layer: 'Specialist' },
-    { id: 'darwin', name: 'Darwin', icon: '🧬', color: '#38BDF8', layer: 'Specialist' }
+    { id: 'mrf_ceo', name: 'MRF', icon: '👑', color: 'hsl(var(--warning))', layer: 'CEO' },
+    { id: 'maestro_security', name: 'Cipher', icon: '🛡️', color: 'hsl(var(--destructive))', layer: 'Maestro' },
+    { id: 'maestro_finance', name: 'Vault', icon: '💰', color: 'hsl(var(--success))', layer: 'Maestro' },
+    { id: 'maestro_legal', name: 'Lexis', icon: '⚖️', color: 'hsl(var(--secondary))', layer: 'Maestro' },
+    { id: 'maestro_life', name: 'Harmony', icon: '🏠', color: 'hsl(var(--accent))', layer: 'Maestro' },
+    { id: 'maestro_rnd', name: 'Nova', icon: '🔬', color: 'hsl(var(--primary))', layer: 'Maestro' },
+    { id: 'maestro_xbio', name: 'Scent', icon: '🧬', color: 'hsl(var(--success))', layer: 'Maestro' },
+    { id: 'aegis', name: 'Aegis', icon: '🔥', color: 'hsl(var(--destructive))', layer: 'Specialist' },
+    { id: 'phantom', name: 'Phantom', icon: '🔐', color: 'hsl(var(--muted-foreground))', layer: 'Specialist' },
+    { id: 'darwin', name: 'Darwin', icon: '🧬', color: 'hsl(var(--primary))', layer: 'Specialist' }
   ];
 
   // Check AI status on mount

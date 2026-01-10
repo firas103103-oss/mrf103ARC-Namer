@@ -28,10 +28,10 @@ interface SecurityEvent {
 
 export default function SecurityCenter() {
   const [agents] = useState<SecurityAgent[]>([
-    { id: 'aegis', name: 'Aegis', nameAr: 'إيجيس', role: 'Firewall & Protection', status: 'active', tasksToday: 89, icon: '🔥', color: '#EF4444' },
-    { id: 'phantom', name: 'Phantom', nameAr: 'فانتوم', role: 'Encryption & Keys', status: 'active', tasksToday: 45, icon: '🔐', color: '#6B7280' },
-    { id: 'watchtower', name: 'Watchtower', nameAr: 'برج المراقبة', role: '24/7 Monitoring', status: 'alert', tasksToday: 156, icon: '🗼', color: '#F59E0B' },
-    { id: 'ghost', name: 'Ghost', nameAr: 'الشبح', role: 'Intrusion Detection', status: 'active', tasksToday: 23, icon: '👻', color: '#1F2937' }
+    { id: 'aegis', name: 'Aegis', nameAr: 'إيجيس', role: 'Firewall & Protection', status: 'active', tasksToday: 89, icon: '🔥', color: 'hsl(var(--destructive))' },
+    { id: 'phantom', name: 'Phantom', nameAr: 'فانتوم', role: 'Encryption & Keys', status: 'active', tasksToday: 45, icon: '🔐', color: 'hsl(var(--muted-foreground))' },
+    { id: 'watchtower', name: 'Watchtower', nameAr: 'برج المراقبة', role: '24/7 Monitoring', status: 'alert', tasksToday: 156, icon: '🗼', color: 'hsl(var(--warning))' },
+    { id: 'ghost', name: 'Ghost', nameAr: 'الشبح', role: 'Intrusion Detection', status: 'active', tasksToday: 23, icon: '👻', color: 'hsl(var(--muted))' }
   ]);
 
   const [events, setEvents] = useState<SecurityEvent[]>([

@@ -15,9 +15,9 @@ export default function LegalArchive() {
   });
 
   const [agents] = useState([
-    { id: 'archive', name: 'Archive', nameAr: 'الأرشيف', role: 'Document Archive', icon: '📚', color: '#8B5CF6', tasks: 45 },
+    { id: 'archive', name: 'Archive', nameAr: 'الأرشيف', role: 'Document Archive', icon: '📚', color: 'hsl(var(--secondary))', tasks: 45 },
     { id: 'contract', name: 'Contract', nameAr: 'العقود', role: 'Contract Management', icon: '📝', color: '#A78BFA', tasks: 28 },
-    { id: 'compliance', name: 'Compliance', nameAr: 'الامتثال', role: 'Compliance & Policies', icon: '✅', color: '#7C3AED', tasks: 19 },
+    { id: 'compliance', name: 'Compliance', nameAr: 'الامتثال', role: 'Compliance & Policies', icon: '✅', color: 'hsl(var(--secondary))', tasks: 19 },
     { id: 'patent', name: 'Patent', nameAr: 'البراءات', role: 'Intellectual Property', icon: '💡', color: '#6D28D9', tasks: 12 }
   ]);
 
