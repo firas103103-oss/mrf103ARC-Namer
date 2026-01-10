@@ -103,7 +103,7 @@ const HEATER_PROFILES = [
 ];
 
 const IAQ_LEVELS = [
-  { min: 0, max: 50, label: "Excellent", color: "text-green-500", bg: "bg-green-500/20" },
+  { min: 0, max: 50, label: "Excellent", color: "text-green-500", bg: "bg-success/20" },
   { min: 51, max: 100, label: "Good", color: "text-emerald-500", bg: "bg-emerald-500/20" },
   { min: 101, max: 150, label: "Moderate", color: "text-yellow-500", bg: "bg-yellow-500/20" },
   { min: 151, max: 200, label: "Poor", color: "text-orange-500", bg: "bg-orange-500/20" },

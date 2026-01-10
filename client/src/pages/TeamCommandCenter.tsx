@@ -78,7 +78,7 @@ const priorityColors: Record<string, string> = {
 const statusColors: Record<string, string> = {
   pending: "bg-muted text-muted-foreground",
   in_progress: "bg-blue-500/20 text-blue-600 dark:text-blue-400",
-  completed: "bg-green-500/20 text-green-600 dark:text-green-400",
+  completed: "bg-success/20 text-success dark:text-success",
   blocked: "bg-destructive/20 text-destructive",
 };
 
@@ -266,8 +266,8 @@ export default function TeamCommandCenter() {
           </Card>
           <Card data-testid="card-stats-completed">
             <CardContent className="p-4 flex items-center gap-4">
-              <div className="p-3 rounded-md bg-green-500/20">
-                <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
+              <div className="p-3 rounded-md bg-success/20">
+                <CheckCircle2 className="h-5 w-5 text-success dark:text-success" />
               </div>
               <div>
                 <p className="text-2xl font-bold">{completedTasks.length}</p>

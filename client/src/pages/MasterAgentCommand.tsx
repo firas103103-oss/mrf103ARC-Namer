@@ -89,7 +89,7 @@ const STATUS_COLORS = {
   analyzing: "text-blue-400",
   routing: "text-purple-400",
   executing: "text-yellow-400",
-  completed: "text-green-400",
+  completed: "text-success",
   failed: "text-red-400",
 };
 
@@ -233,7 +233,7 @@ export default function MasterAgentCommand() {
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <Badge className="bg-green-500/20 text-green-400 border-green-500/50 px-4 py-2">
+              <Badge className="bg-success/20 text-success border-success/50 px-4 py-2">
                 <Activity className="w-4 h-4 mr-2 animate-pulse" />
                 Online & Ready
               </Badge>
@@ -258,11 +258,11 @@ export default function MasterAgentCommand() {
             </CardContent>
           </Card>
 
-          <Card className="bg-slate-900/50 border-green-500/30 backdrop-blur-xl">
+          <Card className="bg-slate-900/50 border-success/30 backdrop-blur-xl">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-2">
-                <CheckCircle className="w-5 h-5 text-green-400" />
-                <span className="text-2xl font-bold text-green-400">{stats.completedTasks}</span>
+                <CheckCircle className="w-5 h-5 text-success" />
+                <span className="text-2xl font-bold text-success">{stats.completedTasks}</span>
               </div>
               <p className="text-sm text-slate-400">Completed</p>
               <Progress value={stats.successRate} className="mt-2 h-1" />
@@ -381,7 +381,7 @@ export default function MasterAgentCommand() {
             <Card className="bg-slate-900/50 border-purple-500/30 backdrop-blur-xl">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Activity className="w-5 h-5 text-green-400" />
+                  <Activity className="w-5 h-5 text-success" />
                   Active Tasks ({activeTasks.length})
                 </CardTitle>
               </CardHeader>
@@ -625,8 +625,8 @@ export default function MasterAgentCommand() {
               <ArrowRight className="text-slate-600" />
 
               <div className="flex flex-col items-center gap-2">
-                <div className="w-12 h-12 bg-green-500/20 border border-green-500 rounded-full flex items-center justify-center">
-                  <CheckCircle className="w-6 h-6 text-green-400" />
+                <div className="w-12 h-12 bg-success/20 border border-success rounded-full flex items-center justify-center">
+                  <CheckCircle className="w-6 h-6 text-success" />
                 </div>
                 <span className="text-xs text-slate-400">Result Delivered</span>
               </div>

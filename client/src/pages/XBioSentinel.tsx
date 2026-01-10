@@ -83,7 +83,7 @@ export default function XBioSentinel() {
               onClick={() => setTrainingMode(!trainingMode)}
               className={`px-6 py-3 rounded-lg font-semibold transition-all ${
                 trainingMode
-                  ? 'bg-green-500 text-white'
+                  ? 'bg-success text-white'
                   : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
               }`}
             >
@@ -148,9 +148,9 @@ export default function XBioSentinel() {
             <div className="text-xs text-gray-500">Ohms</div>
           </div>
 
-          <div className="bg-gradient-to-br from-green-500/20 to-green-600/20 rounded-lg p-6 border border-green-500/30">
+          <div className="bg-gradient-to-br from-green-500/20 to-green-600/20 rounded-lg p-6 border border-success/30">
             <div className="flex items-center gap-3 mb-3">
-              <TrendingUp className="w-8 h-8 text-green-400" />
+              <TrendingUp className="w-8 h-8 text-success" />
               <div>
                 <div className="text-xs text-gray-400">Air Quality</div>
                 <div className="text-2xl font-bold">{sensorData.airQuality.toFixed(0)}%</div>
@@ -232,10 +232,10 @@ export default function XBioSentinel() {
               </p>
             </div>
 
-            <div className="p-4 bg-green-500/10 border border-green-500/30 rounded-lg">
+            <div className="p-4 bg-success/10 border border-success/30 rounded-lg">
               <div className="flex items-center gap-2 mb-2">
-                <TrendingUp className="w-5 h-5 text-green-400" />
-                <span className="font-semibold text-green-400">Learning Progress</span>
+                <TrendingUp className="w-5 h-5 text-success" />
+                <span className="font-semibold text-success">Learning Progress</span>
               </div>
               <p className="text-sm text-gray-300">
                 Successfully learned 3 new smell patterns this week

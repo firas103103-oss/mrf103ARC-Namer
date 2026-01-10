@@ -97,8 +97,8 @@ export default function Integrations() {
                   <div className="flex items-center gap-2 mt-1">
                     {integration.status === 'connected' ? (
                       <>
-                        <CheckCircle className="w-4 h-4 text-green-400" />
-                        <span className="text-xs text-green-400 font-semibold">Connected</span>
+                        <CheckCircle className="w-4 h-4 text-success" />
+                        <span className="text-xs text-success font-semibold">Connected</span>
                       </>
                     ) : (
                       <>
@@ -138,7 +138,7 @@ export default function Integrations() {
               <div className="font-semibold">Read Files</div>
               <div className="text-sm text-gray-400">Allow agents to read files from integrations</div>
             </div>
-            <div className="w-12 h-6 bg-green-500 rounded-full relative cursor-pointer">
+            <div className="w-12 h-6 bg-success rounded-full relative cursor-pointer">
               <div className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full"></div>
             </div>
           </div>
@@ -148,7 +148,7 @@ export default function Integrations() {
               <div className="font-semibold">Write Files</div>
               <div className="text-sm text-gray-400">Allow agents to modify files</div>
             </div>
-            <div className="w-12 h-6 bg-green-500 rounded-full relative cursor-pointer">
+            <div className="w-12 h-6 bg-success rounded-full relative cursor-pointer">
               <div className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full"></div>
             </div>
           </div>
@@ -158,7 +158,7 @@ export default function Integrations() {
               <div className="font-semibold">Auto Sync</div>
               <div className="text-sm text-gray-400">Automatically sync changes</div>
             </div>
-            <div className="w-12 h-6 bg-green-500 rounded-full relative cursor-pointer">
+            <div className="w-12 h-6 bg-success rounded-full relative cursor-pointer">
               <div className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full"></div>
             </div>
           </div>

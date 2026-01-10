@@ -165,7 +165,7 @@ export default function AnalyticsHub() {
                 <div className="flex items-center gap-2">
                   <div className="flex-1 h-4 bg-muted rounded-full overflow-hidden">
                     <div 
-                      className="h-full bg-green-500 transition-all"
+                      className="h-full bg-success transition-all"
                       style={{ width: `${successRate}%` }}
                     />
                   </div>
@@ -276,7 +276,7 @@ export default function AnalyticsHub() {
                           </span>
                         </td>
                         <td className="py-3 px-4 text-right">
-                          <Badge variant="outline" className="bg-green-500/20 text-green-600 dark:text-green-400">
+                          <Badge variant="outline" className="bg-success/20 text-success dark:text-success">
                             Active
                           </Badge>
                         </td>

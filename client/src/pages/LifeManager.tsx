@@ -59,9 +59,9 @@ export default function LifeManager() {
           <div className="text-xs text-gray-500 mt-1">This week</div>
         </div>
 
-        <div className="bg-gradient-to-br from-green-500/20 to-green-600/20 rounded-lg p-6 border border-green-500/30">
+        <div className="bg-gradient-to-br from-green-500/20 to-green-600/20 rounded-lg p-6 border border-success/30">
           <div className="flex items-center justify-between mb-2">
-            <TrendingUp className="w-8 h-8 text-green-400" />
+            <TrendingUp className="w-8 h-8 text-success" />
             <span className="text-3xl font-bold">{stats.habitStreak}</span>
           </div>
           <div className="text-sm text-gray-300">Day Streak</div>

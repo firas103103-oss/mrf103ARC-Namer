@@ -206,7 +206,7 @@ function getAgentIcon(iconName: string) {
 
 function MethodBadge({ method }: { method: string }) {
   const colors: Record<string, string> = {
-    GET: "bg-green-500/20 text-green-400 border-green-500/30",
+    GET: "bg-success/20 text-success border-success/30",
     POST: "bg-blue-500/20 text-blue-400 border-blue-500/30",
     PATCH: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
     DELETE: "bg-red-500/20 text-red-400 border-red-500/30",
@@ -221,7 +221,7 @@ function MethodBadge({ method }: { method: string }) {
 
 function StatusIndicator({ status }: { status: string }) {
   const configs: Record<string, { color: string; label: string }> = {
-    active: { color: "bg-green-500", label: "Active" },
+    active: { color: "bg-success", label: "Active" },
     ready: { color: "bg-yellow-500", label: "Ready" },
     configured: { color: "bg-blue-500", label: "Configured" },
     legacy: { color: "bg-gray-500", label: "Legacy" },
@@ -265,7 +265,7 @@ export default function SystemArchitecture() {
             </div>
           </div>
           <div className="flex flex-wrap gap-3 mt-6">
-            <Badge variant="outline" className="bg-green-500/10 text-green-400 border-green-500/30">
+            <Badge variant="outline" className="bg-success/10 text-success border-success/30">
               <CheckCircle2 className="w-3 h-3 ltr:mr-1 rtl:ml-1" />
               10 AI Agents
             </Badge>
@@ -277,7 +277,7 @@ export default function SystemArchitecture() {
               <Server className="w-3 h-3 ltr:mr-1 rtl:ml-1" />
               40+ APIs
             </Badge>
-            <Badge variant="outline" className="bg-cyan-500/10 text-cyan-400 border-cyan-500/30">
+            <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30">
               <Database className="w-3 h-3 ltr:mr-1 rtl:ml-1" />
               20 Tables
             </Badge>
@@ -346,16 +346,16 @@ export default function SystemArchitecture() {
                     </div>
 
                     <div className="space-y-4">
-                      <div className="text-center p-4 bg-green-500/10 rounded-lg border border-green-500/30">
-                        <Server className="w-8 h-8 mx-auto text-green-400 mb-2" />
+                      <div className="text-center p-4 bg-success/10 rounded-lg border border-success/30">
+                        <Server className="w-8 h-8 mx-auto text-success mb-2" />
                         <p className="font-semibold text-sm">Backend</p>
                         <p className="text-xs text-muted-foreground">Express + TypeScript</p>
                       </div>
                       <div className="flex justify-center">
                         <ArrowRight className="w-4 h-4 text-muted-foreground rotate-90" />
                       </div>
-                      <div className="text-center p-4 bg-cyan-500/10 rounded-lg border border-cyan-500/30">
-                        <Database className="w-8 h-8 mx-auto text-cyan-400 mb-2" />
+                      <div className="text-center p-4 bg-primary/10 rounded-lg border border-primary/30">
+                        <Database className="w-8 h-8 mx-auto text-primary mb-2" />
                         <p className="font-semibold text-sm">PostgreSQL</p>
                         <p className="text-xs text-muted-foreground">20 Tables</p>
                       </div>
@@ -391,7 +391,7 @@ export default function SystemArchitecture() {
                       </div>
                       <ArrowRight className="w-4 h-4 text-muted-foreground" />
                       <div className="flex items-center gap-2 px-3 py-1.5 bg-secondary/30 rounded-md">
-                        <HardDrive className="w-4 h-4 text-cyan-400" />
+                        <HardDrive className="w-4 h-4 text-primary" />
                         <span className="text-xs">WebSocket</span>
                       </div>
                     </div>
@@ -456,7 +456,7 @@ export default function SystemArchitecture() {
                         <div className={`p-2 rounded-lg bg-secondary/50 ${agent.color}`}>
                           <IconComponent className="w-5 h-5" />
                         </div>
-                        <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                        <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
                       </div>
                       <p className="font-semibold text-sm">{agent.name}</p>
                       <p className="text-xs text-muted-foreground mt-1">{agent.role}</p>
@@ -557,7 +557,7 @@ export default function SystemArchitecture() {
                     data-testid={`card-table-${table.name}`}
                   >
                     <div className="flex items-center gap-2 mb-2">
-                      <HardDrive className="w-4 h-4 text-cyan-400" />
+                      <HardDrive className="w-4 h-4 text-primary" />
                       <code className="text-sm font-mono font-semibold">{table.name}</code>
                     </div>
                     <p className="text-xs text-muted-foreground mb-2">{table.description}</p>

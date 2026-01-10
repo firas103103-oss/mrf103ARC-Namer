@@ -157,7 +157,7 @@ export default function MaestrosHub() {
           <div className="text-3xl font-bold mb-2">6</div>
           <div className="text-sm text-gray-300">Active Maestros</div>
         </div>
-        <div className="bg-gradient-to-br from-green-500/20 to-green-600/20 rounded-lg p-6 border border-green-500/30">
+        <div className="bg-gradient-to-br from-green-500/20 to-green-600/20 rounded-lg p-6 border border-success/30">
           <div className="text-3xl font-bold mb-2">24</div>
           <div className="text-sm text-gray-300">Total Specialists</div>
         </div>
@@ -198,7 +198,7 @@ export default function MaestrosHub() {
                 </div>
                 <div className="flex flex-col items-end gap-2">
                   <div className={`px-3 py-1 rounded-full text-xs font-bold ${
-                    maestro.status === 'active' ? 'bg-green-500/20 text-green-400' :
+                    maestro.status === 'active' ? 'bg-success/20 text-success' :
                     maestro.status === 'busy' ? 'bg-yellow-500/20 text-yellow-400' :
                     'bg-gray-500/20 text-gray-400'
                   }`}>

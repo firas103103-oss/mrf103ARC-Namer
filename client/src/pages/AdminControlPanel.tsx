@@ -302,7 +302,7 @@ export default function AdminControlPanel() {
               Admin Control Panel
             </h1>
           </div>
-          <Badge variant="outline" className="bg-green-500/20 text-green-400 border-green-500/50">
+          <Badge variant="outline" className="bg-success/20 text-success border-success/50">
             <Activity className="h-3 w-3 mr-1" />
             System Online
           </Badge>
@@ -317,7 +317,7 @@ export default function AdminControlPanel() {
             </h1>
             <p className="text-slate-400 mt-2">Master Control for Virtual Office System</p>
           </div>
-          <Badge className="bg-green-500/20 text-green-400 border-green-500/50 px-4 py-2">
+          <Badge className="bg-success/20 text-success border-success/50 px-4 py-2">
             <Activity className="w-4 h-4 mr-2" />
             System Online
           </Badge>
@@ -355,7 +355,7 @@ export default function AdminControlPanel() {
             </CardContent>
           </Card>
 
-          <Card className="bg-slate-800/50 border-green-500/30">
+          <Card className="bg-slate-800/50 border-success/30">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm text-slate-300 flex items-center gap-2">
                 <CheckCircle className="w-4 h-4" />
@@ -363,7 +363,7 @@ export default function AdminControlPanel() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold text-green-400">{stats.completedTasks}</p>
+              <p className="text-3xl font-bold text-success">{stats.completedTasks}</p>
               <p className="text-xs text-slate-400 mt-1">
                 {stats.totalTasks} Total
               </p>
@@ -410,10 +410,10 @@ export default function AdminControlPanel() {
                   <div>
                     <div className="flex justify-between text-sm mb-2">
                       <span>System Uptime</span>
-                      <span className="text-green-400">99.9%</span>
+                      <span className="text-success">99.9%</span>
                     </div>
                     <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
-                      <div className="h-full bg-green-500 w-[99.9%]" />
+                      <div className="h-full bg-success w-[99.9%]" />
                     </div>
                   </div>
                   <div>
@@ -452,7 +452,7 @@ export default function AdminControlPanel() {
                           className="flex items-center justify-between p-3 bg-slate-700/50 rounded-lg"
                         >
                           <div className="flex items-center gap-3">
-                            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                            <div className="w-2 h-2 bg-success rounded-full animate-pulse" />
                             <div>
                               <p className="font-medium">{agent.name}</p>
                               <p className="text-xs text-slate-400">{agent.role}</p>
@@ -486,7 +486,7 @@ export default function AdminControlPanel() {
                           key={idx}
                           className="flex items-start gap-3 p-3 bg-slate-700/30 rounded-lg"
                         >
-                          <CheckCircle className="w-4 h-4 text-green-400 mt-0.5" />
+                          <CheckCircle className="w-4 h-4 text-success mt-0.5" />
                           <div className="flex-1">
                             <p className="text-sm font-medium">{activity.agent}</p>
                             <p className="text-xs text-slate-400">{activity.action}</p>
@@ -735,7 +735,7 @@ export default function AdminControlPanel() {
                             <Badge
                               className={
                                 project.status === "active"
-                                  ? "bg-green-500/20 text-green-400"
+                                  ? "bg-success/20 text-success"
                                   : "bg-yellow-500/20 text-yellow-400"
                               }
                             >
@@ -787,8 +787,8 @@ export default function AdminControlPanel() {
                     </div>
                     <div>
                       <span className="text-slate-400">Status:</span>
-                      <span className="ml-2 text-green-400 font-medium flex items-center gap-1">
-                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                      <span className="ml-2 text-success font-medium flex items-center gap-1">
+                        <div className="w-2 h-2 bg-success rounded-full animate-pulse" />
                         Online
                       </span>
                     </div>
@@ -873,7 +873,7 @@ export default function AdminControlPanel() {
                             <Zap className="w-5 h-5 text-purple-400" />
                           )}
                           {capability.type === "analysis" && (
-                            <BarChart3 className="w-5 h-5 text-green-400" />
+                            <BarChart3 className="w-5 h-5 text-success" />
                           )}
                           {capability.type === "integration" && (
                             <Link className="w-5 h-5 text-orange-400" />

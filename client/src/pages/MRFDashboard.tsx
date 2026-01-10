@@ -47,7 +47,7 @@ export default function MRFDashboard() {
           </div>
           <div className="text-right">
             <div className="text-sm text-gray-400">System Status</div>
-            <div className="text-3xl font-bold text-green-400">{systemHealth.overall}%</div>
+            <div className="text-3xl font-bold text-success">{systemHealth.overall}%</div>
             <div className="text-xs text-gray-500">All Systems Operational</div>
           </div>
         </div>
@@ -64,9 +64,9 @@ export default function MRFDashboard() {
           <div className="text-xs text-gray-500 mt-1">All agents online</div>
         </div>
 
-        <div className="bg-gradient-to-br from-green-500/20 to-green-600/20 rounded-lg p-6 border border-green-500/30">
+        <div className="bg-gradient-to-br from-green-500/20 to-green-600/20 rounded-lg p-6 border border-success/30">
           <div className="flex items-center justify-between mb-2">
-            <Activity className="w-8 h-8 text-green-400" />
+            <Activity className="w-8 h-8 text-success" />
             <span className="text-2xl font-bold">{systemHealth.tasksToday}</span>
           </div>
           <div className="text-sm text-gray-300">Tasks Today</div>
@@ -114,7 +114,7 @@ export default function MRFDashboard() {
                   </div>
                 </div>
                 <div className={`px-3 py-1 rounded-full text-xs font-bold ${
-                  sector.status === 'excellent' ? 'bg-green-500/20 text-green-400' :
+                  sector.status === 'excellent' ? 'bg-success/20 text-success' :
                   sector.status === 'good' ? 'bg-blue-500/20 text-blue-400' :
                   sector.status === 'warning' ? 'bg-yellow-500/20 text-yellow-400' :
                   'bg-red-500/20 text-red-400'
@@ -187,10 +187,10 @@ export default function MRFDashboard() {
             Alerts & Notifications
           </h3>
           <div className="space-y-3">
-            <div className="p-3 bg-green-500/10 border border-green-500/30 rounded-lg">
+            <div className="p-3 bg-success/10 border border-success/30 rounded-lg">
               <div className="flex items-center gap-2 mb-1">
-                <CheckCircle className="w-4 h-4 text-green-400" />
-                <span className="font-semibold text-green-400">System Update Complete</span>
+                <CheckCircle className="w-4 h-4 text-success" />
+                <span className="font-semibold text-success">System Update Complete</span>
               </div>
               <div className="text-sm text-gray-400">All agents updated to v2.1.0</div>
             </div>

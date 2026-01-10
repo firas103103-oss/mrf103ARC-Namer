@@ -175,7 +175,7 @@ export default function AgentChat() {
             </div>
             {/* AI Status Badge */}
             <div className={`px-3 py-1 rounded-full text-xs flex items-center gap-2 ${
-              aiStatus === 'ai' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'
+              aiStatus === 'ai' ? 'bg-success/20 text-success' : 'bg-yellow-500/20 text-yellow-400'
             }`}>
               {aiStatus === 'ai' ? (
                 <>
@@ -214,7 +214,7 @@ export default function AgentChat() {
                     <div className="font-bold text-sm mb-1 text-blue-400 flex items-center gap-2">
                       {message.agentName}
                       {message.usingAI && (
-                        <Sparkles className="w-3 h-3 text-green-400" />
+                        <Sparkles className="w-3 h-3 text-success" />
                       )}
                     </div>
                   )}
@@ -244,8 +244,8 @@ export default function AgentChat() {
                   </div>
                 </div>
                 {message.sender === 'user' && (
-                  <div className="w-8 h-8 bg-green-500/20 rounded-full flex items-center justify-center flex-shrink-0">
-                    <UserIcon className="w-5 h-5 text-green-400" />
+                  <div className="w-8 h-8 bg-success/20 rounded-full flex items-center justify-center flex-shrink-0">
+                    <UserIcon className="w-5 h-5 text-success" />
                   </div>
                 )}
               </div>

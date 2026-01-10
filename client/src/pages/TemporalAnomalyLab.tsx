@@ -179,7 +179,7 @@ export default function TemporalAnomalyLab() {
 
   const getStatusIcon = (status: Playbook["status"]) => {
     switch (status) {
-      case "completed": return <CheckCircle className="h-4 w-4 text-green-400" />;
+      case "completed": return <CheckCircle className="h-4 w-4 text-success" />;
       case "in-progress": return <Circle className="h-4 w-4 text-yellow-400 animate-pulse" />;
       case "pending": return <Circle className="h-4 w-4 text-muted-foreground" />;
       case "skipped": return <XCircle className="h-4 w-4 text-muted-foreground" />;
@@ -188,7 +188,7 @@ export default function TemporalAnomalyLab() {
 
   const getTrendIcon = (trend: Agent["trend"]) => {
     switch (trend) {
-      case "up": return <TrendingUp className="h-4 w-4 text-green-400" />;
+      case "up": return <TrendingUp className="h-4 w-4 text-success" />;
       case "down": return <TrendingDown className="h-4 w-4 text-red-400" />;
       case "stable": return <Activity className="h-4 w-4 text-muted-foreground" />;
     }
@@ -377,7 +377,7 @@ export default function TemporalAnomalyLab() {
                             </div>
                             <div className="flex justify-between text-xs">
                               <span className="text-muted-foreground">Delta</span>
-                              <span className={`font-mono ${delta >= 0 ? "text-green-400" : "text-red-400"}`}>
+                              <span className={`font-mono ${delta >= 0 ? "text-success" : "text-red-400"}`}>
                                 {delta >= 0 ? "+" : ""}{delta}%
                               </span>
                             </div>
@@ -442,7 +442,7 @@ export default function TemporalAnomalyLab() {
                       <p className="text-xs text-muted-foreground">{anomaly.description}</p>
                       <div className="flex items-center justify-between text-xs">
                         <span className="text-muted-foreground">{anomaly.timestamp}</span>
-                        <span className={`font-mono ${anomaly.deviation >= 0 ? "text-green-400" : "text-red-400"}`}>
+                        <span className={`font-mono ${anomaly.deviation >= 0 ? "text-success" : "text-red-400"}`}>
                           {anomaly.deviation >= 0 ? "+" : ""}{anomaly.deviation}% deviation
                         </span>
                       </div>

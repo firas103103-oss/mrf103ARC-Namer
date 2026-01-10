@@ -204,9 +204,9 @@ const getCategoryColor = (category: string) => {
     Comms: "bg-blue-500/20 text-blue-400 border-blue-500/30",
     Intel: "bg-purple-500/20 text-purple-400 border-purple-500/30",
     Creative: "bg-pink-500/20 text-pink-400 border-pink-500/30",
-    Finance: "bg-green-500/20 text-green-400 border-green-500/30",
+    Finance: "bg-success/20 text-success border-success/30",
     Legal: "bg-slate-500/20 text-slate-400 border-slate-500/30",
-    Research: "bg-cyan-500/20 text-cyan-400 border-cyan-500/30",
+    Research: "bg-primary/20 text-primary border-primary/30",
   };
   return colors[category] || "bg-muted text-muted-foreground";
 };
@@ -222,7 +222,7 @@ const getLevelColor = (level: string) => {
 
 const getStatusColor = (status: string) => {
   const colors: Record<string, string> = {
-    online: "bg-green-500",
+    online: "bg-success",
     busy: "bg-yellow-500",
     offline: "bg-gray-500",
   };
@@ -658,7 +658,7 @@ export default function InvestigationLounge() {
                               <div className="mt-0.5">
                                 {activity.type === "message" && <MessageSquare className="h-4 w-4 text-blue-400" />}
                                 {activity.type === "decision" && <Scale className="h-4 w-4 text-amber-400" />}
-                                {activity.type === "report" && <FileText className="h-4 w-4 text-green-400" />}
+                                {activity.type === "report" && <FileText className="h-4 w-4 text-success" />}
                               </div>
                               <div className="flex-1">
                                 <p className="text-sm font-medium">{activity.action}</p>
@@ -694,7 +694,7 @@ export default function InvestigationLounge() {
                         {selectedAgent.voiceSettings.enabled ? (
                           <div className="space-y-4">
                             <div className="flex items-center gap-2">
-                              <Badge className="bg-green-500/20 text-green-400">Voice Enabled</Badge>
+                              <Badge className="bg-success/20 text-success">Voice Enabled</Badge>
                             </div>
                             <div className="grid grid-cols-3 gap-4">
                               <div>
