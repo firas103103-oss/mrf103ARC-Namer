@@ -51,56 +51,56 @@ export default function SecurityCenter() {
 
   const getEventIcon = (type: SecurityEvent['type']) => {
     switch (type) {
-      case 'threat': return <AlertTriangle className="w-5 h-5 text-red-400" />;
-      case 'alert': return <Eye className="w-5 h-5 text-yellow-400" />;
+      case 'threat': return <AlertTriangle className="w-5 h-5 text-destructive" />;
+      case 'alert': return <Eye className="w-5 h-5 text-warning" />;
       case 'success': return <CheckCircle className="w-5 h-5 text-success" />;
-      case 'access': return <Lock className="w-5 h-5 text-blue-400" />;
+      case 'access': return <Lock className="w-5 h-5 text-primary" />;
     }
   };
 
   const getSeverityColor = (severity: SecurityEvent['severity']) => {
     switch (severity) {
-      case 'critical': return 'bg-red-500/20 text-red-400 border-red-500/30';
-      case 'high': return 'bg-orange-500/20 text-orange-400 border-orange-500/30';
-      case 'medium': return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
+      case 'critical': return 'bg-destructive/20 text-destructive border-destructive/30';
+      case 'high': return 'bg-warning/20 text-warning border-warning/30';
+      case 'medium': return 'bg-warning/20 text-warning border-warning/30';
       case 'low': return 'bg-success/20 text-success border-success/30';
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-8">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-background text-white p-8">
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-4xl font-bold mb-2 flex items-center gap-3">
           <span className="text-5xl">🛡️</span>
           Security Center
         </h1>
-        <p className="text-gray-400 text-lg">Maestro Cipher - شيفر | مركز الأمن والمراقبة</p>
+        <p className="text-muted-foreground text-lg">Maestro Cipher - شيفر | مركز الأمن والمراقبة</p>
       </div>
 
       {/* Security Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div className="bg-gradient-to-br from-red-500/20 to-red-600/20 rounded-lg p-6 border border-red-500/30">
+        <div className="bg-gradient-to-br from-red-500/20 to-red-600/20 rounded-lg p-6 border border-destructive/30">
           <div className="flex items-center justify-between mb-2">
-            <AlertTriangle className="w-8 h-8 text-red-400" />
+            <AlertTriangle className="w-8 h-8 text-destructive" />
             <span className="text-3xl font-bold">{stats.threatsBlocked}</span>
           </div>
           <div className="text-sm text-gray-300">Threats Blocked</div>
           <div className="text-xs text-gray-500 mt-1">Last 24 hours</div>
         </div>
 
-        <div className="bg-gradient-to-br from-gray-500/20 to-gray-600/20 rounded-lg p-6 border border-gray-500/30">
+        <div className="bg-gradient-to-br from-gray-500/20 to-gray-600/20 rounded-lg p-6 border border-muted/30">
           <div className="flex items-center justify-between mb-2">
-            <Lock className="w-8 h-8 text-gray-400" />
+            <Lock className="w-8 h-8 text-muted-foreground" />
             <span className="text-3xl font-bold">{stats.filesEncrypted}</span>
           </div>
           <div className="text-sm text-gray-300">Files Encrypted</div>
           <div className="text-xs text-gray-500 mt-1">Secure storage</div>
         </div>
 
-        <div className="bg-gradient-to-br from-orange-500/20 to-orange-600/20 rounded-lg p-6 border border-orange-500/30">
+        <div className="bg-gradient-to-br from-orange-500/20 to-orange-600/20 rounded-lg p-6 border border-warning/30">
           <div className="flex items-center justify-between mb-2">
-            <Eye className="w-8 h-8 text-orange-400" />
+            <Eye className="w-8 h-8 text-warning" />
             <span className="text-3xl font-bold">{stats.activeMonitoring}h</span>
           </div>
           <div className="text-sm text-gray-300">Active Monitoring</div>
@@ -127,26 +127,26 @@ export default function SecurityCenter() {
           {agents.map((agent) => (
             <div 
               key={agent.id}
-              className="bg-gray-800/50 rounded-lg p-4 border border-gray-700 hover:border-gray-600 transition-all"
+              className="bg-card/50 rounded-lg p-4 border border-border hover:border-gray-600 transition-all"
               style={{ borderLeftColor: agent.color, borderLeftWidth: '3px' }}
             >
               <div className="flex items-center gap-3 mb-3">
                 <span className="text-3xl">{agent.icon}</span>
                 <div>
                   <h3 className="font-bold">{agent.name}</h3>
-                  <p className="text-xs text-gray-400">{agent.nameAr}</p>
+                  <p className="text-xs text-muted-foreground">{agent.nameAr}</p>
                 </div>
               </div>
-              <p className="text-sm text-gray-400 mb-3">{agent.role}</p>
+              <p className="text-sm text-muted-foreground mb-3">{agent.role}</p>
               <div className="flex items-center justify-between">
                 <span className={`px-2 py-1 rounded text-xs font-bold ${
                   agent.status === 'active' ? 'bg-success/20 text-success' :
-                  agent.status === 'alert' ? 'bg-red-500/20 text-red-400' :
-                  'bg-gray-500/20 text-gray-400'
+                  agent.status === 'alert' ? 'bg-destructive/20 text-destructive' :
+                  'bg-muted/20 text-muted-foreground'
                 }`}>
                   {agent.status.toUpperCase()}
                 </span>
-                <span className="text-sm text-gray-400">{agent.tasksToday} tasks</span>
+                <span className="text-sm text-muted-foreground">{agent.tasksToday} tasks</span>
               </div>
             </div>
           ))}
@@ -154,7 +154,7 @@ export default function SecurityCenter() {
       </div>
 
       {/* Security Events */}
-      <div className="bg-gray-800/50 rounded-lg p-6 border border-gray-700">
+      <div className="bg-card/50 rounded-lg p-6 border border-border">
         <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
           <Activity className="w-6 h-6" />
           Live Security Events
@@ -171,11 +171,11 @@ export default function SecurityCenter() {
               <div className="flex-1">
                 <div className="flex items-center justify-between mb-1">
                   <span className="font-semibold">{event.message}</span>
-                  <span className="text-xs px-2 py-1 rounded bg-gray-700/50">
+                  <span className="text-xs px-2 py-1 rounded bg-muted/50">
                     {event.severity.toUpperCase()}
                   </span>
                 </div>
-                <div className="flex items-center gap-4 text-sm text-gray-400">
+                <div className="flex items-center gap-4 text-sm text-muted-foreground">
                   <span>Agent: {event.agent}</span>
                   <span>•</span>
                   <span>{new Date(event.timestamp).toLocaleTimeString()}</span>

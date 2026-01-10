@@ -68,7 +68,7 @@ export default function XBioSentinel() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-8">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-background text-white p-8">
       <div className="mb-8">
         <div className="flex items-center justify-between">
           <div>
@@ -76,7 +76,7 @@ export default function XBioSentinel() {
               <span className="text-5xl">🧬</span>
               xBio Sentinel
             </h1>
-            <p className="text-gray-400 text-lg">Maestro Scent - سينت | الشم الرقمي والغريزة</p>
+            <p className="text-muted-foreground text-lg">Maestro Scent - سينت | الشم الرقمي والغريزة</p>
           </div>
           <div className="flex gap-3">
             <button
@@ -84,7 +84,7 @@ export default function XBioSentinel() {
               className={`px-6 py-3 rounded-lg font-semibold transition-all ${
                 trainingMode
                   ? 'bg-success text-white'
-                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                  : 'bg-muted text-gray-300 hover:bg-gray-600'
               }`}
             >
               {trainingMode ? '🎓 Training Mode: ON' : '📖 Training Mode: OFF'}
@@ -96,52 +96,52 @@ export default function XBioSentinel() {
       {/* Live Sensor Readings */}
       <div className="mb-8">
         <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-          <Activity className="w-6 h-6 text-teal-400" />
+          <Activity className="w-6 h-6 text-primary" />
           Live Sensor Readings - ESP32-S3 N16R8 + BME688
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-          <div className="bg-gradient-to-br from-red-500/20 to-red-600/20 rounded-lg p-6 border border-red-500/30">
+          <div className="bg-gradient-to-br from-red-500/20 to-red-600/20 rounded-lg p-6 border border-destructive/30">
             <div className="flex items-center gap-3 mb-3">
-              <Thermometer className="w-8 h-8 text-red-400" />
+              <Thermometer className="w-8 h-8 text-destructive" />
               <div>
-                <div className="text-xs text-gray-400">Temperature</div>
+                <div className="text-xs text-muted-foreground">Temperature</div>
                 <div className="text-2xl font-bold">{sensorData.temperature.toFixed(1)}°C</div>
               </div>
             </div>
-            <div className="w-full bg-gray-700 rounded-full h-2">
+            <div className="w-full bg-muted rounded-full h-2">
               <div className="h-2 rounded-full bg-gradient-to-r from-red-500 to-red-600" style={{ width: '70%' }} />
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-blue-500/20 to-blue-600/20 rounded-lg p-6 border border-blue-500/30">
+          <div className="bg-gradient-to-br from-blue-500/20 to-blue-600/20 rounded-lg p-6 border border-primary/30">
             <div className="flex items-center gap-3 mb-3">
-              <Droplets className="w-8 h-8 text-blue-400" />
+              <Droplets className="w-8 h-8 text-primary" />
               <div>
-                <div className="text-xs text-gray-400">Humidity</div>
+                <div className="text-xs text-muted-foreground">Humidity</div>
                 <div className="text-2xl font-bold">{sensorData.humidity.toFixed(0)}%</div>
               </div>
             </div>
-            <div className="w-full bg-gray-700 rounded-full h-2">
+            <div className="w-full bg-muted rounded-full h-2">
               <div className="h-2 rounded-full bg-gradient-to-r from-blue-500 to-blue-600" style={{ width: `${sensorData.humidity}%` }} />
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-purple-500/20 to-purple-600/20 rounded-lg p-6 border border-purple-500/30">
+          <div className="bg-gradient-to-br from-purple-500/20 to-purple-600/20 rounded-lg p-6 border border-secondary/30">
             <div className="flex items-center gap-3 mb-3">
-              <Gauge className="w-8 h-8 text-purple-400" />
+              <Gauge className="w-8 h-8 text-secondary" />
               <div>
-                <div className="text-xs text-gray-400">Pressure</div>
+                <div className="text-xs text-muted-foreground">Pressure</div>
                 <div className="text-2xl font-bold">{sensorData.pressure.toFixed(0)}</div>
               </div>
             </div>
             <div className="text-xs text-gray-500">hPa</div>
           </div>
 
-          <div className="bg-gradient-to-br from-teal-500/20 to-teal-600/20 rounded-lg p-6 border border-teal-500/30">
+          <div className="bg-gradient-to-br from-teal-500/20 to-teal-600/20 rounded-lg p-6 border border-primary/30">
             <div className="flex items-center gap-3 mb-3">
-              <Wind className="w-8 h-8 text-teal-400" />
+              <Wind className="w-8 h-8 text-primary" />
               <div>
-                <div className="text-xs text-gray-400">Gas Resistance</div>
+                <div className="text-xs text-muted-foreground">Gas Resistance</div>
                 <div className="text-2xl font-bold">{(sensorData.gasResistance / 1000).toFixed(0)}K</div>
               </div>
             </div>
@@ -152,11 +152,11 @@ export default function XBioSentinel() {
             <div className="flex items-center gap-3 mb-3">
               <TrendingUp className="w-8 h-8 text-success" />
               <div>
-                <div className="text-xs text-gray-400">Air Quality</div>
+                <div className="text-xs text-muted-foreground">Air Quality</div>
                 <div className="text-2xl font-bold">{sensorData.airQuality.toFixed(0)}%</div>
               </div>
             </div>
-            <div className="w-full bg-gray-700 rounded-full h-2">
+            <div className="w-full bg-muted rounded-full h-2">
               <div className="h-2 rounded-full bg-gradient-to-r from-success to-success" style={{ width: `${sensorData.airQuality}%` }} />
             </div>
           </div>
@@ -165,7 +165,7 @@ export default function XBioSentinel() {
 
       {/* Smell Profiles */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <div className="bg-gray-800/50 rounded-lg p-6 border border-gray-700">
+        <div className="bg-card/50 rounded-lg p-6 border border-border">
           <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
             <span className="text-2xl">👃</span>
             Detected Smell Profiles
@@ -184,7 +184,7 @@ export default function XBioSentinel() {
                   <div>
                     <div className="font-semibold flex items-center gap-2">
                       {profile.name}
-                      <span className="text-sm text-gray-400">({profile.nameAr})</span>
+                      <span className="text-sm text-muted-foreground">({profile.nameAr})</span>
                     </div>
                     <div className="text-xs text-gray-500 capitalize">{profile.category}</div>
                   </div>
@@ -198,7 +198,7 @@ export default function XBioSentinel() {
                     {profile.confidence}%
                   </div>
                 </div>
-                <div className="w-full bg-gray-700 rounded-full h-2">
+                <div className="w-full bg-muted rounded-full h-2">
                   <div
                     className="h-2 rounded-full"
                     style={{ 
@@ -216,16 +216,16 @@ export default function XBioSentinel() {
         </div>
 
         {/* Digital Instinct */}
-        <div className="bg-gray-800/50 rounded-lg p-6 border border-gray-700">
+        <div className="bg-card/50 rounded-lg p-6 border border-border">
           <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-            <Brain className="w-6 h-6 text-purple-400" />
+            <Brain className="w-6 h-6 text-secondary" />
             Digital Instinct - الغريزة الرقمية
           </h3>
           <div className="space-y-3">
-            <div className="p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+            <div className="p-4 bg-primary/10 border border-primary/30 rounded-lg">
               <div className="flex items-center gap-2 mb-2">
-                <AlertCircle className="w-5 h-5 text-blue-400" />
-                <span className="font-semibold text-blue-400">Pattern Detected</span>
+                <AlertCircle className="w-5 h-5 text-primary" />
+                <span className="font-semibold text-primary">Pattern Detected</span>
               </div>
               <p className="text-sm text-gray-300">
                 Unusual air quality pattern detected at this time of day
@@ -242,10 +242,10 @@ export default function XBioSentinel() {
               </p>
             </div>
 
-            <div className="p-4 bg-purple-500/10 border border-purple-500/30 rounded-lg">
+            <div className="p-4 bg-secondary/10 border border-secondary/30 rounded-lg">
               <div className="flex items-center gap-2 mb-2">
-                <Brain className="w-5 h-5 text-purple-400" />
-                <span className="font-semibold text-purple-400">Prediction</span>
+                <Brain className="w-5 h-5 text-secondary" />
+                <span className="font-semibold text-secondary">Prediction</span>
               </div>
               <p className="text-sm text-gray-300">
                 Environment quality will improve in next 2 hours
@@ -265,20 +265,20 @@ export default function XBioSentinel() {
           {agents.map((agent) => (
             <div 
               key={agent.id}
-              className="bg-gray-800/50 rounded-lg p-4 border border-gray-700"
+              className="bg-card/50 rounded-lg p-4 border border-border"
               style={{ borderLeftColor: agent.color, borderLeftWidth: '3px' }}
             >
               <div className="flex items-center gap-3 mb-3">
                 <span className="text-3xl">{agent.icon}</span>
                 <div>
                   <h3 className="font-bold">{agent.name}</h3>
-                  <p className="text-xs text-gray-400">{agent.nameAr}</p>
+                  <p className="text-xs text-muted-foreground">{agent.nameAr}</p>
                 </div>
               </div>
-              <p className="text-sm text-gray-400 mb-3">{agent.role}</p>
+              <p className="text-sm text-muted-foreground mb-3">{agent.role}</p>
               <div className="flex items-center justify-between">
-                <span className="px-2 py-1 rounded text-xs font-bold bg-teal-500/20 text-teal-400">ACTIVE</span>
-                <span className="text-sm text-gray-400">{agent.tasks} tasks</span>
+                <span className="px-2 py-1 rounded text-xs font-bold bg-primary/20 text-primary">ACTIVE</span>
+                <span className="text-sm text-muted-foreground">{agent.tasks} tasks</span>
               </div>
             </div>
           ))}

@@ -209,9 +209,9 @@ export default function GrowthRoadmap() {
       case "completed":
         return "bg-success";
       case "in-progress":
-        return "bg-blue-500";
+        return "bg-primary";
       case "blocked":
-        return "bg-red-500";
+        return "bg-destructive";
       default:
         return "bg-gray-400";
     }
@@ -239,16 +239,16 @@ export default function GrowthRoadmap() {
           <h1 className="text-lg font-semibold">خطة النمو - 90 يوم</h1>
         </header>
         <main className="flex flex-1 flex-col gap-4 p-4 overflow-auto">
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-6" dir="rtl">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-background text-white p-6" dir="rtl">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="space-y-2">
             <h1 className="text-4xl font-bold flex items-center gap-3">
-              <Rocket className="w-10 h-10 text-blue-400" />
+              <Rocket className="w-10 h-10 text-primary" />
               خطة النمو - 90 يوم
             </h1>
-            <p className="text-gray-400 text-lg">
+            <p className="text-muted-foreground text-lg">
               رحلتك من 72/100 إلى 95/100 | جاهز للاستثمار
             </p>
           </div>
@@ -267,23 +267,23 @@ export default function GrowthRoadmap() {
 
         {/* Overview Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card className="bg-gray-800/50 border-gray-700">
+          <Card className="bg-card/50 border-border">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-400 flex items-center gap-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                 <Target className="w-4 h-4" />
                 النتيجة الحالية
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-blue-400">{currentScore}/100</div>
+              <div className="text-3xl font-bold text-primary">{currentScore}/100</div>
               <Progress value={progressPercentage} className="mt-2 h-2" />
               <p className="text-xs text-gray-500 mt-1">الهدف: {targetScore}/100</p>
             </CardContent>
           </Card>
 
-          <Card className="bg-gray-800/50 border-gray-700">
+          <Card className="bg-card/50 border-border">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-400 flex items-center gap-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                 <CheckSquare className="w-4 h-4" />
                 المهام
               </CardTitle>
@@ -298,15 +298,15 @@ export default function GrowthRoadmap() {
             </CardContent>
           </Card>
 
-          <Card className="bg-gray-800/50 border-gray-700">
+          <Card className="bg-card/50 border-border">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-400 flex items-center gap-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                 <Users className="w-4 h-4" />
                 المستخدمين
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-purple-400">
+              <div className="text-3xl font-bold text-secondary">
                 {latestMetrics?.activeUsers || 0}
               </div>
               <p className="text-xs text-gray-500 mt-1">
@@ -315,15 +315,15 @@ export default function GrowthRoadmap() {
             </CardContent>
           </Card>
 
-          <Card className="bg-gray-800/50 border-gray-700">
+          <Card className="bg-card/50 border-border">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-400 flex items-center gap-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                 <DollarSign className="w-4 h-4" />
                 الإيرادات
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-yellow-400">
+              <div className="text-3xl font-bold text-warning">
                 ${latestMetrics?.mrr || "0"}
               </div>
               <p className="text-xs text-gray-500 mt-1">MRR شهري</p>
@@ -333,7 +333,7 @@ export default function GrowthRoadmap() {
 
         {/* Main Content Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList className="bg-gray-800/50 border border-gray-700">
+          <TabsList className="bg-card/50 border border-border">
             <TabsTrigger value="overview">نظرة عامة</TabsTrigger>
             <TabsTrigger value="today">مهام اليوم</TabsTrigger>
             <TabsTrigger value="phases">المراحل</TabsTrigger>
@@ -343,10 +343,10 @@ export default function GrowthRoadmap() {
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-4">
-            <Card className="bg-gray-800/50 border-gray-700">
+            <Card className="bg-card/50 border-border">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Trophy className="w-5 h-5 text-yellow-400" />
+                  <Trophy className="w-5 h-5 text-warning" />
                   المراحل الثلاث
                 </CardTitle>
                 <CardDescription>
@@ -357,7 +357,7 @@ export default function GrowthRoadmap() {
                 {overview?.phases?.map((phase: GrowthPhase) => (
                   <div
                     key={phase.id}
-                    className="flex items-center justify-between p-4 bg-gray-900/50 rounded-lg border border-gray-700"
+                    className="flex items-center justify-between p-4 bg-gray-900/50 rounded-lg border border-border"
                   >
                     <div className="flex items-center gap-4 flex-1">
                       <div className="text-3xl font-bold text-gray-500">
@@ -365,7 +365,7 @@ export default function GrowthRoadmap() {
                       </div>
                       <div className="flex-1">
                         <h3 className="font-bold text-lg">{phase.name}</h3>
-                        <p className="text-sm text-gray-400">{phase.description}</p>
+                        <p className="text-sm text-muted-foreground">{phase.description}</p>
                         <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
                           <span className="flex items-center gap-1">
                             <Calendar className="w-3 h-3" />
@@ -393,10 +393,10 @@ export default function GrowthRoadmap() {
             </Card>
 
             {/* Timeline */}
-            <Card className="bg-gray-800/50 border-gray-700">
+            <Card className="bg-card/50 border-border">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Calendar className="w-5 h-5 text-blue-400" />
+                  <Calendar className="w-5 h-5 text-primary" />
                   الجدول الزمني
                 </CardTitle>
               </CardHeader>
@@ -407,7 +407,7 @@ export default function GrowthRoadmap() {
                       key={week.id}
                       className="flex items-center gap-3 p-3 bg-gray-900/50 rounded-lg"
                     >
-                      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-500/20 text-blue-400 font-bold text-sm">
+                      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/20 text-primary font-bold text-sm">
                         {week.weekNumber}
                       </div>
                       <div className="flex-1">
@@ -428,10 +428,10 @@ export default function GrowthRoadmap() {
 
           {/* Today Tab */}
           <TabsContent value="today" className="space-y-4">
-            <Card className="bg-gray-800/50 border-gray-700">
+            <Card className="bg-card/50 border-border">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Zap className="w-5 h-5 text-yellow-400" />
+                  <Zap className="w-5 h-5 text-warning" />
                   مهام اليوم {todayData?.currentDay || 1}
                 </CardTitle>
                 <CardDescription>
@@ -449,7 +449,7 @@ export default function GrowthRoadmap() {
                 {todayData?.todaysTasks?.map((task: GrowthTask) => (
                   <div
                     key={task.id}
-                    className="p-4 bg-gray-900/50 rounded-lg border border-gray-700 space-y-3"
+                    className="p-4 bg-gray-900/50 rounded-lg border border-border space-y-3"
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
@@ -460,7 +460,7 @@ export default function GrowthRoadmap() {
                           </Badge>
                           <Badge variant="outline">{task.category}</Badge>
                         </div>
-                        <p className="text-sm text-gray-400">{task.description}</p>
+                        <p className="text-sm text-muted-foreground">{task.description}</p>
                         <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
                           <span className="flex items-center gap-1">
                             <Clock className="w-3 h-3" />
@@ -510,23 +510,23 @@ export default function GrowthRoadmap() {
                 {/* In Progress Tasks */}
                 {todayData?.inProgressTasks && todayData.inProgressTasks.length > 0 && (
                   <>
-                    <div className="pt-4 border-t border-gray-700">
+                    <div className="pt-4 border-t border-border">
                       <h3 className="font-bold mb-3 flex items-center gap-2">
-                        <Clock className="w-4 h-4 text-blue-400" />
+                        <Clock className="w-4 h-4 text-primary" />
                         مهام قيد التنفيذ
                       </h3>
                     </div>
                     {todayData.inProgressTasks.map((task: GrowthTask) => (
                       <div
                         key={task.id}
-                        className="p-3 bg-blue-500/10 rounded-lg border border-blue-500/30"
+                        className="p-3 bg-primary/10 rounded-lg border border-primary/30"
                       >
                         <div className="flex items-center justify-between mb-2">
                           <h4 className="font-medium">{task.title}</h4>
-                          <Badge className="bg-blue-500">جاري</Badge>
+                          <Badge className="bg-primary">جاري</Badge>
                         </div>
                         <Progress value={task.progress} className="h-2" />
-                        <p className="text-xs text-gray-400 mt-2">
+                        <p className="text-xs text-muted-foreground mt-2">
                           اليوم {task.dayNumber} • {task.category}
                         </p>
                       </div>
@@ -540,7 +540,7 @@ export default function GrowthRoadmap() {
           {/* Phases Tab */}
           <TabsContent value="phases" className="space-y-4">
             {overview?.phases?.map((phase: GrowthPhase) => (
-              <Card key={phase.id} className="bg-gray-800/50 border-gray-700">
+              <Card key={phase.id} className="bg-card/50 border-border">
                 <CardHeader>
                   <CardTitle className="flex items-center justify-between">
                     <span className="flex items-center gap-2">
@@ -558,17 +558,17 @@ export default function GrowthRoadmap() {
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="p-3 bg-gray-900/50 rounded-lg">
-                      <div className="text-sm text-gray-400 mb-1">الفترة</div>
+                      <div className="text-sm text-muted-foreground mb-1">الفترة</div>
                       <div className="font-bold">
                         أسبوع {phase.startWeek}-{phase.endWeek}
                       </div>
                     </div>
                     <div className="p-3 bg-gray-900/50 rounded-lg">
-                      <div className="text-sm text-gray-400 mb-1">الميزانية</div>
-                      <div className="font-bold text-yellow-400">${phase.budget}</div>
+                      <div className="text-sm text-muted-foreground mb-1">الميزانية</div>
+                      <div className="font-bold text-warning">${phase.budget}</div>
                     </div>
                     <div className="p-3 bg-gray-900/50 rounded-lg">
-                      <div className="text-sm text-gray-400 mb-1">النتيجة المستهدفة</div>
+                      <div className="text-sm text-muted-foreground mb-1">النتيجة المستهدفة</div>
                       <div className="font-bold text-success">{phase.targetScore}/100</div>
                     </div>
                   </div>
@@ -579,7 +579,7 @@ export default function GrowthRoadmap() {
 
           {/* Metrics Tab */}
           <TabsContent value="metrics" className="space-y-4">
-            <Card className="bg-gray-800/50 border-gray-700">
+            <Card className="bg-card/50 border-border">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <BarChart3 className="w-5 h-5 text-success" />
@@ -590,34 +590,34 @@ export default function GrowthRoadmap() {
                 {latestMetrics ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div className="p-4 bg-gray-900/50 rounded-lg">
-                      <div className="text-sm text-gray-400 mb-2">المستخدمين الكلي</div>
+                      <div className="text-sm text-muted-foreground mb-2">المستخدمين الكلي</div>
                       <div className="text-2xl font-bold">{latestMetrics.totalUsers}</div>
                     </div>
                     <div className="p-4 bg-gray-900/50 rounded-lg">
-                      <div className="text-sm text-gray-400 mb-2">MRR</div>
+                      <div className="text-sm text-muted-foreground mb-2">MRR</div>
                       <div className="text-2xl font-bold text-success">
                         ${latestMetrics.mrr}
                       </div>
                     </div>
                     <div className="p-4 bg-gray-900/50 rounded-lg">
-                      <div className="text-sm text-gray-400 mb-2">زوار الموقع</div>
+                      <div className="text-sm text-muted-foreground mb-2">زوار الموقع</div>
                       <div className="text-2xl font-bold">{latestMetrics.websiteVisitors}</div>
                     </div>
                     <div className="p-4 bg-gray-900/50 rounded-lg">
-                      <div className="text-sm text-gray-400 mb-2">النتيجة التقنية</div>
-                      <div className="text-2xl font-bold text-blue-400">
+                      <div className="text-sm text-muted-foreground mb-2">النتيجة التقنية</div>
+                      <div className="text-2xl font-bold text-primary">
                         {latestMetrics.technicalScore}/50
                       </div>
                     </div>
                     <div className="p-4 bg-gray-900/50 rounded-lg">
-                      <div className="text-sm text-gray-400 mb-2">النتيجة التجارية</div>
-                      <div className="text-2xl font-bold text-purple-400">
+                      <div className="text-sm text-muted-foreground mb-2">النتيجة التجارية</div>
+                      <div className="text-2xl font-bold text-secondary">
                         {latestMetrics.businessScore}/20
                       </div>
                     </div>
                     <div className="p-4 bg-gray-900/50 rounded-lg">
-                      <div className="text-sm text-gray-400 mb-2">النتيجة الإجمالية</div>
-                      <div className="text-2xl font-bold text-yellow-400">
+                      <div className="text-sm text-muted-foreground mb-2">النتيجة الإجمالية</div>
+                      <div className="text-2xl font-bold text-warning">
                         {latestMetrics.totalScore}/100
                       </div>
                     </div>
@@ -637,7 +637,7 @@ export default function GrowthRoadmap() {
 
             {/* Recent Check-ins */}
             {checkIns && checkIns.length > 0 && (
-              <Card className="bg-gray-800/50 border-gray-700">
+              <Card className="bg-card/50 border-border">
                 <CardHeader>
                   <CardTitle>التسجيلات السابقة</CardTitle>
                 </CardHeader>
@@ -645,7 +645,7 @@ export default function GrowthRoadmap() {
                   {checkIns.slice(0, 5).map((checkIn) => (
                     <div
                       key={checkIn.id}
-                      className="p-3 bg-gray-900/50 rounded-lg border border-gray-700"
+                      className="p-3 bg-gray-900/50 rounded-lg border border-border"
                     >
                       <div className="flex items-center justify-between mb-2">
                         <div className="font-medium">
@@ -653,7 +653,7 @@ export default function GrowthRoadmap() {
                         </div>
                         <Badge variant="outline">{checkIn.mood}</Badge>
                       </div>
-                      <div className="text-sm text-gray-400">
+                      <div className="text-sm text-muted-foreground">
                         {checkIn.tasksCompleted} مهمة • {checkIn.hoursWorked} ساعات
                       </div>
                     </div>

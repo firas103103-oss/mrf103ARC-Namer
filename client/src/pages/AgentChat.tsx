@@ -125,18 +125,18 @@ export default function AgentChat() {
   const selectedAgentInfo = agents.find(a => a.id === selectedAgent);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-8">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-background text-white p-8">
       <div className="mb-8">
         <h1 className="text-4xl font-bold mb-2 flex items-center gap-3">
           <span className="text-5xl">💬</span>
           Agent Chat
         </h1>
-        <p className="text-gray-400 text-lg">محادثة مباشرة مع الوكلاء</p>
+        <p className="text-muted-foreground text-lg">محادثة مباشرة مع الوكلاء</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Agent Selector */}
-        <div className="lg:col-span-1 bg-gray-800/50 rounded-lg p-4 border border-gray-700 h-fit">
+        <div className="lg:col-span-1 bg-card/50 rounded-lg p-4 border border-border h-fit">
           <h3 className="font-bold mb-4">Select Agent</h3>
           <div className="space-y-2">
             {agents.map((agent) => (
@@ -145,14 +145,14 @@ export default function AgentChat() {
                 onClick={() => setSelectedAgent(agent.id)}
                 className={`w-full p-3 rounded-lg flex items-center gap-3 transition-all ${
                   selectedAgent === agent.id
-                    ? 'bg-blue-500/20 border-2 border-blue-500'
-                    : 'bg-gray-700/30 hover:bg-gray-700/50 border-2 border-transparent'
+                    ? 'bg-primary/20 border-2 border-primary'
+                    : 'bg-muted/30 hover:bg-muted/50 border-2 border-transparent'
                 }`}
               >
                 <span className="text-2xl">{agent.icon}</span>
                 <div className="text-left">
                   <div className="font-semibold">{agent.name}</div>
-                  <div className="text-xs text-gray-400">{agent.layer}</div>
+                  <div className="text-xs text-muted-foreground">{agent.layer}</div>
                 </div>
               </button>
             ))}
@@ -160,22 +160,22 @@ export default function AgentChat() {
         </div>
 
         {/* Chat Area */}
-        <div className="lg:col-span-3 bg-gray-800/50 rounded-lg border border-gray-700 flex flex-col h-[600px]">
+        <div className="lg:col-span-3 bg-card/50 rounded-lg border border-border flex flex-col h-[600px]">
           {/* Chat Header */}
           <div 
-            className="p-4 border-b border-gray-700 flex items-center justify-between"
+            className="p-4 border-b border-border flex items-center justify-between"
             style={{ borderLeftColor: selectedAgentInfo?.color, borderLeftWidth: '4px' }}
           >
             <div className="flex items-center gap-3">
               <span className="text-3xl">{selectedAgentInfo?.icon}</span>
               <div>
                 <div className="font-bold text-lg">{selectedAgentInfo?.name}</div>
-                <div className="text-sm text-gray-400">{selectedAgentInfo?.layer}</div>
+                <div className="text-sm text-muted-foreground">{selectedAgentInfo?.layer}</div>
               </div>
             </div>
             {/* AI Status Badge */}
             <div className={`px-3 py-1 rounded-full text-xs flex items-center gap-2 ${
-              aiStatus === 'ai' ? 'bg-success/20 text-success' : 'bg-yellow-500/20 text-yellow-400'
+              aiStatus === 'ai' ? 'bg-success/20 text-success' : 'bg-warning/20 text-warning'
             }`}>
               {aiStatus === 'ai' ? (
                 <>
@@ -199,19 +199,19 @@ export default function AgentChat() {
                 className={`flex gap-3 ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 {message.sender === 'agent' && (
-                  <div className="w-8 h-8 bg-blue-500/20 rounded-full flex items-center justify-center flex-shrink-0">
-                    <Bot className="w-5 h-5 text-blue-400" />
+                  <div className="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center flex-shrink-0">
+                    <Bot className="w-5 h-5 text-primary" />
                   </div>
                 )}
                 <div
                   className={`max-w-[70%] rounded-lg p-4 ${
                     message.sender === 'user'
                       ? 'bg-blue-600 text-white'
-                      : 'bg-gray-700/50 border border-gray-600'
+                      : 'bg-muted/50 border border-gray-600'
                   }`}
                 >
                   {message.sender === 'agent' && (
-                    <div className="font-bold text-sm mb-1 text-blue-400 flex items-center gap-2">
+                    <div className="font-bold text-sm mb-1 text-primary flex items-center gap-2">
                       {message.agentName}
                       {message.usingAI && (
                         <Sparkles className="w-3 h-3 text-success" />
@@ -223,7 +223,7 @@ export default function AgentChat() {
                   {/* Actions if present */}
                   {message.actions && message.actions.length > 0 && (
                     <div className="mt-3 pt-3 border-t border-gray-600">
-                      <div className="text-xs text-gray-400 mb-2">Suggested Actions:</div>
+                      <div className="text-xs text-muted-foreground mb-2">Suggested Actions:</div>
                       {message.actions.map((action, idx) => (
                         <div key={idx} className="text-xs text-gray-300 mb-1">
                           • {action}
@@ -234,12 +234,12 @@ export default function AgentChat() {
                   
                   {/* Confidence if present */}
                   {message.confidence !== undefined && (
-                    <div className="mt-2 text-xs text-gray-400">
+                    <div className="mt-2 text-xs text-muted-foreground">
                       Confidence: {message.confidence}%
                     </div>
                   )}
                   
-                  <div className="text-xs text-gray-400 mt-2">
+                  <div className="text-xs text-muted-foreground mt-2">
                     {message.timestamp.toLocaleTimeString()}
                   </div>
                 </div>
@@ -252,10 +252,10 @@ export default function AgentChat() {
             ))}
             {isLoading && (
               <div className="flex gap-3 justify-start">
-                <div className="w-8 h-8 bg-blue-500/20 rounded-full flex items-center justify-center">
-                  <Loader2 className="w-5 h-5 text-blue-400 animate-spin" />
+                <div className="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center">
+                  <Loader2 className="w-5 h-5 text-primary animate-spin" />
                 </div>
-                <div className="bg-gray-700/50 border border-gray-600 rounded-lg p-4">
+                <div className="bg-muted/50 border border-gray-600 rounded-lg p-4">
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
                     <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-100" />
@@ -268,7 +268,7 @@ export default function AgentChat() {
           </div>
 
           {/* Input Area */}
-          <div className="p-4 border-t border-gray-700">
+          <div className="p-4 border-t border-border">
             <div className="flex gap-3">
               <input
                 type="text"
@@ -276,13 +276,13 @@ export default function AgentChat() {
                 onChange={(e) => setInputMessage(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && !isLoading && handleSendMessage()}
                 placeholder="اكتب رسالتك هنا..."
-                className="flex-1 bg-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="flex-1 bg-muted rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 disabled={isLoading}
               />
               <button
                 onClick={handleSendMessage}
                 disabled={isLoading}
-                className="px-6 py-3 bg-blue-500 rounded-lg hover:bg-blue-600 transition-all flex items-center gap-2 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-6 py-3 bg-primary rounded-lg hover:bg-blue-600 transition-all flex items-center gap-2 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? (
                   <Loader2 className="w-5 h-5 animate-spin" />

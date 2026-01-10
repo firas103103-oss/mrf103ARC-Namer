@@ -71,13 +71,13 @@ const agentIcons: Record<string, any> = {
 
 const priorityColors: Record<string, string> = {
   high: "bg-destructive text-destructive-foreground",
-  medium: "bg-yellow-500/20 text-yellow-600 dark:text-yellow-400",
+  medium: "bg-warning/20 text-yellow-600 dark:text-warning",
   low: "bg-muted text-muted-foreground",
 };
 
 const statusColors: Record<string, string> = {
   pending: "bg-muted text-muted-foreground",
-  in_progress: "bg-blue-500/20 text-blue-600 dark:text-blue-400",
+  in_progress: "bg-primary/20 text-blue-600 dark:text-primary",
   completed: "bg-success/20 text-success dark:text-success",
   blocked: "bg-destructive/20 text-destructive",
 };
@@ -244,8 +244,8 @@ export default function TeamCommandCenter() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
           <Card data-testid="card-stats-pending">
             <CardContent className="p-4 flex items-center gap-4">
-              <div className="p-3 rounded-md bg-yellow-500/20">
-                <Clock className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
+              <div className="p-3 rounded-md bg-warning/20">
+                <Clock className="h-5 w-5 text-yellow-600 dark:text-warning" />
               </div>
               <div>
                 <p className="text-2xl font-bold">{pendingTasks.length}</p>
@@ -255,8 +255,8 @@ export default function TeamCommandCenter() {
           </Card>
           <Card data-testid="card-stats-progress">
             <CardContent className="p-4 flex items-center gap-4">
-              <div className="p-3 rounded-md bg-blue-500/20">
-                <Zap className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              <div className="p-3 rounded-md bg-primary/20">
+                <Zap className="h-5 w-5 text-blue-600 dark:text-primary" />
               </div>
               <div>
                 <p className="text-2xl font-bold">{inProgressTasks.length}</p>
@@ -335,7 +335,7 @@ export default function TeamCommandCenter() {
                   <ScrollArea className="h-[400px]">
                     <div className="space-y-2 pr-2">
                       {inProgressTasks.map(task => (
-                        <Card key={task.id} className="p-3 hover-elevate cursor-pointer border-blue-500/30" data-testid={`card-task-${task.id}`}>
+                        <Card key={task.id} className="p-3 hover-elevate cursor-pointer border-primary/30" data-testid={`card-task-${task.id}`}>
                           <div className="flex items-start justify-between gap-2 mb-2">
                             <h4 className="font-medium text-sm">{task.title}</h4>
                             <Badge variant="outline" className={priorityColors[task.priority]}>

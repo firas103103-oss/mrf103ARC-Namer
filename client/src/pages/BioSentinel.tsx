@@ -104,11 +104,11 @@ const HEATER_PROFILES = [
 
 const IAQ_LEVELS = [
   { min: 0, max: 50, label: "Excellent", color: "text-success", bg: "bg-success/20" },
-  { min: 51, max: 100, label: "Good", color: "text-emerald-500", bg: "bg-success/20" },
-  { min: 101, max: 150, label: "Moderate", color: "text-yellow-500", bg: "bg-yellow-500/20" },
-  { min: 151, max: 200, label: "Poor", color: "text-orange-500", bg: "bg-orange-500/20" },
-  { min: 201, max: 300, label: "Unhealthy", color: "text-red-500", bg: "bg-red-500/20" },
-  { min: 301, max: 500, label: "Hazardous", color: "text-purple-500", bg: "bg-purple-500/20" },
+  { min: 51, max: 100, label: "Good", color: "text-success", bg: "bg-success/20" },
+  { min: 101, max: 150, label: "Moderate", color: "text-warning", bg: "bg-warning/20" },
+  { min: 151, max: 200, label: "Poor", color: "text-orange-500", bg: "bg-warning/20" },
+  { min: 201, max: 300, label: "Unhealthy", color: "text-destructive", bg: "bg-destructive/20" },
+  { min: 301, max: 500, label: "Hazardous", color: "text-secondary", bg: "bg-secondary/20" },
 ];
 
 function getIaqLevel(score: number) {
@@ -506,7 +506,7 @@ export default function BioSentinel() {
         <div className="flex items-center gap-2">
           <Badge
             variant="outline"
-            className={connectionState === "connected" ? "bg-secondary/10 text-secondary border-secondary/30" : connectionState === "connecting" || connectionState === "reconnecting" ? "bg-yellow-500/10 text-yellow-600 border-yellow-500/30" : "bg-destructive/10 text-destructive border-destructive/30"}
+            className={connectionState === "connected" ? "bg-secondary/10 text-secondary border-secondary/30" : connectionState === "connecting" || connectionState === "reconnecting" ? "bg-warning/10 text-yellow-600 border-warning/30" : "bg-destructive/10 text-destructive border-destructive/30"}
             data-testid="badge-connection-status"
           >
             {connectionState === "connected" ? <Wifi className="w-3 h-3 mr-1" /> : connectionState === "connecting" || connectionState === "reconnecting" ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <WifiOff className="w-3 h-3 mr-1" />}

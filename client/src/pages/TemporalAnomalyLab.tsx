@@ -163,9 +163,9 @@ export default function TemporalAnomalyLab() {
 
   const getSeverityColor = (severity: Anomaly["severity"]) => {
     switch (severity) {
-      case "critical": return "bg-red-500/20 text-red-400 border-red-500/30";
-      case "moderate": return "bg-yellow-500/20 text-yellow-400 border-yellow-500/30";
-      case "minor": return "bg-blue-500/20 text-blue-400 border-blue-500/30";
+      case "critical": return "bg-destructive/20 text-destructive border-destructive/30";
+      case "moderate": return "bg-warning/20 text-warning border-warning/30";
+      case "minor": return "bg-primary/20 text-primary border-primary/30";
     }
   };
 
@@ -180,7 +180,7 @@ export default function TemporalAnomalyLab() {
   const getStatusIcon = (status: Playbook["status"]) => {
     switch (status) {
       case "completed": return <CheckCircle className="h-4 w-4 text-success" />;
-      case "in-progress": return <Circle className="h-4 w-4 text-yellow-400 animate-pulse" />;
+      case "in-progress": return <Circle className="h-4 w-4 text-warning animate-pulse" />;
       case "pending": return <Circle className="h-4 w-4 text-muted-foreground" />;
       case "skipped": return <XCircle className="h-4 w-4 text-muted-foreground" />;
     }
@@ -189,7 +189,7 @@ export default function TemporalAnomalyLab() {
   const getTrendIcon = (trend: Agent["trend"]) => {
     switch (trend) {
       case "up": return <TrendingUp className="h-4 w-4 text-success" />;
-      case "down": return <TrendingDown className="h-4 w-4 text-red-400" />;
+      case "down": return <TrendingDown className="h-4 w-4 text-destructive" />;
       case "stable": return <Activity className="h-4 w-4 text-muted-foreground" />;
     }
   };
@@ -319,7 +319,7 @@ export default function TemporalAnomalyLab() {
               </div>
             ) : performanceError ? (
               <div className="text-center py-6 text-muted-foreground">
-                <AlertTriangle className="h-8 w-8 mx-auto mb-2 text-yellow-500" />
+                <AlertTriangle className="h-8 w-8 mx-auto mb-2 text-warning" />
                 <p>Failed to load agent data</p>
               </div>
             ) : (
@@ -377,7 +377,7 @@ export default function TemporalAnomalyLab() {
                             </div>
                             <div className="flex justify-between text-xs">
                               <span className="text-muted-foreground">Delta</span>
-                              <span className={`font-mono ${delta >= 0 ? "text-success" : "text-red-400"}`}>
+                              <span className={`font-mono ${delta >= 0 ? "text-success" : "text-destructive"}`}>
                                 {delta >= 0 ? "+" : ""}{delta}%
                               </span>
                             </div>
@@ -414,7 +414,7 @@ export default function TemporalAnomalyLab() {
               </div>
             ) : anomaliesError ? (
               <div className="text-center py-6 text-muted-foreground">
-                <AlertTriangle className="h-8 w-8 mx-auto mb-2 text-yellow-500" />
+                <AlertTriangle className="h-8 w-8 mx-auto mb-2 text-warning" />
                 <p>Failed to load anomalies</p>
               </div>
             ) : (
@@ -442,7 +442,7 @@ export default function TemporalAnomalyLab() {
                       <p className="text-xs text-muted-foreground">{anomaly.description}</p>
                       <div className="flex items-center justify-between text-xs">
                         <span className="text-muted-foreground">{anomaly.timestamp}</span>
-                        <span className={`font-mono ${anomaly.deviation >= 0 ? "text-success" : "text-red-400"}`}>
+                        <span className={`font-mono ${anomaly.deviation >= 0 ? "text-success" : "text-destructive"}`}>
                           {anomaly.deviation >= 0 ? "+" : ""}{anomaly.deviation}% deviation
                         </span>
                       </div>
@@ -550,7 +550,7 @@ export default function TemporalAnomalyLab() {
             ) : performanceError ? (
               <div className="h-[280px] flex items-center justify-center text-muted-foreground">
                 <div className="text-center">
-                  <AlertTriangle className="h-8 w-8 mx-auto mb-2 text-yellow-500" />
+                  <AlertTriangle className="h-8 w-8 mx-auto mb-2 text-warning" />
                   <p>Failed to load chart data</p>
                 </div>
               </div>

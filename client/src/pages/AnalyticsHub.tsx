@@ -113,7 +113,7 @@ export default function AnalyticsHub() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm text-muted-foreground">Tasks Completed</span>
-                <Target className="h-4 w-4 text-blue-500" />
+                <Target className="h-4 w-4 text-primary" />
               </div>
               <p className="text-3xl font-bold">{taskMetrics.completed}</p>
               <div className="flex items-center gap-1 mt-1 text-xs">
@@ -126,7 +126,7 @@ export default function AnalyticsHub() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm text-muted-foreground">24h Activity</span>
-                <Activity className="h-4 w-4 text-purple-500" />
+                <Activity className="h-4 w-4 text-secondary" />
               </div>
               <p className="text-3xl font-bold">{metrics?.activity24h || 0}</p>
               <div className="flex items-center gap-1 mt-1 text-xs">
@@ -271,7 +271,7 @@ export default function AnalyticsHub() {
                           <span className="text-muted-foreground">{agent.avgResponseTime > 0 ? `${agent.avgResponseTime}ms` : '-'}</span>
                         </td>
                         <td className="py-3 px-4 text-right">
-                          <span className={agent.successRate >= 90 ? "text-success" : agent.successRate >= 80 ? "text-yellow-500" : "text-destructive"}>
+                          <span className={agent.successRate >= 90 ? "text-success" : agent.successRate >= 80 ? "text-warning" : "text-destructive"}>
                             {agent.successRate}%
                           </span>
                         </td>

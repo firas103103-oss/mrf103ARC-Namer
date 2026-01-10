@@ -135,7 +135,7 @@ export default function Landing() {
                 <form onSubmit={handleLogin}>
                   <Card className="p-6 bg-zinc-900/50 border-zinc-800 backdrop-blur-sm space-y-4">
                     {error && (
-                      <div className="flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/30 rounded-md text-red-400 text-sm">
+                      <div className="flex items-center gap-2 p-3 bg-destructive/10 border border-destructive/30 rounded-md text-destructive text-sm">
                         <AlertTriangle className="w-4 h-4" />
                         {error}
                       </div>

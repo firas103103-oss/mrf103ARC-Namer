@@ -159,9 +159,9 @@ export default function Dashboard() {
       case "success":
         return <CheckCircle className="h-4 w-4 text-success" />;
       case "failed":
-        return <XCircle className="h-4 w-4 text-red-500" />;
+        return <XCircle className="h-4 w-4 text-destructive" />;
       case "running":
-        return <RefreshCw className="h-4 w-4 text-blue-500 animate-spin" />;
+        return <RefreshCw className="h-4 w-4 text-primary animate-spin" />;
       default:
         return <Clock className="h-4 w-4 text-muted-foreground" />;
     }

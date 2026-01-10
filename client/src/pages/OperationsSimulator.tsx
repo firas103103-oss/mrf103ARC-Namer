@@ -80,9 +80,9 @@ const stepTypeIcons: Record<string, typeof Cpu> = {
 
 const stepTypeColors: Record<string, string> = {
   api_call: "bg-success/20 text-success dark:text-success",
-  ai_agent: "bg-blue-500/20 text-blue-600 dark:text-blue-400",
-  notification: "bg-purple-500/20 text-purple-600 dark:text-purple-400",
-  delay: "bg-yellow-500/20 text-yellow-600 dark:text-yellow-400",
+  ai_agent: "bg-primary/20 text-blue-600 dark:text-primary",
+  notification: "bg-secondary/20 text-purple-600 dark:text-secondary",
+  delay: "bg-warning/20 text-yellow-600 dark:text-warning",
 };
 
 const stepTypeLabels: Record<string, string> = {
@@ -728,7 +728,7 @@ export default function OperationsSimulator() {
                                 variant="outline" 
                                 className={selectedSimulation.lastResult.status === "success" 
                                   ? "bg-success/20 text-success" 
-                                  : "bg-red-500/20 text-red-600"}
+                                  : "bg-destructive/20 text-red-600"}
                               >
                                 {selectedSimulation.lastResult.status}
                               </Badge>
@@ -743,7 +743,7 @@ export default function OperationsSimulator() {
                                   <div key={i} className="flex items-center gap-2 text-sm p-2 rounded bg-muted/50">
                                     <Badge 
                                       variant="outline"
-                                      className={result.status === "success" ? "bg-success/20" : "bg-red-500/20"}
+                                      className={result.status === "success" ? "bg-success/20" : "bg-destructive/20"}
                                     >
                                       {result.status}
                                     </Badge>

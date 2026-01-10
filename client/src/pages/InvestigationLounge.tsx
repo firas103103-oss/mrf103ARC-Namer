@@ -201,9 +201,9 @@ const getCategoryColor = (category: string) => {
   const colors: Record<string, string> = {
     Executive: "bg-amber-500/20 text-amber-400 border-amber-500/30",
     Ops: "bg-success/20 text-success border-success/30",
-    Comms: "bg-blue-500/20 text-blue-400 border-blue-500/30",
-    Intel: "bg-purple-500/20 text-purple-400 border-purple-500/30",
-    Creative: "bg-pink-500/20 text-pink-400 border-pink-500/30",
+    Comms: "bg-primary/20 text-primary border-primary/30",
+    Intel: "bg-secondary/20 text-secondary border-secondary/30",
+    Creative: "bg-accent/20 text-accent border-accent/30",
     Finance: "bg-success/20 text-success border-success/30",
     Legal: "bg-slate-500/20 text-slate-400 border-slate-500/30",
     Research: "bg-primary/20 text-primary border-primary/30",
@@ -213,9 +213,9 @@ const getCategoryColor = (category: string) => {
 
 const getLevelColor = (level: string) => {
   const colors: Record<string, string> = {
-    L0: "bg-red-500/20 text-red-400",
-    L1: "bg-yellow-500/20 text-yellow-400",
-    L2: "bg-blue-500/20 text-blue-400",
+    L0: "bg-destructive/20 text-destructive",
+    L1: "bg-warning/20 text-warning",
+    L2: "bg-primary/20 text-primary",
   };
   return colors[level] || "bg-muted text-muted-foreground";
 };
@@ -223,10 +223,10 @@ const getLevelColor = (level: string) => {
 const getStatusColor = (status: string) => {
   const colors: Record<string, string> = {
     online: "bg-success",
-    busy: "bg-yellow-500",
-    offline: "bg-gray-500",
+    busy: "bg-warning",
+    offline: "bg-muted",
   };
-  return colors[status] || "bg-gray-500";
+  return colors[status] || "bg-muted";
 };
 
 const groupAgentsByCategory = (agents: ExtendedAgent[]) => {
@@ -656,7 +656,7 @@ export default function InvestigationLounge() {
                               data-testid={`activity-${idx}`}
                             >
                               <div className="mt-0.5">
-                                {activity.type === "message" && <MessageSquare className="h-4 w-4 text-blue-400" />}
+                                {activity.type === "message" && <MessageSquare className="h-4 w-4 text-primary" />}
                                 {activity.type === "decision" && <Scale className="h-4 w-4 text-amber-400" />}
                                 {activity.type === "report" && <FileText className="h-4 w-4 text-success" />}
                               </div>

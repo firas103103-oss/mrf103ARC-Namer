@@ -142,18 +142,18 @@ export default function MaestrosHub() {
   const [selectedMaestro, setSelectedMaestro] = useState<Maestro | null>(null);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-8">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-background text-white p-8">
       <div className="mb-8">
         <h1 className="text-4xl font-bold mb-2 flex items-center gap-3">
           <span className="text-5xl">🏛️</span>
           Maestros Hub
         </h1>
-        <p className="text-gray-400 text-lg">القادة الستة للقطاعات الاستراتيجية</p>
+        <p className="text-muted-foreground text-lg">القادة الستة للقطاعات الاستراتيجية</p>
       </div>
 
       {/* Overview Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div className="bg-gradient-to-br from-blue-500/20 to-blue-600/20 rounded-lg p-6 border border-blue-500/30">
+        <div className="bg-gradient-to-br from-blue-500/20 to-blue-600/20 rounded-lg p-6 border border-primary/30">
           <div className="text-3xl font-bold mb-2">6</div>
           <div className="text-sm text-gray-300">Active Maestros</div>
         </div>
@@ -161,11 +161,11 @@ export default function MaestrosHub() {
           <div className="text-3xl font-bold mb-2">24</div>
           <div className="text-sm text-gray-300">Total Specialists</div>
         </div>
-        <div className="bg-gradient-to-br from-purple-500/20 to-purple-600/20 rounded-lg p-6 border border-purple-500/30">
+        <div className="bg-gradient-to-br from-purple-500/20 to-purple-600/20 rounded-lg p-6 border border-secondary/30">
           <div className="text-3xl font-bold mb-2">1,247</div>
           <div className="text-sm text-gray-300">Tasks Today</div>
         </div>
-        <div className="bg-gradient-to-br from-orange-500/20 to-orange-600/20 rounded-lg p-6 border border-orange-500/30">
+        <div className="bg-gradient-to-br from-orange-500/20 to-orange-600/20 rounded-lg p-6 border border-warning/30">
           <div className="text-3xl font-bold mb-2">93.5%</div>
           <div className="text-sm text-gray-300">Avg Performance</div>
         </div>
@@ -178,7 +178,7 @@ export default function MaestrosHub() {
           return (
             <div
               key={maestro.id}
-              className="bg-gray-800/50 rounded-lg p-6 border border-gray-700 hover:border-gray-600 transition-all cursor-pointer hover:scale-[1.02]"
+              className="bg-card/50 rounded-lg p-6 border border-border hover:border-gray-600 transition-all cursor-pointer hover:scale-[1.02]"
               onClick={() => setSelectedMaestro(maestro)}
               style={{ borderLeftColor: maestro.color, borderLeftWidth: '4px' }}
             >
@@ -192,15 +192,15 @@ export default function MaestrosHub() {
                   </div>
                   <div>
                     <h3 className="text-2xl font-bold">{maestro.name}</h3>
-                    <p className="text-gray-400">{maestro.nameAr}</p>
+                    <p className="text-muted-foreground">{maestro.nameAr}</p>
                     <p className="text-sm text-gray-500">{maestro.sector}</p>
                   </div>
                 </div>
                 <div className="flex flex-col items-end gap-2">
                   <div className={`px-3 py-1 rounded-full text-xs font-bold ${
                     maestro.status === 'active' ? 'bg-success/20 text-success' :
-                    maestro.status === 'busy' ? 'bg-yellow-500/20 text-yellow-400' :
-                    'bg-gray-500/20 text-gray-400'
+                    maestro.status === 'busy' ? 'bg-warning/20 text-warning' :
+                    'bg-muted/20 text-muted-foreground'
                   }`}>
                     {maestro.status.toUpperCase()}
                   </div>
@@ -211,10 +211,10 @@ export default function MaestrosHub() {
               {/* Performance Bar */}
               <div className="mb-4">
                 <div className="flex justify-between text-sm mb-2">
-                  <span className="text-gray-400">Performance</span>
+                  <span className="text-muted-foreground">Performance</span>
                   <span className="font-bold">{maestro.performance}%</span>
                 </div>
-                <div className="w-full bg-gray-700 rounded-full h-3">
+                <div className="w-full bg-muted rounded-full h-3">
                   <div
                     className="h-3 rounded-full transition-all"
                     style={{ 
@@ -227,17 +227,17 @@ export default function MaestrosHub() {
 
               {/* Stats Grid */}
               <div className="grid grid-cols-2 gap-3 mb-4">
-                <div className="bg-gray-700/50 rounded-lg p-3">
+                <div className="bg-muted/50 rounded-lg p-3">
                   <div className="flex items-center gap-2 mb-1">
-                    <Users className="w-4 h-4 text-gray-400" />
-                    <span className="text-xs text-gray-400">Team</span>
+                    <Users className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-xs text-muted-foreground">Team</span>
                   </div>
                   <div className="text-lg font-bold">{maestro.specialists} Specialists</div>
                 </div>
-                <div className="bg-gray-700/50 rounded-lg p-3">
+                <div className="bg-muted/50 rounded-lg p-3">
                   <div className="flex items-center gap-2 mb-1">
-                    <TrendingUp className="w-4 h-4 text-gray-400" />
-                    <span className="text-xs text-gray-400">Today</span>
+                    <TrendingUp className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-xs text-muted-foreground">Today</span>
                   </div>
                   <div className="text-lg font-bold">{maestro.tasksToday} Tasks</div>
                 </div>
@@ -245,7 +245,7 @@ export default function MaestrosHub() {
 
               {/* Recent Actions */}
               <div>
-                <div className="text-sm font-semibold mb-2 text-gray-400">Recent Actions:</div>
+                <div className="text-sm font-semibold mb-2 text-muted-foreground">Recent Actions:</div>
                 <div className="space-y-1">
                   {maestro.recentActions.slice(0, 3).map((action, idx) => (
                     <div key={idx} className="text-sm flex items-center gap-2">
@@ -280,7 +280,7 @@ export default function MaestrosHub() {
           onClick={() => setSelectedMaestro(null)}
         >
           <div 
-            className="bg-gray-800 rounded-lg p-8 max-w-2xl w-full border border-gray-700"
+            className="bg-card rounded-lg p-8 max-w-2xl w-full border border-border"
             onClick={(e) => e.stopPropagation()}
             style={{ borderTopColor: selectedMaestro.color, borderTopWidth: '4px' }}
           >
@@ -296,7 +296,7 @@ export default function MaestrosHub() {
               </div>
               <div>
                 <h2 className="text-3xl font-bold">{selectedMaestro.name}</h2>
-                <p className="text-xl text-gray-400">{selectedMaestro.nameAr}</p>
+                <p className="text-xl text-muted-foreground">{selectedMaestro.nameAr}</p>
                 <p className="text-gray-500">{selectedMaestro.sector}</p>
               </div>
             </div>
@@ -306,7 +306,7 @@ export default function MaestrosHub() {
                 <h3 className="font-semibold mb-2">All Recent Actions:</h3>
                 <div className="space-y-2">
                   {selectedMaestro.recentActions.map((action, idx) => (
-                    <div key={idx} className="flex items-center gap-2 p-2 bg-gray-700/50 rounded">
+                    <div key={idx} className="flex items-center gap-2 p-2 bg-muted/50 rounded">
                       <div className="w-2 h-2 rounded-full" style={{ backgroundColor: selectedMaestro.color }} />
                       <span>{action}</span>
                     </div>

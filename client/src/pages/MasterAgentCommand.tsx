@@ -78,19 +78,19 @@ interface AgentStatus {
 }
 
 const PRIORITY_COLORS = {
-  low: "bg-blue-500/20 text-blue-400 border-blue-500/30",
-  medium: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
-  high: "bg-orange-500/20 text-orange-400 border-orange-500/30",
-  critical: "bg-red-500/20 text-red-400 border-red-500/30",
+  low: "bg-primary/20 text-primary border-primary/30",
+  medium: "bg-warning/20 text-warning border-warning/30",
+  high: "bg-warning/20 text-warning border-warning/30",
+  critical: "bg-destructive/20 text-destructive border-destructive/30",
 };
 
 const STATUS_COLORS = {
   pending: "text-slate-400",
-  analyzing: "text-blue-400",
-  routing: "text-purple-400",
-  executing: "text-yellow-400",
+  analyzing: "text-primary",
+  routing: "text-secondary",
+  executing: "text-warning",
   completed: "text-success",
-  failed: "text-red-400",
+  failed: "text-destructive",
 };
 
 export default function MasterAgentCommand() {
@@ -217,11 +217,11 @@ export default function MasterAgentCommand() {
         {/* Header */}
         <div className="relative">
           <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 via-pink-600/20 to-purple-600/20 blur-3xl" />
-          <div className="relative flex items-center justify-between p-6 bg-slate-900/50 backdrop-blur-xl border border-purple-500/30 rounded-2xl shadow-2xl">
+          <div className="relative flex items-center justify-between p-6 bg-slate-900/50 backdrop-blur-xl border border-secondary/30 rounded-2xl shadow-2xl">
             <div className="flex items-center gap-4">
               <div className="relative">
                 <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-500 blur-xl opacity-50 animate-pulse" />
-                <Crown className="relative w-12 h-12 text-yellow-400" />
+                <Crown className="relative w-12 h-12 text-warning" />
               </div>
               <div>
                 <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent">
@@ -237,7 +237,7 @@ export default function MasterAgentCommand() {
                 <Activity className="w-4 h-4 mr-2 animate-pulse" />
                 Online & Ready
               </Badge>
-              <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/50 px-4 py-2">
+              <Badge className="bg-secondary/20 text-secondary border-secondary/50 px-4 py-2">
                 <Shield className="w-4 h-4 mr-2" />
                 Level 5 Authority
               </Badge>
@@ -247,11 +247,11 @@ export default function MasterAgentCommand() {
 
         {/* Stats Dashboard */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card className="bg-slate-900/50 border-purple-500/30 backdrop-blur-xl">
+          <Card className="bg-slate-900/50 border-secondary/30 backdrop-blur-xl">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-2">
-                <Target className="w-5 h-5 text-purple-400" />
-                <span className="text-2xl font-bold text-purple-400">{stats.activeTasks}</span>
+                <Target className="w-5 h-5 text-secondary" />
+                <span className="text-2xl font-bold text-secondary">{stats.activeTasks}</span>
               </div>
               <p className="text-sm text-slate-400">Active Tasks</p>
               <Progress value={(stats.activeTasks / stats.totalTasks) * 100} className="mt-2 h-1" />
@@ -269,27 +269,27 @@ export default function MasterAgentCommand() {
             </CardContent>
           </Card>
 
-          <Card className="bg-slate-900/50 border-blue-500/30 backdrop-blur-xl">
+          <Card className="bg-slate-900/50 border-primary/30 backdrop-blur-xl">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-2">
-                <Brain className="w-5 h-5 text-blue-400" />
-                <span className="text-2xl font-bold text-blue-400">{stats.decisionsToday}</span>
+                <Brain className="w-5 h-5 text-primary" />
+                <span className="text-2xl font-bold text-primary">{stats.decisionsToday}</span>
               </div>
               <p className="text-sm text-slate-400">Decisions Made</p>
-              <p className="text-xs text-blue-400/70 mt-2">Today</p>
+              <p className="text-xs text-primary/70 mt-2">Today</p>
             </CardContent>
           </Card>
 
-          <Card className="bg-slate-900/50 border-orange-500/30 backdrop-blur-xl">
+          <Card className="bg-slate-900/50 border-warning/30 backdrop-blur-xl">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-2">
-                <Clock className="w-5 h-5 text-orange-400" />
-                <span className="text-2xl font-bold text-orange-400">
+                <Clock className="w-5 h-5 text-warning" />
+                <span className="text-2xl font-bold text-warning">
                   {stats.avgExecutionTime}s
                 </span>
               </div>
               <p className="text-sm text-slate-400">Avg Execution</p>
-              <p className="text-xs text-orange-400/70 mt-2">Per Task</p>
+              <p className="text-xs text-warning/70 mt-2">Per Task</p>
             </CardContent>
           </Card>
         </div>
@@ -298,10 +298,10 @@ export default function MasterAgentCommand() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left: Command Center */}
           <div className="lg:col-span-2 space-y-6">
-            <Card className="bg-slate-900/50 border-purple-500/30 backdrop-blur-xl">
+            <Card className="bg-slate-900/50 border-secondary/30 backdrop-blur-xl">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Sparkles className="w-5 h-5 text-purple-400" />
+                  <Sparkles className="w-5 h-5 text-secondary" />
                   Command Center
                 </CardTitle>
                 <CardDescription>
@@ -320,7 +320,7 @@ export default function MasterAgentCommand() {
                         handleExecuteCommand();
                       }
                     }}
-                    className="min-h-[100px] bg-slate-800/50 border-purple-500/30 text-white resize-none"
+                    className="min-h-[100px] bg-slate-800/50 border-secondary/30 text-white resize-none"
                   />
                 </div>
                 <div className="flex gap-2">
@@ -346,8 +346,8 @@ export default function MasterAgentCommand() {
                     variant="outline"
                     className={`${
                       isListening
-                        ? "bg-red-500/20 border-red-500 text-red-400"
-                        : "bg-slate-800/50 border-purple-500/30"
+                        ? "bg-destructive/20 border-destructive text-destructive"
+                        : "bg-slate-800/50 border-secondary/30"
                     }`}
                   >
                     <Mic className={`w-4 h-4 ${isListening ? "animate-pulse" : ""}`} />
@@ -367,7 +367,7 @@ export default function MasterAgentCommand() {
                     <Badge
                       key={action}
                       variant="outline"
-                      className="cursor-pointer hover:bg-purple-500/20 transition-colors"
+                      className="cursor-pointer hover:bg-secondary/20 transition-colors"
                       onClick={() => setCommand(action)}
                     >
                       {action}
@@ -378,7 +378,7 @@ export default function MasterAgentCommand() {
             </Card>
 
             {/* Active Tasks */}
-            <Card className="bg-slate-900/50 border-purple-500/30 backdrop-blur-xl">
+            <Card className="bg-slate-900/50 border-secondary/30 backdrop-blur-xl">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Activity className="w-5 h-5 text-success" />
@@ -398,7 +398,7 @@ export default function MasterAgentCommand() {
                       activeTasks.map((task) => (
                         <div
                           key={task.id}
-                          className="p-4 bg-slate-800/50 rounded-lg border border-purple-500/20 hover:border-purple-500/40 transition-all cursor-pointer"
+                          className="p-4 bg-slate-800/50 rounded-lg border border-secondary/20 hover:border-secondary/40 transition-all cursor-pointer"
                           onClick={() => setSelectedTask(task)}
                         >
                           <div className="flex items-start justify-between mb-3">
@@ -434,7 +434,7 @@ export default function MasterAgentCommand() {
                                   <Badge
                                     key={idx}
                                     variant="outline"
-                                    className="text-xs bg-blue-500/10 border-blue-500/30"
+                                    className="text-xs bg-primary/10 border-primary/30"
                                   >
                                     {agent}
                                   </Badge>
@@ -463,10 +463,10 @@ export default function MasterAgentCommand() {
           {/* Right: Decisions & Agents */}
           <div className="space-y-6">
             {/* Pending Decisions */}
-            <Card className="bg-slate-900/50 border-yellow-500/30 backdrop-blur-xl">
+            <Card className="bg-slate-900/50 border-warning/30 backdrop-blur-xl">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <AlertTriangle className="w-5 h-5 text-yellow-400" />
+                  <AlertTriangle className="w-5 h-5 text-warning" />
                   Pending Decisions ({pendingDecisions.length})
                 </CardTitle>
                 <CardDescription>Awaiting your approval</CardDescription>
@@ -482,7 +482,7 @@ export default function MasterAgentCommand() {
                       pendingDecisions.map((decision) => (
                         <div
                           key={decision.id}
-                          className="p-3 bg-yellow-500/5 border border-yellow-500/30 rounded-lg"
+                          className="p-3 bg-warning/5 border border-warning/30 rounded-lg"
                         >
                           <p className="text-sm font-medium mb-2">{decision.question}</p>
                           <p className="text-xs text-slate-400 mb-3">{decision.reasoning}</p>
@@ -496,7 +496,7 @@ export default function MasterAgentCommand() {
                                 key={idx}
                                 size="sm"
                                 variant="outline"
-                                className="w-full text-left justify-start text-xs hover:bg-yellow-500/20"
+                                className="w-full text-left justify-start text-xs hover:bg-warning/20"
                                 onClick={() =>
                                   approveDecisionMutation.mutate({
                                     decisionId: decision.id,
@@ -518,10 +518,10 @@ export default function MasterAgentCommand() {
             </Card>
 
             {/* Agents Status */}
-            <Card className="bg-slate-900/50 border-blue-500/30 backdrop-blur-xl">
+            <Card className="bg-slate-900/50 border-primary/30 backdrop-blur-xl">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Network className="w-5 h-5 text-blue-400" />
+                  <Network className="w-5 h-5 text-primary" />
                   Agents Network
                 </CardTitle>
               </CardHeader>
@@ -545,7 +545,7 @@ export default function MasterAgentCommand() {
                                   agent.status === "busy"
                                     ? "bg-yellow-400 animate-pulse"
                                     : agent.status === "idle"
-                                    ? "bg-green-400"
+                                    ? "bg-success"
                                     : "bg-slate-600"
                                 }`}
                               />
@@ -578,10 +578,10 @@ export default function MasterAgentCommand() {
         </div>
 
         {/* Execution Flow Visualization */}
-        <Card className="bg-slate-900/50 border-purple-500/30 backdrop-blur-xl">
+        <Card className="bg-slate-900/50 border-secondary/30 backdrop-blur-xl">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <GitBranch className="w-5 h-5 text-purple-400" />
+              <GitBranch className="w-5 h-5 text-secondary" />
               Execution Flow
             </CardTitle>
             <CardDescription>How Master Agent processes your commands</CardDescription>
@@ -589,8 +589,8 @@ export default function MasterAgentCommand() {
           <CardContent>
             <div className="flex items-center justify-between p-4">
               <div className="flex flex-col items-center gap-2">
-                <div className="w-12 h-12 bg-purple-500/20 border border-purple-500 rounded-full flex items-center justify-center">
-                  <MessageSquare className="w-6 h-6 text-purple-400" />
+                <div className="w-12 h-12 bg-secondary/20 border border-secondary rounded-full flex items-center justify-center">
+                  <MessageSquare className="w-6 h-6 text-secondary" />
                 </div>
                 <span className="text-xs text-slate-400">Your Command</span>
               </div>
@@ -598,8 +598,8 @@ export default function MasterAgentCommand() {
               <ArrowRight className="text-slate-600" />
 
               <div className="flex flex-col items-center gap-2">
-                <div className="w-12 h-12 bg-blue-500/20 border border-blue-500 rounded-full flex items-center justify-center">
-                  <Brain className="w-6 h-6 text-blue-400" />
+                <div className="w-12 h-12 bg-primary/20 border border-primary rounded-full flex items-center justify-center">
+                  <Brain className="w-6 h-6 text-primary" />
                 </div>
                 <span className="text-xs text-slate-400">AI Analysis</span>
               </div>
@@ -607,8 +607,8 @@ export default function MasterAgentCommand() {
               <ArrowRight className="text-slate-600" />
 
               <div className="flex flex-col items-center gap-2">
-                <div className="w-12 h-12 bg-yellow-500/20 border border-yellow-500 rounded-full flex items-center justify-center">
-                  <Layers className="w-6 h-6 text-yellow-400" />
+                <div className="w-12 h-12 bg-warning/20 border border-warning rounded-full flex items-center justify-center">
+                  <Layers className="w-6 h-6 text-warning" />
                 </div>
                 <span className="text-xs text-slate-400">Task Routing</span>
               </div>
@@ -616,8 +616,8 @@ export default function MasterAgentCommand() {
               <ArrowRight className="text-slate-600" />
 
               <div className="flex flex-col items-center gap-2">
-                <div className="w-12 h-12 bg-orange-500/20 border border-orange-500 rounded-full flex items-center justify-center">
-                  <Users className="w-6 h-6 text-orange-400" />
+                <div className="w-12 h-12 bg-warning/20 border border-warning rounded-full flex items-center justify-center">
+                  <Users className="w-6 h-6 text-warning" />
                 </div>
                 <span className="text-xs text-slate-400">Agent Delegation</span>
               </div>
@@ -642,7 +642,7 @@ export default function MasterAgentCommand() {
           onClick={() => setSelectedTask(null)}
         >
           <Card
-            className="max-w-2xl w-full bg-slate-900 border-purple-500/30"
+            className="max-w-2xl w-full bg-slate-900 border-secondary/30"
             onClick={(e) => e.stopPropagation()}
           >
             <CardHeader>

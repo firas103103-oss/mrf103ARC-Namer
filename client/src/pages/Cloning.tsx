@@ -312,7 +312,7 @@ export default function Cloning() {
   if (step === "passcode") {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md bg-black/40 backdrop-blur-xl border-purple-500/30">
+        <Card className="w-full max-w-md bg-black/40 backdrop-blur-xl border-secondary/30">
           <CardHeader className="text-center">
             <div className="mx-auto w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center mb-4">
               <Lock className="w-8 h-8 text-white" />
@@ -335,7 +335,7 @@ export default function Cloning() {
                 placeholder="أدخل رمز المرور"
                 value={passcode}
                 onChange={(e) => setPasscode(e.target.value)}
-                className="bg-black/30 border-purple-500/30 text-white"
+                className="bg-black/30 border-secondary/30 text-white"
                 onKeyPress={(e) => e.key === "Enter" && handleVerifyPasscode()}
               />
             </div>
@@ -355,7 +355,7 @@ export default function Cloning() {
               )}
             </Button>
 
-            <div className="text-center text-sm text-gray-400 mt-4">
+            <div className="text-center text-sm text-muted-foreground mt-4">
               <p>رمز المرور: passcodemrf1Q@</p>
             </div>
           </CardContent>
@@ -376,7 +376,7 @@ export default function Cloning() {
         <main className="flex flex-1 flex-col gap-4 p-4 overflow-auto">
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 p-4 py-8">
       <div className="max-w-4xl mx-auto">
-        <Card className="bg-black/40 backdrop-blur-xl border-purple-500/30">
+        <Card className="bg-black/40 backdrop-blur-xl border-secondary/30">
           <CardHeader>
             <CardTitle className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
               إنشاء ملف تعريفي للاستنساخ
@@ -388,7 +388,7 @@ export default function Cloning() {
           <CardContent className="space-y-8">
             {/* القسم 1: معلومات أساسية */}
             <div className="space-y-4">
-              <h3 className="text-xl font-bold text-purple-400 flex items-center gap-2">
+              <h3 className="text-xl font-bold text-secondary flex items-center gap-2">
                 <User className="w-5 h-5" />
                 معلومات أساسية
               </h3>
@@ -403,7 +403,7 @@ export default function Cloning() {
                     onChange={(e) =>
                       setFormData({ ...formData, username: e.target.value })
                     }
-                    className="bg-black/30 border-purple-500/30 text-white"
+                    className="bg-black/30 border-secondary/30 text-white"
                   />
                 </div>
                 <div className="space-y-2">
@@ -417,7 +417,7 @@ export default function Cloning() {
                     onChange={(e) =>
                       setFormData({ ...formData, email: e.target.value })
                     }
-                    className="bg-black/30 border-purple-500/30 text-white"
+                    className="bg-black/30 border-secondary/30 text-white"
                   />
                 </div>
                 <div className="space-y-2">
@@ -431,7 +431,7 @@ export default function Cloning() {
                     onChange={(e) =>
                       setFormData({ ...formData, phoneNumber: e.target.value })
                     }
-                    className="bg-black/30 border-purple-500/30 text-white"
+                    className="bg-black/30 border-secondary/30 text-white"
                   />
                 </div>
                 <div className="space-y-2">
@@ -444,7 +444,7 @@ export default function Cloning() {
                     onChange={(e) =>
                       setFormData({ ...formData, jobTitle: e.target.value })
                     }
-                    className="bg-black/30 border-purple-500/30 text-white"
+                    className="bg-black/30 border-secondary/30 text-white"
                   />
                 </div>
               </div>
@@ -460,7 +460,7 @@ export default function Cloning() {
                     onChange={(e) =>
                       setFormData({ ...formData, password: e.target.value })
                     }
-                    className="bg-black/30 border-purple-500/30 text-white"
+                    className="bg-black/30 border-secondary/30 text-white"
                   />
                 </div>
                 <div className="space-y-2">
@@ -474,7 +474,7 @@ export default function Cloning() {
                     onChange={(e) =>
                       setFormData({ ...formData, confirmPassword: e.target.value })
                     }
-                    className="bg-black/30 border-purple-500/30 text-white"
+                    className="bg-black/30 border-secondary/30 text-white"
                   />
                 </div>
               </div>
@@ -489,7 +489,7 @@ export default function Cloning() {
                   onChange={(e) =>
                     setFormData({ ...formData, skills: e.target.value })
                   }
-                  className="bg-black/30 border-purple-500/30 text-white"
+                  className="bg-black/30 border-secondary/30 text-white"
                 />
               </div>
               <div className="space-y-2">
@@ -502,14 +502,14 @@ export default function Cloning() {
                   onChange={(e) =>
                     setFormData({ ...formData, bio: e.target.value })
                   }
-                  className="bg-black/30 border-purple-500/30 text-white min-h-[100px]"
+                  className="bg-black/30 border-secondary/30 text-white min-h-[100px]"
                 />
               </div>
             </div>
 
             {/* القسم 2: رفع الملفات */}
             <div className="space-y-4">
-              <h3 className="text-xl font-bold text-purple-400 flex items-center gap-2">
+              <h3 className="text-xl font-bold text-secondary flex items-center gap-2">
                 <Upload className="w-5 h-5" />
                 رفع الملفات
               </h3>
@@ -525,7 +525,7 @@ export default function Cloning() {
                   accept="audio/*"
                   multiple
                   onChange={(e) => handleFileUpload(e, "voice")}
-                  className="bg-black/30 border-purple-500/30 text-white"
+                  className="bg-black/30 border-secondary/30 text-white"
                 />
                 {voiceSamples.length > 0 && (
                   <div className="flex flex-wrap gap-2 mt-2">
@@ -537,7 +537,7 @@ export default function Cloning() {
                         {item.file.name}
                         <button
                           onClick={() => removeFile(idx, "voice")}
-                          className="text-red-400 hover:text-red-300"
+                          className="text-destructive hover:text-red-300"
                         >
                           ×
                         </button>
@@ -558,7 +558,7 @@ export default function Cloning() {
                   accept="image/*"
                   multiple
                   onChange={(e) => handleFileUpload(e, "photo")}
-                  className="bg-black/30 border-purple-500/30 text-white"
+                  className="bg-black/30 border-secondary/30 text-white"
                 />
                 {photos.length > 0 && (
                   <div className="grid grid-cols-3 md:grid-cols-5 gap-2 mt-2">
@@ -571,7 +571,7 @@ export default function Cloning() {
                         />
                         <button
                           onClick={() => removeFile(idx, "photo")}
-                          className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="absolute top-1 right-1 bg-destructive text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                         >
                           ×
                         </button>
@@ -592,7 +592,7 @@ export default function Cloning() {
                   accept=".pdf,.doc,.docx,.txt"
                   multiple
                   onChange={(e) => handleFileUpload(e, "document")}
-                  className="bg-black/30 border-purple-500/30 text-white"
+                  className="bg-black/30 border-secondary/30 text-white"
                 />
                 {documents.length > 0 && (
                   <div className="flex flex-wrap gap-2 mt-2">
@@ -604,7 +604,7 @@ export default function Cloning() {
                         {item.file.name}
                         <button
                           onClick={() => removeFile(idx, "document")}
-                          className="text-red-400 hover:text-red-300"
+                          className="text-destructive hover:text-red-300"
                         >
                           ×
                         </button>
@@ -617,7 +617,7 @@ export default function Cloning() {
 
             {/* القسم 3: معلومات المشاريع */}
             <div className="space-y-4">
-              <h3 className="text-xl font-bold text-purple-400">
+              <h3 className="text-xl font-bold text-secondary">
                 معلومات المشاريع
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -632,7 +632,7 @@ export default function Cloning() {
                     onChange={(e) =>
                       setFormData({ ...formData, github: e.target.value })
                     }
-                    className="bg-black/30 border-purple-500/30 text-white"
+                    className="bg-black/30 border-secondary/30 text-white"
                   />
                 </div>
                 <div className="space-y-2">
@@ -646,7 +646,7 @@ export default function Cloning() {
                     onChange={(e) =>
                       setFormData({ ...formData, gitlab: e.target.value })
                     }
-                    className="bg-black/30 border-purple-500/30 text-white"
+                    className="bg-black/30 border-secondary/30 text-white"
                   />
                 </div>
                 <div className="space-y-2 md:col-span-2">
@@ -660,7 +660,7 @@ export default function Cloning() {
                     onChange={(e) =>
                       setFormData({ ...formData, portfolio: e.target.value })
                     }
-                    className="bg-black/30 border-purple-500/30 text-white"
+                    className="bg-black/30 border-secondary/30 text-white"
                   />
                 </div>
               </div>
@@ -668,7 +668,7 @@ export default function Cloning() {
 
             {/* القسم 4: التواصل الاجتماعي */}
             <div className="space-y-4">
-              <h3 className="text-xl font-bold text-purple-400">
+              <h3 className="text-xl font-bold text-secondary">
                 التواصل الاجتماعي
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -683,7 +683,7 @@ export default function Cloning() {
                     onChange={(e) =>
                       setFormData({ ...formData, linkedin: e.target.value })
                     }
-                    className="bg-black/30 border-purple-500/30 text-white"
+                    className="bg-black/30 border-secondary/30 text-white"
                   />
                 </div>
                 <div className="space-y-2">
@@ -697,7 +697,7 @@ export default function Cloning() {
                     onChange={(e) =>
                       setFormData({ ...formData, twitter: e.target.value })
                     }
-                    className="bg-black/30 border-purple-500/30 text-white"
+                    className="bg-black/30 border-secondary/30 text-white"
                   />
                 </div>
                 <div className="space-y-2">
@@ -711,7 +711,7 @@ export default function Cloning() {
                     onChange={(e) =>
                       setFormData({ ...formData, telegram: e.target.value })
                     }
-                    className="bg-black/30 border-purple-500/30 text-white"
+                    className="bg-black/30 border-secondary/30 text-white"
                   />
                 </div>
               </div>
@@ -719,7 +719,7 @@ export default function Cloning() {
 
             {/* القسم 5: أجهزة IoT */}
             <div className="space-y-4">
-              <h3 className="text-xl font-bold text-purple-400 flex items-center gap-2">
+              <h3 className="text-xl font-bold text-secondary flex items-center gap-2">
                 <Cpu className="w-5 h-5" />
                 أجهزة IoT
               </h3>
@@ -740,7 +740,7 @@ export default function Cloning() {
                     disabled={!device.available}
                     className={`p-4 rounded-lg border-2 transition-all ${
                       selectedDevices.includes(device.id)
-                        ? "border-purple-500 bg-purple-900/30"
+                        ? "border-secondary bg-purple-900/30"
                         : device.available
                         ? "border-gray-600 bg-black/20 hover:border-purple-400"
                         : "border-gray-800 bg-gray-900/20 opacity-50 cursor-not-allowed"
@@ -751,7 +751,7 @@ export default function Cloning() {
                         {device.name}
                       </span>
                       {selectedDevices.includes(device.id) ? (
-                        <CheckCircle2 className="w-5 h-5 text-purple-400" />
+                        <CheckCircle2 className="w-5 h-5 text-secondary" />
                       ) : !device.available ? (
                         <AlertCircle className="w-5 h-5 text-gray-600" />
                       ) : null}
@@ -768,7 +768,7 @@ export default function Cloning() {
 
             {/* القسم 6: التكاملات */}
             <div className="space-y-4">
-              <h3 className="text-xl font-bold text-purple-400">
+              <h3 className="text-xl font-bold text-secondary">
                 التكاملات
               </h3>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
@@ -793,7 +793,7 @@ export default function Cloning() {
                     disabled={!integration.available}
                     className={`p-3 rounded-lg border-2 transition-all text-sm ${
                       selectedIntegrations.includes(integration.id)
-                        ? "border-blue-500 bg-blue-900/30"
+                        ? "border-primary bg-blue-900/30"
                         : integration.available
                         ? "border-gray-600 bg-black/20 hover:border-blue-400"
                         : "border-gray-800 bg-gray-900/20 opacity-50 cursor-not-allowed"
@@ -802,7 +802,7 @@ export default function Cloning() {
                     <div className="flex items-center justify-between">
                       <span className="text-white">{integration.name}</span>
                       {selectedIntegrations.includes(integration.id) ? (
-                        <CheckCircle2 className="w-4 h-4 text-blue-400" />
+                        <CheckCircle2 className="w-4 h-4 text-primary" />
                       ) : !integration.available ? (
                         <AlertCircle className="w-4 h-4 text-gray-600" />
                       ) : null}
@@ -825,7 +825,7 @@ export default function Cloning() {
                   setPasscode("");
                 }}
                 variant="outline"
-                className="flex-1 bg-transparent border-gray-600 text-gray-300 hover:bg-gray-800"
+                className="flex-1 bg-transparent border-gray-600 text-gray-300 hover:bg-card"
               >
                 رجوع
               </Button>

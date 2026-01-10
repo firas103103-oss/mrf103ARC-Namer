@@ -60,7 +60,7 @@ export default function Integrations() {
   ]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-8">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-background text-white p-8">
       <div className="mb-8">
         <div className="flex items-center justify-between">
           <div>
@@ -68,9 +68,9 @@ export default function Integrations() {
               <span className="text-5xl">🔌</span>
               Integrations
             </h1>
-            <p className="text-gray-400 text-lg">التكاملات الخارجية - Cloud Drives & Local Access</p>
+            <p className="text-muted-foreground text-lg">التكاملات الخارجية - Cloud Drives & Local Access</p>
           </div>
-          <button className="px-6 py-3 bg-blue-500 rounded-lg font-semibold hover:bg-blue-600 transition-all flex items-center gap-2">
+          <button className="px-6 py-3 bg-primary rounded-lg font-semibold hover:bg-blue-600 transition-all flex items-center gap-2">
             <Plus className="w-5 h-5" />
             Add Integration
           </button>
@@ -82,7 +82,7 @@ export default function Integrations() {
         {integrations.map((integration) => (
           <div 
             key={integration.id}
-            className="bg-gray-800/50 rounded-lg p-6 border border-gray-700 hover:border-gray-600 transition-all"
+            className="bg-card/50 rounded-lg p-6 border border-border hover:border-gray-600 transition-all"
           >
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-center gap-3">
@@ -111,13 +111,13 @@ export default function Integrations() {
               </div>
             </div>
 
-            <p className="text-sm text-gray-400 mb-4">{integration.description}</p>
+            <p className="text-sm text-muted-foreground mb-4">{integration.description}</p>
 
             <button
               className={`w-full py-2 rounded-lg font-semibold transition-all ${
                 integration.status === 'connected'
-                  ? 'bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30'
-                  : 'bg-blue-500/20 text-blue-400 border border-blue-500/30 hover:bg-blue-500/30'
+                  ? 'bg-destructive/20 text-destructive border border-destructive/30 hover:bg-destructive/30'
+                  : 'bg-primary/20 text-primary border border-primary/30 hover:bg-primary/30'
               }`}
             >
               {integration.status === 'connected' ? 'Disconnect' : 'Connect'}
@@ -127,36 +127,36 @@ export default function Integrations() {
       </div>
 
       {/* Permissions Section */}
-      <div className="mt-8 bg-gray-800/50 rounded-lg p-6 border border-gray-700">
+      <div className="mt-8 bg-card/50 rounded-lg p-6 border border-border">
         <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
           <HardDrive className="w-6 h-6" />
           Integration Permissions
         </h2>
         <div className="space-y-3">
-          <div className="p-4 bg-gray-700/30 rounded-lg flex items-center justify-between">
+          <div className="p-4 bg-muted/30 rounded-lg flex items-center justify-between">
             <div>
               <div className="font-semibold">Read Files</div>
-              <div className="text-sm text-gray-400">Allow agents to read files from integrations</div>
+              <div className="text-sm text-muted-foreground">Allow agents to read files from integrations</div>
             </div>
             <div className="w-12 h-6 bg-success rounded-full relative cursor-pointer">
               <div className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full"></div>
             </div>
           </div>
 
-          <div className="p-4 bg-gray-700/30 rounded-lg flex items-center justify-between">
+          <div className="p-4 bg-muted/30 rounded-lg flex items-center justify-between">
             <div>
               <div className="font-semibold">Write Files</div>
-              <div className="text-sm text-gray-400">Allow agents to modify files</div>
+              <div className="text-sm text-muted-foreground">Allow agents to modify files</div>
             </div>
             <div className="w-12 h-6 bg-success rounded-full relative cursor-pointer">
               <div className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full"></div>
             </div>
           </div>
 
-          <div className="p-4 bg-gray-700/30 rounded-lg flex items-center justify-between">
+          <div className="p-4 bg-muted/30 rounded-lg flex items-center justify-between">
             <div>
               <div className="font-semibold">Auto Sync</div>
-              <div className="text-sm text-gray-400">Automatically sync changes</div>
+              <div className="text-sm text-muted-foreground">Automatically sync changes</div>
             </div>
             <div className="w-12 h-6 bg-success rounded-full relative cursor-pointer">
               <div className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full"></div>

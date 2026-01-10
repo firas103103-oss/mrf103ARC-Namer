@@ -48,16 +48,16 @@ import {
 } from "lucide-react";
 
 const VIRTUAL_AGENTS = [
-  { id: "mrf", name: "Mr.F", role: "Executive Orchestrator", icon: "crown", color: "text-yellow-500" },
-  { id: "l0-ops", name: "L0-Ops", role: "Operations Commander", icon: "settings", color: "text-blue-500" },
+  { id: "mrf", name: "Mr.F", role: "Executive Orchestrator", icon: "crown", color: "text-warning" },
+  { id: "l0-ops", name: "L0-Ops", role: "Operations Commander", icon: "settings", color: "text-primary" },
   { id: "l0-comms", name: "L0-Comms", role: "Communications Director", icon: "radio", color: "text-success" },
-  { id: "l0-intel", name: "L0-Intel", role: "Intelligence Analyst", icon: "brain", color: "text-purple-500" },
+  { id: "l0-intel", name: "L0-Intel", role: "Intelligence Analyst", icon: "brain", color: "text-secondary" },
   { id: "photographer", name: "Alex Vision", role: "Photography Specialist", icon: "camera", color: "text-pink-500" },
   { id: "grants", name: "Diana Grant", role: "Grants Specialist", icon: "file-text", color: "text-orange-500" },
-  { id: "legal", name: "Marcus Law", role: "Legal Advisor", icon: "scale", color: "text-red-500" },
-  { id: "finance", name: "Sarah Numbers", role: "Financial Analyst", icon: "trending-up", color: "text-emerald-500" },
-  { id: "creative", name: "Jordan Spark", role: "Creative Director", icon: "palette", color: "text-cyan-500" },
-  { id: "researcher", name: "Dr. Maya Quest", role: "Research Analyst", icon: "search", color: "text-indigo-500" },
+  { id: "legal", name: "Marcus Law", role: "Legal Advisor", icon: "scale", color: "text-destructive" },
+  { id: "finance", name: "Sarah Numbers", role: "Financial Analyst", icon: "trending-up", color: "text-success" },
+  { id: "creative", name: "Jordan Spark", role: "Creative Director", icon: "palette", color: "text-primary" },
+  { id: "researcher", name: "Dr. Maya Quest", role: "Research Analyst", icon: "search", color: "text-secondary" },
 ];
 
 const CAPABILITIES = [
@@ -169,12 +169,12 @@ const DATABASE_TABLES = [
 
 const INTEGRATIONS = [
   { name: "OpenAI", description: "GPT-4 for all agent responses", icon: Brain, status: "active", color: "text-success" },
-  { name: "ElevenLabs", description: "Text-to-speech synthesis", icon: Mic2, status: "active", color: "text-purple-500" },
-  { name: "Replit Auth", description: "OpenID Connect authentication", icon: Lock, status: "active", color: "text-blue-500" },
-  { name: "PostgreSQL", description: "Primary database storage", icon: Database, status: "active", color: "text-cyan-500" },
+  { name: "ElevenLabs", description: "Text-to-speech synthesis", icon: Mic2, status: "active", color: "text-secondary" },
+  { name: "Replit Auth", description: "OpenID Connect authentication", icon: Lock, status: "active", color: "text-primary" },
+  { name: "PostgreSQL", description: "Primary database storage", icon: Database, status: "active", color: "text-primary" },
   { name: "n8n", description: "Workflow automation webhooks", icon: Workflow, status: "ready", color: "text-orange-500" },
   { name: "Supabase", description: "Legacy queries only", icon: Cloud, status: "legacy", color: "text-gray-500" },
-  { name: "Twilio", description: "SMS capabilities", icon: MessageSquare, status: "configured", color: "text-red-500" },
+  { name: "Twilio", description: "SMS capabilities", icon: MessageSquare, status: "configured", color: "text-destructive" },
   { name: "Capacitor", description: "Android APK generation", icon: Smartphone, status: "ready", color: "text-success" },
 ];
 
@@ -207,10 +207,10 @@ function getAgentIcon(iconName: string) {
 function MethodBadge({ method }: { method: string }) {
   const colors: Record<string, string> = {
     GET: "bg-success/20 text-success border-success/30",
-    POST: "bg-blue-500/20 text-blue-400 border-blue-500/30",
-    PATCH: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
-    DELETE: "bg-red-500/20 text-red-400 border-red-500/30",
-    WS: "bg-purple-500/20 text-purple-400 border-purple-500/30",
+    POST: "bg-primary/20 text-primary border-primary/30",
+    PATCH: "bg-warning/20 text-warning border-warning/30",
+    DELETE: "bg-destructive/20 text-destructive border-destructive/30",
+    WS: "bg-secondary/20 text-secondary border-secondary/30",
   };
   return (
     <Badge variant="outline" className={`${colors[method] || ""} text-xs font-mono`}>
@@ -222,9 +222,9 @@ function MethodBadge({ method }: { method: string }) {
 function StatusIndicator({ status }: { status: string }) {
   const configs: Record<string, { color: string; label: string }> = {
     active: { color: "bg-success", label: "Active" },
-    ready: { color: "bg-yellow-500", label: "Ready" },
-    configured: { color: "bg-blue-500", label: "Configured" },
-    legacy: { color: "bg-gray-500", label: "Legacy" },
+    ready: { color: "bg-warning", label: "Ready" },
+    configured: { color: "bg-primary", label: "Configured" },
+    legacy: { color: "bg-muted", label: "Legacy" },
   };
   const config = configs[status] || configs.active;
   return (
@@ -269,11 +269,11 @@ export default function SystemArchitecture() {
               <CheckCircle2 className="w-3 h-3 ltr:mr-1 rtl:ml-1" />
               10 AI Agents
             </Badge>
-            <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/30">
+            <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30">
               <Layers className="w-3 h-3 ltr:mr-1 rtl:ml-1" />
               16 Pages
             </Badge>
-            <Badge variant="outline" className="bg-purple-500/10 text-purple-400 border-purple-500/30">
+            <Badge variant="outline" className="bg-secondary/10 text-secondary border-secondary/30">
               <Server className="w-3 h-3 ltr:mr-1 rtl:ml-1" />
               40+ APIs
             </Badge>
@@ -281,7 +281,7 @@ export default function SystemArchitecture() {
               <Database className="w-3 h-3 ltr:mr-1 rtl:ml-1" />
               20 Tables
             </Badge>
-            <Badge variant="outline" className="bg-orange-500/10 text-orange-400 border-orange-500/30">
+            <Badge variant="outline" className="bg-warning/10 text-warning border-warning/30">
               <Zap className="w-3 h-3 ltr:mr-1 rtl:ml-1" />
               Hardware Ready
             </Badge>
@@ -338,8 +338,8 @@ export default function SystemArchitecture() {
                       <div className="flex justify-center">
                         <ArrowRight className="w-4 h-4 text-muted-foreground rotate-90" />
                       </div>
-                      <div className="text-center p-4 bg-blue-500/10 rounded-lg border border-blue-500/30">
-                        <Smartphone className="w-8 h-8 mx-auto text-blue-400 mb-2" />
+                      <div className="text-center p-4 bg-primary/10 rounded-lg border border-primary/30">
+                        <Smartphone className="w-8 h-8 mx-auto text-primary mb-2" />
                         <p className="font-semibold text-sm">Mobile</p>
                         <p className="text-xs text-muted-foreground">Capacitor APK</p>
                       </div>
@@ -362,16 +362,16 @@ export default function SystemArchitecture() {
                     </div>
 
                     <div className="space-y-4">
-                      <div className="text-center p-4 bg-purple-500/10 rounded-lg border border-purple-500/30">
-                        <Brain className="w-8 h-8 mx-auto text-purple-400 mb-2" />
+                      <div className="text-center p-4 bg-secondary/10 rounded-lg border border-secondary/30">
+                        <Brain className="w-8 h-8 mx-auto text-secondary mb-2" />
                         <p className="font-semibold text-sm">AI Services</p>
                         <p className="text-xs text-muted-foreground">OpenAI + ElevenLabs</p>
                       </div>
                       <div className="flex justify-center">
                         <ArrowRight className="w-4 h-4 text-muted-foreground rotate-90" />
                       </div>
-                      <div className="text-center p-4 bg-orange-500/10 rounded-lg border border-orange-500/30">
-                        <Zap className="w-8 h-8 mx-auto text-orange-400 mb-2" />
+                      <div className="text-center p-4 bg-warning/10 rounded-lg border border-warning/30">
+                        <Zap className="w-8 h-8 mx-auto text-warning mb-2" />
                         <p className="font-semibold text-sm">Bio Sentinel</p>
                         <p className="text-xs text-muted-foreground">ESP32 + BME688</p>
                       </div>
@@ -381,12 +381,12 @@ export default function SystemArchitecture() {
                   <div className="mt-8 pt-6 border-t border-border">
                     <div className="flex items-center justify-center gap-4 flex-wrap">
                       <div className="flex items-center gap-2 px-3 py-1.5 bg-secondary/30 rounded-md">
-                        <Lock className="w-4 h-4 text-blue-400" />
+                        <Lock className="w-4 h-4 text-primary" />
                         <span className="text-xs">Replit Auth</span>
                       </div>
                       <ArrowRight className="w-4 h-4 text-muted-foreground" />
                       <div className="flex items-center gap-2 px-3 py-1.5 bg-secondary/30 rounded-md">
-                        <Workflow className="w-4 h-4 text-orange-400" />
+                        <Workflow className="w-4 h-4 text-warning" />
                         <span className="text-xs">n8n Webhooks</span>
                       </div>
                       <ArrowRight className="w-4 h-4 text-muted-foreground" />

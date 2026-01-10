@@ -325,7 +325,7 @@ export default function AdminControlPanel() {
 
         {/* System Overview Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card className="bg-slate-800/50 border-blue-500/30">
+          <Card className="bg-slate-800/50 border-primary/30">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm text-slate-300 flex items-center gap-2">
                 <Bot className="w-4 h-4" />
@@ -333,14 +333,14 @@ export default function AdminControlPanel() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold text-blue-400">{stats.activeAgents}</p>
+              <p className="text-3xl font-bold text-primary">{stats.activeAgents}</p>
               <p className="text-xs text-slate-400 mt-1">
                 {stats.totalAgents} Total
               </p>
             </CardContent>
           </Card>
 
-          <Card className="bg-slate-800/50 border-purple-500/30">
+          <Card className="bg-slate-800/50 border-secondary/30">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm text-slate-300 flex items-center gap-2">
                 <Briefcase className="w-4 h-4" />
@@ -348,7 +348,7 @@ export default function AdminControlPanel() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold text-purple-400">{stats.activeProjects}</p>
+              <p className="text-3xl font-bold text-secondary">{stats.activeProjects}</p>
               <p className="text-xs text-slate-400 mt-1">
                 {stats.totalProjects} Total
               </p>
@@ -370,7 +370,7 @@ export default function AdminControlPanel() {
             </CardContent>
           </Card>
 
-          <Card className="bg-slate-800/50 border-orange-500/30">
+          <Card className="bg-slate-800/50 border-warning/30">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm text-slate-300 flex items-center gap-2">
                 <Zap className="w-4 h-4" />
@@ -378,7 +378,7 @@ export default function AdminControlPanel() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold text-orange-400">
+              <p className="text-3xl font-bold text-warning">
                 {stats.avgResponseTime}ms
               </p>
               <p className="text-xs text-slate-400 mt-1">Avg Response</p>
@@ -419,19 +419,19 @@ export default function AdminControlPanel() {
                   <div>
                     <div className="flex justify-between text-sm mb-2">
                       <span>Agent Efficiency</span>
-                      <span className="text-blue-400">95.3%</span>
+                      <span className="text-primary">95.3%</span>
                     </div>
                     <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
-                      <div className="h-full bg-blue-500 w-[95.3%]" />
+                      <div className="h-full bg-primary w-[95.3%]" />
                     </div>
                   </div>
                   <div>
                     <div className="flex justify-between text-sm mb-2">
                       <span>Task Success Rate</span>
-                      <span className="text-purple-400">92.7%</span>
+                      <span className="text-secondary">92.7%</span>
                     </div>
                     <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
-                      <div className="h-full bg-purple-500 w-[92.7%]" />
+                      <div className="h-full bg-secondary w-[92.7%]" />
                     </div>
                   </div>
                 </div>
@@ -618,17 +618,17 @@ export default function AdminControlPanel() {
                             </p>
                             <div className="flex flex-wrap gap-2">
                               {(agent as any).specializations?.slice(0, 3).map((spec: string, idx: number) => (
-                                <Badge key={idx} className="text-xs bg-blue-500/20">
+                                <Badge key={idx} className="text-xs bg-primary/20">
                                   {spec}
                                 </Badge>
                               ))}
                             </div>
                           </div>
                           <div className="flex gap-2">
-                            <Button size="sm" variant="ghost" className="text-blue-400">
+                            <Button size="sm" variant="ghost" className="text-primary">
                               <Edit className="w-4 h-4" />
                             </Button>
-                            <Button size="sm" variant="ghost" className="text-red-400">
+                            <Button size="sm" variant="ghost" className="text-destructive">
                               <Trash2 className="w-4 h-4" />
                             </Button>
                           </div>
@@ -736,7 +736,7 @@ export default function AdminControlPanel() {
                               className={
                                 project.status === "active"
                                   ? "bg-success/20 text-success"
-                                  : "bg-yellow-500/20 text-yellow-400"
+                                  : "bg-warning/20 text-warning"
                               }
                             >
                               {project.status}
@@ -775,9 +775,9 @@ export default function AdminControlPanel() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                <div className="p-4 bg-primary/10 border border-primary/30 rounded-lg">
                   <h3 className="font-semibold mb-2 flex items-center gap-2">
-                    <Brain className="w-5 h-5 text-blue-400" />
+                    <Brain className="w-5 h-5 text-primary" />
                     Core Agent Status
                   </h3>
                   <div className="grid grid-cols-2 gap-4 text-sm">
@@ -832,7 +832,7 @@ export default function AdminControlPanel() {
                         key={idx}
                         className="p-3 bg-slate-700/50 rounded-lg flex items-start gap-3"
                       >
-                        <func.icon className="w-5 h-5 text-blue-400 mt-0.5" />
+                        <func.icon className="w-5 h-5 text-primary mt-0.5" />
                         <div>
                           <p className="font-medium text-sm">{func.title}</p>
                           <p className="text-xs text-slate-400">{func.desc}</p>
@@ -867,16 +867,16 @@ export default function AdminControlPanel() {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           {capability.type === "communication" && (
-                            <MessageSquare className="w-5 h-5 text-blue-400" />
+                            <MessageSquare className="w-5 h-5 text-primary" />
                           )}
                           {capability.type === "automation" && (
-                            <Zap className="w-5 h-5 text-purple-400" />
+                            <Zap className="w-5 h-5 text-secondary" />
                           )}
                           {capability.type === "analysis" && (
                             <BarChart3 className="w-5 h-5 text-success" />
                           )}
                           {capability.type === "integration" && (
-                            <Link className="w-5 h-5 text-orange-400" />
+                            <Link className="w-5 h-5 text-warning" />
                           )}
                           <div>
                             <h3 className="font-semibold">{capability.name}</h3>
@@ -890,7 +890,7 @@ export default function AdminControlPanel() {
                           onClick={() => handleToggleCapability(capability.id)}
                           className={
                             capability.enabled
-                              ? "bg-green-600 hover:bg-green-700"
+                              ? "bg-success hover:bg-success/80"
                               : "bg-slate-600 hover:bg-slate-700"
                           }
                         >

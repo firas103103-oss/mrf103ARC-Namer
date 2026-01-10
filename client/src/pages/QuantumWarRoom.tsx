@@ -291,8 +291,8 @@ export default function QuantumWarRoom() {
 
   const getRiskColor = (level: number) => {
     if (level < 40) return "text-success";
-    if (level < 70) return "text-yellow-400";
-    return "text-red-400";
+    if (level < 70) return "text-warning";
+    return "text-destructive";
   };
 
   const getOutcomeColor = (outcome?: string) => {
@@ -300,9 +300,9 @@ export default function QuantumWarRoom() {
       case "success":
         return "bg-success/20 text-success border-success/30";
       case "partial":
-        return "bg-yellow-500/20 text-yellow-400 border-yellow-500/30";
+        return "bg-warning/20 text-warning border-warning/30";
       case "failure":
-        return "bg-red-500/20 text-red-400 border-red-500/30";
+        return "bg-destructive/20 text-destructive border-destructive/30";
       default:
         return "bg-muted";
     }
@@ -729,8 +729,8 @@ export default function QuantumWarRoom() {
                     successProbability >= 75
                       ? "text-success"
                       : successProbability >= 50
-                        ? "text-yellow-400"
-                        : "text-red-400"
+                        ? "text-warning"
+                        : "text-destructive"
                   }
                 >
                   {successProbability >= 75
