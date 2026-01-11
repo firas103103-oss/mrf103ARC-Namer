@@ -34,3 +34,4 @@ PRODUCTION_STATUS_REPORT.md
 .env.production
 RAILWAY_VARIABLES_COMPLETE.txt
 EXTRACTED_REPOS/
+push-with-token.sh
