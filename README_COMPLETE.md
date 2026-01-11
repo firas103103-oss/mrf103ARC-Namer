@@ -355,7 +355,7 @@ cd mrf103ARC-Namer
 
 ### 2️⃣ تثبيت FORGE (XBook Engine)
 ```bash
-cd _FINAL_REPOS/2-xbook-engine
+cd _FINAL_REPOS_UNIFIED/2-xbook-engine
 npm install
 npm run build
 npm test
@@ -363,14 +363,14 @@ npm test
 
 ### 3️⃣ تشغيل COMMAND (ARC Ecosystem)
 ```bash
-cd _FINAL_REPOS/3-mrf103-arc-ecosystem
+cd _FINAL_REPOS_UNIFIED/3-mrf103-arc-ecosystem
 npm install
 npm run dev
 ```
 
 ### 4️⃣ فتح NEXUS (Landing Page)
 ```bash
-cd _FINAL_REPOS/1-mrf103-landing
+cd _FINAL_REPOS_UNIFIED/1-mrf103-landing
 # افتح index.html في المتصفح
 ```
 

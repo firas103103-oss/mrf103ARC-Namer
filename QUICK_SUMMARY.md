@@ -1,7 +1,7 @@
 # 📋 ملخص سريع - المنتجات الثمانية
 
 ## 🎯 نظرة عامة
-**MRF103 Ecosystem** = 8 منتجات + 4 مستودعات + 57 ملف + 484KB
+**MRF103 Ecosystem** = 8 منتجات + 1 مستودع موحد + 59 ملف + 488KB
 
 ---
 
@@ -41,22 +41,16 @@ XBook UI | ⏳ Planned
 
 ---
 
-## 📦 المستودعات
+## 📦 المستودع الموحد
 
-### `_FINAL_REPOS/` (284KB)
+### `_FINAL_REPOS_UNIFIED/` (488KB)
 - NEXUS (2 files)
 - FORGE (10 files)
 - COMMAND+PULSE (12 files)
-
-### `_FINAL_REPOS-1/` (200KB)
 - arc-namer-core (10 files)
 - arc-namer-cli (10 files)
 - arc-namer-vscode (11 files)
-
-### `root-monorepo` (661MB)
-- ARC app (31k+ files)
-- ECHO (cloning)
-- HIVE (virtual office)
+- Scripts (install, build, test)
 
 ---
 
@@ -93,9 +87,9 @@ XBook UI | ⏳ Planned
 - **الوكلاء:** 31
 - **الاختبارات:** 17 ✅
 - **التغطية:** 85%
-
----
-
+1 (موحد)
+- **الملفات:** 59
+- **الحجم:** 488
 ## 🎨 التصميم
 
 **Stellar Command Design System**
