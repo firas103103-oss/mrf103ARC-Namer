@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.env
+.env.local
+uploads/
+*.log
+.DS_Store
+build/
+.gradle/
+local.properties
+*.txt
