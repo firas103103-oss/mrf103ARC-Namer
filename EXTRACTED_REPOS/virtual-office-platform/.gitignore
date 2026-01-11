@@ -1,0 +1,27 @@
+node_modules
+dist
+.DS_Store
+*.log
+
+# Environment Variables
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode
+.idea
+
+# Uploads
+uploads/*
+!uploads/voice/.gitkeep
+!uploads/photos/.gitkeep
+!uploads/documents/.gitkeep
+
+# Build outputs
+dist/
+build/
+
+# Test
+coverage/
+.nyc_output/
