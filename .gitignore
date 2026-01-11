@@ -41,3 +41,4 @@ EXTRACTED_REPOS/
 
 # Deployment logs
 deployment_log_*.txt
+RAILWAY_ENV_SETUP.md
