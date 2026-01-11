@@ -6,6 +6,21 @@ import logger from '../utils/logger';
 
 const router = Router();
 
+// Optional Redis client - will be undefined if Redis is not configured
+let redisClient: any = null;
+try {
+  if (process.env.REDIS_URL) {
+    const { createClient } = require('redis');
+    redisClient = createClient({ url: process.env.REDIS_URL });
+    redisClient.connect().catch((err: any) => {
+      logger.warn('Redis connection failed, running without Redis:', err.message);
+      redisClient = null;
+    });
+  }
+} catch (err) {
+  logger.warn('Redis module not available, running without Redis');
+}
+
 interface HealthStatus {
   status: 'healthy' | 'degraded' | 'unhealthy';
   timestamp: string;
@@ -14,8 +29,10 @@ interface HealthStatus {
     database: ServiceStatus;
     supabase: ServiceStatus;
     memory: MemoryStatus;
+    redis?: ServiceStatus;
   };
   version?: string;
+  environment?: string;
 }
 
 interface ServiceStatus {
@@ -52,12 +69,16 @@ router.get('/health', async (req: Request, res: Response) => {
     // Check memory usage
     const memoryStatus = checkMemory();
     
-    // Determine overall status
-    const overallStatus = determineOverallStatus([
+    // Check Redis if available
+    const redisStatus = await checkRedis();
+    
+    // Determine overall status - Redis is optional
+    const criticalStatuses = [
       dbStatus.status,
       supabaseStatus.status,
       memoryStatus.status
-    ]);
+    ];
+    const overallStatus = determineOverallStatus(criticalStatuses);
     
     const health: HealthStatus = {
       status: overallStatus,
@@ -68,8 +89,14 @@ router.get('/health', async (req: Request, res: Response) => {
         supabase: supabaseStatus,
         memory: memoryStatus,
       },
-      version: process.env.npm_package_version || '1.0.0',
+      version: process.env.npm_package_version || '2.1.0',
+      environment: process.env.NODE_ENV || 'development',
     };
+    
+    // Add Redis status if configured
+    if (redisStatus) {
+      health.services.redis = redisStatus;
+    }
     
     const statusCode = overallStatus === 'healthy' ? 200 : 
                        overallStatus === 'degraded' ? 200 : 503;
@@ -232,6 +259,33 @@ function formatBytes(bytes: number): string {
   const sizes = ['Bytes', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+}
+
+async function checkRedis(): Promise<ServiceStatus | null> {
+  // If Redis is not configured, return null (optional service)
+  if (!redisClient) {
+    return null;
+  }
+  
+  const start = Date.now();
+  
+  try {
+    // Simple ping to check Redis connectivity
+    await redisClient.ping();
+    
+    const responseTime = Date.now() - start;
+    
+    return {
+      status: 'up',
+      responseTime,
+    };
+  } catch (error) {
+    return {
+      status: 'down',
+      responseTime: Date.now() - start,
+      message: error instanceof Error ? error.message : 'Redis check failed',
+    };
+  }
 }
 
 /**
