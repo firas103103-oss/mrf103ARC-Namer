@@ -188,5 +188,14 @@
   },
   "optionalDependencies": {
     "bufferutil": "^4.1.0"
+  },
+  "overrides": {
+    "@esbuild-kit/core-utils": {
+      "esbuild": "^0.25.12"
+    },
+    "@esbuild-kit/esm-loader": {
+      "@esbuild-kit/core-utils": "^3.3.2",
+      "esbuild": "^0.25.12"
+    }
   }
 }

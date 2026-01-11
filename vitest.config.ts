@@ -1,6 +1,11 @@
 import { defineConfig } from "vitest/config";
 import path from "path";
 
+// Provide a safe fallback DATABASE_URL during tests to avoid crashy imports
+if (!process.env.DATABASE_URL) {
+  process.env.DATABASE_URL = "postgres://postgres:postgres@localhost:5432/test_db";
+}
+
 export default defineConfig({
   test: {
     globals: true,
