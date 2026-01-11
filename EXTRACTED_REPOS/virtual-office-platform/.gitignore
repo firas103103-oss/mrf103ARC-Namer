@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.env
+.env.local
+uploads/**/*
+!uploads/.gitkeep
+!uploads/cloning/.gitkeep
+*.log
+.DS_Store
