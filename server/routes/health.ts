@@ -7,17 +7,19 @@ import logger from '../utils/logger';
 const router = Router();
 
 // Optional Redis client - will be undefined if Redis is not configured
-let redisClient: any = null;
+let redisClient: any = null; // Using any since Redis is optional and may not be installed
 try {
   if (process.env.REDIS_URL) {
-    const { createClient } = require('redis');
-    redisClient = createClient({ url: process.env.REDIS_URL });
-    redisClient.connect().catch((err: any) => {
+    // Dynamic import to handle optional Redis dependency
+    const redis = require('redis');
+    redisClient = redis.createClient({ url: process.env.REDIS_URL });
+    redisClient.connect().catch((err: Error) => {
       logger.warn('Redis connection failed, running without Redis:', err.message);
       redisClient = null;
     });
   }
 } catch (err) {
+  // Redis module not installed or failed to load
   logger.warn('Redis module not available, running without Redis');
 }
 
@@ -89,7 +91,7 @@ router.get('/health', async (req: Request, res: Response) => {
         supabase: supabaseStatus,
         memory: memoryStatus,
       },
-      version: process.env.npm_package_version || '2.1.0',
+      version: process.env.npm_package_version || '2.1.0', // Fallback version if npm_package_version not set
       environment: process.env.NODE_ENV || 'development',
     };
     

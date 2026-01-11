@@ -96,7 +96,7 @@ jobs:
           du -sh dist/index.cjs
       
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: dist
           path: dist/
@@ -114,7 +114,7 @@ jobs:
         continue-on-error: true
       
       - name: Check for secrets
-        uses: trufflesecurity/trufflehog@main
+        uses: trufflesecurity/trufflehog@v3.63.2
         with:
           path: ./
           base: main
