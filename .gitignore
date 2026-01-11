@@ -35,3 +35,10 @@ PRODUCTION_STATUS_REPORT.md
 RAILWAY_VARIABLES_COMPLETE.txt
 EXTRACTED_REPOS/
 push-with-token.sh
+
+# Extracted repositories (stored separately on GitHub)
+_FINAL_REPOS-1/
+EXTRACTED_REPOS/
+
+# Deployment logs
+deployment_log_*.txt
