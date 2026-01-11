@@ -8,20 +8,37 @@ const router = Router();
 
 // Optional Redis client - will be undefined if Redis is not configured
 let redisClient: any = null; // Using any since Redis is optional and may not be installed
-try {
-  if (process.env.REDIS_URL) {
-    // Dynamic import to handle optional Redis dependency
-    const redis = require('redis');
-    redisClient = redis.createClient({ url: process.env.REDIS_URL });
-    redisClient.connect().catch((err: Error) => {
-      logger.warn('Redis connection failed, running without Redis:', err.message);
-      redisClient = null;
-    });
+let redisConnected = false; // Track Redis connection state
+
+// Initialize Redis connection if configured
+(async () => {
+  try {
+    if (process.env.REDIS_URL) {
+      // Dynamic import to handle optional Redis dependency
+      const redis = require('redis');
+      redisClient = redis.createClient({ url: process.env.REDIS_URL });
+      
+      // Handle connection events
+      redisClient.on('connect', () => {
+        redisConnected = true;
+        logger.info('✅ Redis connected successfully');
+      });
+      
+      redisClient.on('error', (err: Error) => {
+        redisConnected = false;
+        logger.warn('Redis error:', err.message);
+      });
+      
+      // Attempt connection
+      await redisClient.connect();
+    }
+  } catch (err) {
+    // Redis module not installed or failed to load
+    redisClient = null;
+    redisConnected = false;
+    logger.warn('Redis module not available, running without Redis');
   }
-} catch (err) {
-  // Redis module not installed or failed to load
-  logger.warn('Redis module not available, running without Redis');
-}
+})();
 
 interface HealthStatus {
   status: 'healthy' | 'degraded' | 'unhealthy';
@@ -265,7 +282,7 @@ function formatBytes(bytes: number): string {
 
 async function checkRedis(): Promise<ServiceStatus | null> {
   // If Redis is not configured, return null (optional service)
-  if (!redisClient) {
+  if (!redisClient || !redisConnected) {
     return null;
   }
   
@@ -282,6 +299,7 @@ async function checkRedis(): Promise<ServiceStatus | null> {
       responseTime,
     };
   } catch (error) {
+    redisConnected = false; // Update connection state on error
     return {
       status: 'down',
       responseTime: Date.now() - start,
