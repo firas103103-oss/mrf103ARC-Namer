@@ -10,7 +10,7 @@ const router = Router();
 router.get("/health", async (req: Request, res: Response) => {
   try {
     // Test database connection
-    await db.execute`SELECT 1`;
+    await db.execute("SELECT 1" as any);
     
     return res.status(200).json({
       status: "ok",
