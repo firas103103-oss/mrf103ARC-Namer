@@ -3,7 +3,7 @@
  * @package @mrf103/xbook-engine
  */
 
-import React, { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
 import { XBookEngine, createXBookEngine } from '../core';
 import type { XBookEngineConfig, Book, BookGenre } from '../types';
 

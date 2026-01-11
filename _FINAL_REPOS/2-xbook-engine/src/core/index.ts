@@ -5,10 +5,8 @@
 
 import type {
   AIProvider,
-  AIProviderConfig,
   Book,
   BookGenre,
-  Chapter,
   GenerationRequest,
   GenerationResult,
   XBookEngineConfig,

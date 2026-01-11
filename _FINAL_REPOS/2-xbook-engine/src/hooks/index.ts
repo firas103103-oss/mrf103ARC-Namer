@@ -41,7 +41,7 @@ interface GenerationState {
 
 export function useXBookEngine(
   engine: XBookEngine | null,
-  options: UseXBookEngineOptions = {}
+  _options: UseXBookEngineOptions = {}
 ) {
   const [isReady, setIsReady] = useState(false);
   const [provider, setProvider] = useState(engine?.getProvider() || null);

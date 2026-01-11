@@ -87,10 +87,12 @@ export function extractHeadings(markdown: string): Array<{ level: number; text: 
   
   let match;
   while ((match = headingRegex.exec(markdown)) !== null) {
-    headings.push({
-      level: match[1].length,
-      text: match[2].trim(),
-    });
+    if (match[1] && match[2]) {
+      headings.push({
+        level: match[1].length,
+        text: match[2].trim(),
+      });
+    }
   }
   
   return headings;
@@ -186,7 +188,7 @@ export function isValidURL(url: string): boolean {
  * Format date to ISO string (date only)
  */
 export function formatDate(date: Date): string {
-  return date.toISOString().split('T')[0];
+  return date.toISOString().split('T')[0] || '';
 }
 
 /**
@@ -240,7 +242,9 @@ export function shuffleArray<T>(array: T[]): T[] {
   const shuffled = [...array];
   for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    const temp = shuffled[i];
+    shuffled[i] = shuffled[j] as T;
+    shuffled[j] = temp as T;
   }
   return shuffled;
 }
