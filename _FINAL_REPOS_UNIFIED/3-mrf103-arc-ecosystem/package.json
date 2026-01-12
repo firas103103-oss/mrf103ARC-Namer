@@ -20,9 +20,10 @@
   "scripts": {
     "dev": "tsx -r dotenv/config server/index.ts",
     "dev:client": "vite",
-    "build": "tsx scripts/build.ts",
+    "build": "npm run build:client && npm run build:server",
     "build:client": "vite build",
-    "start": "NODE_ENV=production node dist/index.cjs",
+    "build:server": "tsc -p tsconfig.server.json",
+    "start": "node dist/server/server/index.js",
     "check": "tsc --noEmit",
     "db:push": "drizzle-kit push",
     "db:migrate": "drizzle-kit migrate",
@@ -71,7 +72,7 @@
     "recharts": "^2.15.0",
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1",
-    "tailwind-merge": "^2.7.0",
+    "tailwind-merge": "^2.6.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {

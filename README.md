@@ -10,12 +10,29 @@
 [![Design System](https://img.shields.io/badge/design-Stellar%20Command-purple)](https://github.com/firas103103-oss/mrf103ARC-Namer)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
-> **تاريخ التحديث الأخير:** 10 يناير 2026  
+> **تاريخ التحديث الأخير:** 11 يناير 2026  
 > **النسخة:** v2.1.0  
 > **التصميم:** Stellar Command OS ✨  
 > **الحالة:** Production Ready ✅
 
 Enterprise-grade AI orchestration platform featuring **Stellar Command design system**, 31-agent hierarchy, real-time monitoring, glassmorphism UI, cyberpunk aesthetics, and comprehensive multi-domain operations. Built with React 18, TypeScript 5.6, Express 4, PostgreSQL, and GPT-4 integration.
+
+---
+
+## 🗂️ **MRF103 Ecosystem - Extracted Repositories**
+
+The MRF103 platform has been modularized into **6 independent repositories**:
+
+| # | Repository | Description | Status |
+|---|------------|-------------|--------|
+| 1 | [**mrf103-landing**](https://github.com/firas103103-oss/mrf103-landing) | 🌐 NEXUS Portal - Official Landing Page | ✅ Live |
+| 2 | [**xbook-engine**](https://github.com/firas103103-oss/xbook-engine) | 🔥 FORGE Engine - AI Content Generation | ✅ NPM Package |
+| 3 | [**mrf103-arc-ecosystem**](https://github.com/firas103103-oss/mrf103-arc-ecosystem) | 🎯 COMMAND Platform - Full Stack System | ✅ Production |
+| 4 | [**arc-namer-core**](https://github.com/firas103103-oss/arc-namer-core) | 📚 Core Library - Naming Utilities | ✅ NPM Package |
+| 5 | [**arc-namer-cli**](https://github.com/firas103103-oss/arc-namer-cli) | ⚡ CLI Tool - Command Line Interface | ✅ Binary |
+| 6 | [**arc-namer-vscode**](https://github.com/firas103103-oss/arc-namer-vscode) | 🎨 VS Code Extension - IDE Integration | ✅ Marketplace Ready |
+
+> **Note:** This repository (`mrf103ARC-Namer`) serves as the **monorepo parent** and contains the unified ecosystem documentation.
 
 ---
 

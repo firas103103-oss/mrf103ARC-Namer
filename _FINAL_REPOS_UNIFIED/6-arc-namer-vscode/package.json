@@ -14,9 +14,6 @@
   ],
   "author": "firas103103-oss",
   "license": "MIT",
-  "dependencies": {
-    "vscode": "^1.60.0"
-  },
   "devDependencies": {
     "@types/vscode": "^1.60.0",
     "typescript": "^4.4.3",
