@@ -1,0 +1,11 @@
+{
+  "name": "mrf103-landing",
+  "version": "2.1.0",
+  "description": "MRF103 Holdings Landing Page - Static HTML Site",
+  "scripts": {
+    "start": "npx serve -s . -l ${PORT:-3000}"
+  },
+  "keywords": ["landing-page", "static-site"],
+  "author": "firas103103-oss",
+  "license": "MIT"
+}

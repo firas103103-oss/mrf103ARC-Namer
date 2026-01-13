@@ -1,0 +1,162 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+env:
+  NODE_VERSION: "20.x"
+
+jobs:
+  # =====================================
+  # Job 1: Lint & Type Check
+  # =====================================
+  lint:
+    name: 🔍 Lint & Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+      
+      - name: Type check
+        run: npm run check
+      
+      - name: Lint (if available)
+        run: npm run lint --if-present
+        continue-on-error: true
+
+  # =====================================
+  # Job 2: Security Audit
+  # =====================================
+  security:
+    name: 🔒 Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      
+      - name: Run npm audit
+        run: npm audit --audit-level=moderate || true
+      
+      - name: Check for vulnerabilities
+        run: |
+          echo "Checking for known vulnerabilities..."
+          npm audit --json > audit-report.json || true
+      
+      - name: Upload audit report
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-audit
+          path: audit-report.json
+          retention-days: 30
+
+  # =====================================
+  # Job 3: Run Tests
+  # =====================================
+  test:
+    name: 🧪 Run Tests
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+      
+      - name: Run tests
+        run: npm test
+        env:
+          NODE_ENV: test
+        continue-on-error: true
+
+  # =====================================
+  # Job 4: Build
+  # =====================================
+  build:
+    name: 🏗️ Build
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+      
+      - name: Build
+        run: npm run build
+      
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+          retention-days: 7
+
+  # =====================================
+  # Job 5: Deploy (Production only)
+  # =====================================
+  deploy:
+    name: 🚀 Deploy to Railway
+    runs-on: ubuntu-latest
+    needs: [lint, security, test, build]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment:
+      name: production
+      url: https://app.mrf103.com
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Verify deployment
+        run: |
+          echo "🚀 Railway auto-deploys on push to main"
+          echo "✅ Checking deployment..."
+          sleep 30
+          curl -f https://app.mrf103.com/api/health || echo "⚠️ Site not ready yet"
+
+  # =====================================
+  # Job 6: Notify
+  # =====================================
+  notify:
+    name: 📊 Pipeline Summary
+    runs-on: ubuntu-latest
+    needs: [lint, security, test, build]
+    if: always()
+    steps:
+      - name: Pipeline status
+        run: |
+          echo "📊 Pipeline Results:"
+          echo "  🔍 Lint: ${{ needs.lint.result }}"
+          echo "  🔒 Security: ${{ needs.security.result }}"
+          echo "  🧪 Test: ${{ needs.test.result }}"
+          echo "  🏗️ Build: ${{ needs.build.result }}"
+          echo ""
+          echo "📦 Branch: ${{ github.ref_name }}"
+          echo "📝 Commit: ${{ github.sha }}"
+          echo "👤 Author: ${{ github.actor }}"
+

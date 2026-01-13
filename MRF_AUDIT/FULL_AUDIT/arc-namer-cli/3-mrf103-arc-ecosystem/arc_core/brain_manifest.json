@@ -1,0 +1,108 @@
+/**
+ * ARC Core - Brain Manifest
+ * 31-Agent Hierarchy Configuration
+ */
+
+{
+  "version": "2.1.0",
+  "name": "ARC Brain Manifest",
+  "description": "Multi-tier AI Agent orchestration system",
+  "hierarchy": {
+    "tier_0": {
+      "name": "Strategic Command",
+      "agents": [
+        {
+          "id": "mrf",
+          "name": "Mr.F",
+          "role": "CEO",
+          "title": "Strategic Commander",
+          "capabilities": ["strategic_planning", "final_decision", "resource_allocation", "vision_setting"],
+          "directReports": ["genius", "quantum", "oracle", "sentinel", "architect", "catalyst"]
+        }
+      ]
+    },
+    "tier_1": {
+      "name": "Executive Directors",
+      "agents": [
+        {
+          "id": "genius",
+          "name": "Dr. Genius",
+          "role": "CIO",
+          "title": "Chief Innovation Officer",
+          "capabilities": ["innovation_strategy", "research_direction", "patent_review", "tech_evaluation"],
+          "reportsTo": "mrf"
+        },
+        {
+          "id": "quantum",
+          "name": "Quantum",
+          "role": "CTO",
+          "title": "Chief Technology Officer",
+          "capabilities": ["tech_architecture", "system_design", "performance_optimization", "scalability"],
+          "reportsTo": "mrf"
+        },
+        {
+          "id": "oracle",
+          "name": "Oracle",
+          "role": "CDO",
+          "title": "Chief Data Officer",
+          "capabilities": ["data_strategy", "analytics", "ml_operations", "data_governance"],
+          "reportsTo": "mrf"
+        },
+        {
+          "id": "sentinel",
+          "name": "Sentinel",
+          "role": "CSO",
+          "title": "Chief Security Officer",
+          "capabilities": ["security_policy", "threat_assessment", "compliance", "incident_response"],
+          "reportsTo": "mrf"
+        },
+        {
+          "id": "architect",
+          "name": "Architect",
+          "role": "CAO",
+          "title": "Chief Architecture Officer",
+          "capabilities": ["system_architecture", "design_patterns", "code_review", "technical_debt"],
+          "reportsTo": "mrf"
+        },
+        {
+          "id": "catalyst",
+          "name": "Catalyst",
+          "role": "CGO",
+          "title": "Chief Growth Officer",
+          "capabilities": ["growth_strategy", "market_analysis", "partnership", "expansion"],
+          "reportsTo": "mrf"
+        }
+      ]
+    },
+    "tier_2": {
+      "name": "Department Managers",
+      "count": 10,
+      "roles": ["Finance", "Operations", "R&D", "Legal", "Integration", "Quality", "Support", "Marketing", "HR", "Procurement"]
+    },
+    "tier_3": {
+      "name": "Domain Specialists",
+      "count": 14,
+      "roles": ["Frontend", "Backend", "AI/ML", "DevOps", "Security", "Database", "Mobile", "API", "Testing", "Documentation", "UX", "Infrastructure", "Analytics", "Automation"]
+    }
+  },
+  "workflows": {
+    "task_delegation": {
+      "description": "Top-down task delegation through hierarchy",
+      "flow": ["mrf", "tier_1", "tier_2", "tier_3"]
+    },
+    "escalation": {
+      "description": "Bottom-up issue escalation",
+      "flow": ["tier_3", "tier_2", "tier_1", "mrf"]
+    },
+    "collaboration": {
+      "description": "Peer-to-peer collaboration within tiers",
+      "enabled": true
+    }
+  },
+  "config": {
+    "maxConcurrentAgents": 10,
+    "taskTimeout": 300000,
+    "retryAttempts": 3,
+    "loggingLevel": "info"
+  }
+}

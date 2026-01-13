@@ -1,0 +1,1508 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="MRF103 - هندسة اللامرئي | حلول تقنية متقدمة في الذكاء الاصطناعي، السحابة، وتحليل البيانات | الرياض، المملكة العربية السعودية">
+    <meta name="keywords" content="MRF103, الذكاء الاصطناعي, تحليل البيانات, الحوسبة السحابية, استشارات تقنية, الرياض">
+    <meta name="author" content="MRF103">
+    <meta property="og:title" content="MRF103 | ENGINEERING THE INVISIBLE">
+    <meta property="og:description" content="هندسة اللامرئي... صناعة الحلول المستدامة">
+    <meta property="og:type" content="website">
+    <meta name="theme-color" content="#050505">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <title>MRF103 | ENGINEERING THE INVISIBLE</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;700&family=Tajawal:wght@300;500;800&display=swap');
+
+        :root {
+            --bg-color: #050505;
+            --terminal-green: #10b981;
+            --cyber-gold: #d4af37;
+            --alert-red: #ff3333;
+            --glass-panel: rgba(20, 20, 20, 0.85);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: none; /* إخفاء الماوس لعمل ماوس خاص */
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: #e0e0e0;
+            font-family: 'Tajawal', sans-serif;
+            overflow-x: hidden;
+            min-height: 100vh;
+            scroll-behavior: smooth;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Loading screen */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+        .loading-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .loader {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(212, 175, 55, 0.3);
+            border-top-color: var(--cyber-gold);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* تأثيرات الخلفية */
+        #canvas-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.4;
+        }
+
+        /* الماوس المخصص */
+        .custom-cursor {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--cyber-gold);
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 10001;
+            transform: translate(-50%, -50%);
+            transition: width 0.2s ease, height 0.2s ease, border-color 0.2s ease;
+            mix-blend-mode: difference;
+        }
+
+        .custom-cursor.hovered {
+            width: 50px;
+            height: 50px;
+            background-color: rgba(212, 175, 55, 0.1);
+            border-color: var(--terminal-green);
+        }
+        
+        .custom-cursor.pulse-active::before,
+        .custom-cursor.pulse-active::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border: 2px solid var(--terminal-green);
+            border-radius: 50%;
+            animation: cursorPulse 1s ease-out infinite;
+        }
+        
+        .custom-cursor.pulse-active::after {
+            animation-delay: 0.5s;
+        }
+        
+        @keyframes cursorPulse {
+            0% {
+                width: 20px;
+                height: 20px;
+                opacity: 0.8;
+            }
+            100% {
+                width: 60px;
+                height: 60px;
+                opacity: 0;
+            }
+        }
+        
+        /* Cursor trail effect */
+        .cursor-trail {
+            position: fixed;
+            width: 4px;
+            height: 4px;
+            background: var(--cyber-gold);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 10000;
+            opacity: 0.6;
+            transition: opacity 0.3s;
+        }
+
+        /* Hide custom cursor on touch devices */
+        @media (hover: none) and (pointer: coarse) {
+            .custom-cursor {
+                display: none;
+            }
+            * {
+                cursor: auto !important;
+            }
+        }
+
+        /* الحاوية الرئيسية */
+        .terminal-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+            z-index: 2;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            opacity: 0;
+            animation: fadeIn 1s ease forwards;
+            animation-delay: 0.3s;
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* الهيدر */
+        header {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 1rem;
+            margin-bottom: 4rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--cyber-gold);
+            letter-spacing: 2px;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            background-color: var(--terminal-green);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--terminal-green);
+            animation: pulse 2s infinite;
+            position: relative;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .status-dot::before,
+        .status-dot::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border: 2px solid var(--terminal-green);
+            border-radius: 50%;
+            opacity: 0;
+        }
+        
+        /* Scroll Progress Bar */
+        .scroll-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--terminal-green), var(--cyber-gold));
+            z-index: 9999;
+            box-shadow: 0 0 10px var(--terminal-green);
+            transition: width 0.1s ease-out;
+        }
+        
+        /* BPM Display Animation */
+        #bpm-display {
+            transition: all 0.3s;
+        }
+        
+        #bpm-value {
+            font-weight: 700;
+            color: var(--terminal-green);
+            text-shadow: 0 0 8px var(--terminal-green);
+        }
+
+        /* النصوص الرئيسية */
+        .hero-section h1 {
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, #fff 0%, var(--cyber-gold) 50%, #888 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-size: 200% 200%;
+            animation: gradientShift 5s ease infinite;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .hero-section p {
+            font-size: clamp(0.9rem, 2vw, 1.2rem);
+            color: #888;
+            max-width: 600px;
+            margin-bottom: 3rem;
+            font-family: 'JetBrains Mono', monospace;
+            line-height: 1.6;
+        }
+
+        /* الشبكة (المنتجات) */
+        .grid-system {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+            gap: 24px;
+            margin-bottom: 3rem;
+        }
+
+        @media (min-width: 768px) {
+            .grid-system {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .grid-system {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 2rem;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            text-decoration: none;
+            color: inherit;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 8px;
+            will-change: transform;
+            transform-style: preserve-3d;
+            perspective: 1000px;
+        }
+        
+        .card-inner {
+            position: relative;
+            z-index: 2;
+            transition: transform 0.3s;
+        }
+
+        .card h2, .card h3, .card p {
+            position: relative;
+            z-index: 2;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 2px;
+            height: 0;
+            background: linear-gradient(to bottom, var(--cyber-gold), var(--terminal-green));
+            transition: height 0.4s ease;
+            box-shadow: 0 0 10px var(--cyber-gold);
+        }
+
+        .card::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(212, 175, 55, 0.1), transparent);
+            transform: rotate(45deg);
+            transition: all 0.6s ease;
+            opacity: 0;
+        }
+        
+        /* تأثير Scan Line */
+        .card .scan-line {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--terminal-green), transparent);
+            opacity: 0;
+            transition: all 0.3s;
+        }
+        
+        .card:hover .scan-line {
+            opacity: 1;
+            animation: scan 2s linear infinite;
+        }
+        
+        @keyframes scan {
+            0% { top: 0; }
+            100% { top: 100%; }
+        }
+
+        .card:hover::after {
+            animation: shine 1.5s infinite;
+            opacity: 1;
+        }
+
+        @keyframes shine {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+
+        .card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateY(-8px) scale(1.02);
+            border-color: rgba(212, 175, 55, 0.5);
+            box-shadow: 0 20px 40px rgba(212, 175, 55, 0.15), 0 0 20px rgba(51, 255, 0, 0.1);
+        }
+        
+        /* Glitch Effect للعناوين */
+        @keyframes glitch {
+            0% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); }
+            100% { transform: translate(0); }
+        }
+        
+        .hero-section h1.glitch-active {
+            animation: glitch 0.3s;
+        }
+
+        .card:hover::before {
+            height: 100%;
+        }
+
+        .card h3 {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--cyber-gold);
+            margin-bottom: 0.75rem;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .card h2 {
+            font-size: clamp(1.2rem, 3vw, 1.5rem);
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .card p {
+            font-size: 0.9rem;
+            color: #999;
+            margin-bottom: 0;
+            line-height: 1.5;
+        }
+
+        /* الفوتر (الاتصال) */
+        .footer-contact {
+            margin-top: 5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: 'JetBrains Mono', monospace;
+            color: #888;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .contact-item:hover {
+            color: var(--terminal-green);
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
+        }
+
+        /* Sound Toggle Button */
+        .sound-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(212, 175, 55, 0.1);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            color: var(--cyber-gold);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+        }
+        
+        .sound-toggle:hover {
+            background: rgba(212, 175, 55, 0.2);
+            border-color: var(--cyber-gold);
+            transform: translateY(-2px);
+        }
+        
+        .sound-toggle.active {
+            background: rgba(212, 175, 55, 0.2);
+            border-color: var(--terminal-green);
+            color: var(--terminal-green);
+        }
+        
+        .sound-toggle.active .sound-icon {
+            animation: soundPulse 1s ease infinite;
+        }
+        
+        @keyframes soundPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+        
+        /* للجوال */
+        @media (max-width: 768px) {
+            .hero-section h1 { 
+                font-size: 2rem;
+                margin-bottom: 1rem;
+            }
+            .terminal-container { 
+                padding: 1.5rem 1rem;
+            }
+            .footer-contact { 
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1.5rem;
+            }
+            .grid-system {
+                gap: 16px;
+                grid-template-columns: 1fr;
+            }
+            .card {
+                padding: 1.5rem;
+            }
+            header {
+                margin-bottom: 2rem;
+            }
+            .logo {
+                font-size: 1.2rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .terminal-container {
+                padding: 1rem 0.75rem;
+            }
+            .hero-section p {
+                font-size: 0.9rem;
+            }
+        }
+
+        /* نظام الإضاءة الديناميكية */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(
+                circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+                rgba(212, 175, 55, 0.05) 0%,
+                rgba(51, 255, 0, 0.03) 30%,
+                transparent 70%
+            );
+            pointer-events: none;
+            z-index: 1;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        body.lighting-active::before {
+            opacity: 1;
+        }
+        
+        /* Performance optimizations */
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* Print styles */
+        @media print {
+            .custom-cursor,
+            #canvas-bg,
+            .loading-screen {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Scroll Progress Bar -->
+    <div class="scroll-progress" id="scrollProgress" style="width: 0%;"></div>
+
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loader"></div>
+    </div>
+
+    <div class="custom-cursor" id="cursor"></div>
+
+    <canvas id="canvas-bg"></canvas>
+
+    <div class="terminal-container">
+        <header>
+            <div class="logo">MRF103_SYSTEM</div>
+            <div style="display: flex; gap: 15px; align-items: center;">
+                <div id="bpm-display" style="font-family: 'JetBrains Mono'; font-size: 11px; color: #666; display: flex; align-items: center; gap: 8px;">
+                    <span style="color: var(--terminal-green);">◆</span>
+                    <span id="bpm-value">60</span> BPM
+                </div>
+                <span style="font-family: 'JetBrains Mono'; font-size: 12px; color: #666;">NEURAL_LINK</span>
+                <div class="status-dot" id="statusDot"></div>
+            </div>
+        </header>
+
+        <section class="hero-section">
+            <h1 id="typewriter"></h1>
+            <p>> ACCESSING CLASSIFIED PROTOCOLS...<br>> VISION 2030 ALIGNMENT: CONFIRMED.</p>
+        </section>
+
+        <div class="grid-system">
+            <a href="https://author.mrf103.com" class="card hover-trigger">
+                <div class="scan-line"></div>
+                <h3>// PROTOCOL_01</h3>
+                <h2>The Seventh Shadow</h2>
+                <p>محرك النشر الذكي | المعالجة المعرفية للبيانات.</p>
+            </a>
+
+            <a href="https://app.mrf103.com" class="card hover-trigger">
+                <div class="scan-line"></div>
+                <h3>// PROTOCOL_02</h3>
+                <h2>ARC Enterprise</h2>
+                <p>نظام التشغيل المركزي | إدارة الموارد الحيوية.</p>
+            </a>
+
+            <a href="https://xbio.mrf103.com" class="card hover-trigger">
+                <div class="scan-line"></div>
+                <h3>// PROTOCOL_03</h3>
+                <h2>XBio Sentinel</h2>
+                <p>وحدة الاستشعار البيئي | تحليل البيانات الحيوية.</p>
+            </a>
+            
+            <a href="https://consult.mrf103.com" class="card hover-trigger">
+                <div class="scan-line"></div>
+                <h3>// FOUNDATION_LEGACY</h3>
+                <h2>MrF Consultancy</h2>
+                <p>استشارات النظم المعقدة | خبرة تشغيلية 10 سنوات.</p>
+            </a>
+
+            <a href="https://ai.mrf103.com" class="card hover-trigger">
+                <div class="scan-line"></div>
+                <h3>// PROTOCOL_04</h3>
+                <h2>Neural Forge</h2>
+                <p>منصة الذكاء الاصطناعي | معالجة اللغة الطبيعية.</p>
+            </a>
+
+            <a href="https://cloud.mrf103.com" class="card hover-trigger">
+                <div class="scan-line"></div>
+                <h3>// PROTOCOL_05</h3>
+                <h2>Cloud Matrix</h2>
+                <p>البنية التحتية السحابية | حلول الأمن السيبراني.</p>
+            </a>
+
+            <a href="https://analytics.mrf103.com" class="card hover-trigger">
+                <div class="scan-line"></div>
+                <h3>// PROTOCOL_06</h3>
+                <h2>Data Nexus</h2>
+                <p>محرك التحليلات المتقدم | رؤى استراتيجية فورية.</p>
+            </a>
+        </div>
+
+        <footer class="footer-contact">
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <span style="display: block; font-size: 12px; color: #444; margin-bottom: 5px;">DIRECT LINES:</span>
+                <a href="tel:+966555103103" class="contact-item hover-trigger" data-sound="true">+966 55 510 3103</a>
+                <a href="tel:+966505103103" class="contact-item hover-trigger" data-sound="true">+966 50 510 3103</a>
+                <a href="tel:+966591652030" class="contact-item hover-trigger" data-sound="true">+966 59 165 2030</a>
+            </div>
+            <div>
+                <span style="display: block; font-size: 12px; color: #444; margin-bottom: 5px;">ENCRYPTED MAIL:</span>
+                <a href="mailto:Mr.F@MrF103.com" class="contact-item hover-trigger" data-sound="true">Mr.F@MrF103.com</a>
+            </div>
+            <div style="text-align: left; display: flex; flex-direction: column; gap: 10px;">
+                <button id="soundToggle" class="sound-toggle" title="تفعيل/تعطيل الأصوات">
+                    <span class="sound-icon">🔊</span>
+                    <span class="sound-status">OFF</span>
+                </button>
+                <span style="font-size: 10px; color: #333;">© 2026 MRF103 ARC. RIYADH, KSA.</span>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // ═══════════════════════════════════════════════════════════════
+        // 🧬 BIOPULSE ENGINE - محرك النبض البيوتقني الذكي
+        // ═══════════════════════════════════════════════════════════════
+        
+        class BioPulseEngine {
+            constructor() {
+                this.baseHeartRate = 60; // BPM أساسي
+                this.currentBPM = this.baseHeartRate;
+                this.activity = 0; // مستوى النشاط (0-100)
+                this.mouseSpeed = 0;
+                this.scrollSpeed = 0;
+                this.clickCount = 0;
+                this.lastMousePos = { x: 0, y: 0 };
+                this.lastScrollPos = 0;
+                this.pulseCallbacks = [];
+                this.dataPoints = [];
+                this.maxDataPoints = 50;
+                
+                this.initTracking();
+                this.startPulseLoop();
+            }
+            
+            initTracking() {
+                // تتبع حركة الماوس
+                let mouseMoveThrottle = null;
+                document.addEventListener('mousemove', (e) => {
+                    if (!mouseMoveThrottle) {
+                        mouseMoveThrottle = setTimeout(() => {
+                            const dx = e.clientX - this.lastMousePos.x;
+                            const dy = e.clientY - this.lastMousePos.y;
+                            this.mouseSpeed = Math.sqrt(dx*dx + dy*dy);
+                            this.lastMousePos = { x: e.clientX, y: e.clientY };
+                            mouseMoveThrottle = null;
+                        }, 50);
+                    }
+                });
+                
+                // تتبع السكرول
+                let scrollThrottle = null;
+                window.addEventListener('scroll', () => {
+                    if (!scrollThrottle) {
+                        scrollThrottle = setTimeout(() => {
+                            const currentScroll = window.pageYOffset;
+                            this.scrollSpeed = Math.abs(currentScroll - this.lastScrollPos);
+                            this.lastScrollPos = currentScroll;
+                            scrollThrottle = null;
+                        }, 50);
+                    }
+                });
+                
+                // تتبع النقرات
+                document.addEventListener('click', () => {
+                    this.clickCount++;
+                    this.activity = Math.min(100, this.activity + 20);
+                    setTimeout(() => { this.clickCount = Math.max(0, this.clickCount - 1); }, 2000);
+                });
+                
+                // تتبع Hover
+                document.querySelectorAll('.hover-trigger, a, button').forEach(el => {
+                    el.addEventListener('mouseenter', () => {
+                        this.activity = Math.min(100, this.activity + 10);
+                    });
+                });
+            }
+            
+            calculateBPM() {
+                // حساب BPM بناءً على النشاط
+                const mouseActivity = Math.min(30, this.mouseSpeed * 0.5);
+                const scrollActivity = Math.min(25, this.scrollSpeed * 0.3);
+                const clickActivity = Math.min(20, this.clickCount * 5);
+                const hoverActivity = Math.min(25, this.activity * 0.25);
+                
+                const totalActivity = mouseActivity + scrollActivity + clickActivity + hoverActivity;
+                
+                // BPM يتراوح بين 60 و 140
+                const targetBPM = this.baseHeartRate + totalActivity;
+                
+                // Smooth transition
+                this.currentBPM += (targetBPM - this.currentBPM) * 0.1;
+                
+                // تخفيض النشاط تدريجياً
+                this.activity *= 0.95;
+                this.mouseSpeed *= 0.9;
+                this.scrollSpeed *= 0.9;
+                
+                // حفظ نقاط البيانات
+                this.dataPoints.push({
+                    bpm: this.currentBPM,
+                    activity: totalActivity,
+                    timestamp: Date.now()
+                });
+                
+                if (this.dataPoints.length > this.maxDataPoints) {
+                    this.dataPoints.shift();
+                }
+                
+                return this.currentBPM;
+            }
+            
+            startPulseLoop() {
+                const pulse = () => {
+                    const bpm = this.calculateBPM();
+                    const interval = 60000 / bpm; // مللي ثانية بين كل نبضة
+                    const intensity = Math.min(1, this.activity / 50); // 0 to 1
+                    
+                    // تنفيذ جميع callbacks
+                    this.pulseCallbacks.forEach(callback => {
+                        callback({ bpm, interval, intensity, activity: this.activity });
+                    });
+                    
+                    requestAnimationFrame(pulse);
+                };
+                
+                pulse();
+            }
+            
+            onPulse(callback) {
+                this.pulseCallbacks.push(callback);
+            }
+            
+            getBPM() {
+                return Math.round(this.currentBPM);
+            }
+            
+            getActivity() {
+                return Math.round(this.activity);
+            }
+            
+            getDataPoints() {
+                return this.dataPoints;
+            }
+        }
+        
+        // تهيئة محرك النبض
+        const bioPulse = new BioPulseEngine();
+        
+        // Loading screen
+        window.addEventListener('load', () => {
+            const loadingScreen = document.getElementById('loadingScreen');
+            setTimeout(() => {
+                loadingScreen.classList.add('hidden');
+            }, 500);
+        });
+
+        // تأثير الكتابة الآلية
+        const text = "هندسة اللامرئي... صناعة الحلول المستدامة.";
+        const speed = 50;
+        let i = 0;
+        
+        function typeWriter() {
+            if (i < text.length) {
+                document.getElementById("typewriter").innerHTML += text.charAt(i);
+                i++;
+                setTimeout(typeWriter, speed);
+            }
+        }
+        
+        // Initialize on DOM ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+
+        function init() {
+            typeWriter();
+            initCanvas();
+            initCursor();
+            initBioPulseUI();
+            initScrollEffects();
+            initParallaxCards();
+        }
+        
+        // ═══════════════════════════════════════════════════════════════
+        // 🎯 BIOPULSE UI INTEGRATION - ربط محرك النبض بواجهة المستخدم
+        // ═══════════════════════════════════════════════════════════════
+        
+        function initBioPulseUI() {
+            const statusDot = document.getElementById('statusDot');
+            const bpmValue = document.getElementById('bpm-value');
+            let lastPulseTime = 0;
+            
+            bioPulse.onPulse(({ bpm, interval, intensity, activity }) => {
+                // تحديث BPM Display
+                if (bpmValue) {
+                    bpmValue.textContent = Math.round(bpm);
+                    
+                    // تأثير نبض على الرقم
+                    if (Date.now() - lastPulseTime > interval * 0.8) {
+                        bpmValue.style.transform = 'scale(1.2)';
+                        setTimeout(() => {
+                            bpmValue.style.transform = 'scale(1)';
+                        }, 100);
+                        lastPulseTime = Date.now();
+                    }
+                }
+                
+                // تأثير النبض على Status Dot
+                if (statusDot) {
+                    const scale = 1 + (intensity * 0.5);
+                    const shadowBlur = 10 + (intensity * 20);
+                    
+                    statusDot.style.transform = `scale(${scale})`;
+                    statusDot.style.boxShadow = `0 0 ${shadowBlur}px var(--terminal-green)`;
+                    
+                    // Pulse rings
+                    if (Date.now() - lastPulseTime > interval * 0.8) {
+                        createPulseRing(statusDot, intensity);
+                    }
+                }
+            });
+        }
+        
+        function createPulseRing(element, intensity) {
+            const ring = document.createElement('div');
+            const size = 10 + (intensity * 20);
+            
+            Object.assign(ring.style, {
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                width: '10px',
+                height: '10px',
+                border: `2px solid var(--terminal-green)`,
+                borderRadius: '50%',
+                transform: 'translate(-50%, -50%)',
+                pointerEvents: 'none',
+                opacity: '0.8',
+                zIndex: '-1'
+            });
+            
+            element.style.position = 'relative';
+            element.appendChild(ring);
+            
+            // Animation
+            let scale = 1;
+            let opacity = 0.8;
+            
+            const animate = () => {
+                scale += 0.1;
+                opacity -= 0.04;
+                
+                if (opacity > 0) {
+                    ring.style.transform = `translate(-50%, -50%) scale(${scale})`;
+                    ring.style.opacity = opacity;
+                    requestAnimationFrame(animate);
+                } else {
+                    ring.remove();
+                }
+            };
+            
+            requestAnimationFrame(animate);
+        }
+        
+        // ═══════════════════════════════════════════════════════════════
+        // 📊 SCROLL EFFECTS - تأثيرات السكرول المتقدمة
+        // ═══════════════════════════════════════════════════════════════
+        
+        function initScrollEffects() {
+            const scrollProgress = document.getElementById('scrollProgress');
+            const hero = document.querySelector('.hero-section h1');
+            
+            let ticking = false;
+            
+            window.addEventListener('scroll', () => {
+                if (!ticking) {
+                    window.requestAnimationFrame(() => {
+                        // Scroll Progress Bar
+                        const scrollTop = window.pageYOffset;
+                        const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+                        const scrollPercent = (scrollTop / docHeight) * 100;
+                        
+                        if (scrollProgress) {
+                            scrollProgress.style.width = scrollPercent + '%';
+                        }
+                        
+                        // Parallax للعنوان الرئيسي
+                        if (hero) {
+                            const offset = scrollTop * 0.5;
+                            hero.style.transform = `translateY(${offset}px)`;
+                            hero.style.opacity = 1 - (scrollTop / 500);
+                        }
+                        
+                        // Glitch effect عند سرعة سكرول عالية
+                        if (bioPulse.scrollSpeed > 50 && hero) {
+                            hero.classList.add('glitch-active');
+                            setTimeout(() => {
+                                hero.classList.remove('glitch-active');
+                            }, 300);
+                        }
+                        
+                        ticking = false;
+                    });
+                    
+                    ticking = true;
+                }
+            });
+            
+            // Intersection Observer للبطاقات
+            const cards = document.querySelectorAll('.card');
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, observerOptions);
+            
+            cards.forEach(card => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(50px)';
+                card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+                observer.observe(card);
+            });
+        }
+        
+        // ═══════════════════════════════════════════════════════════════
+        // 🎨 PARALLAX CARDS - تأثير 3D للبطاقات
+        // ═══════════════════════════════════════════════════════════════
+        
+        function initParallaxCards() {
+            const cards = document.querySelectorAll('.card');
+            
+            cards.forEach(card => {
+                card.addEventListener('mousemove', (e) => {
+                    const rect = card.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    
+                    const centerX = rect.width / 2;
+                    const centerY = rect.height / 2;
+                    
+                    const rotateX = (y - centerY) / 10;
+                    const rotateY = (centerX - x) / 10;
+                    
+                    card.style.transform = `
+                        translateY(-8px) 
+                        scale(1.02) 
+                        rotateX(${rotateX}deg) 
+                        rotateY(${rotateY}deg)
+                    `;
+                    
+                    // Holographic effect
+                    const glowX = (x / rect.width) * 100;
+                    const glowY = (y / rect.height) * 100;
+                    card.style.background = `
+                        radial-gradient(
+                            circle at ${glowX}% ${glowY}%, 
+                            rgba(212, 175, 55, 0.15) 0%, 
+                            rgba(255, 255, 255, 0.08) 50%
+                        )
+                    `;
+                });
+                
+                card.addEventListener('mouseleave', () => {
+                    card.style.transform = 'translateY(0) scale(1) rotateX(0) rotateY(0)';
+                    card.style.background = 'rgba(255, 255, 255, 0.03)';
+                });
+            });
+        }
+
+        // الماوس المخصص - Optimized مع نبض وtrail
+        function initCursor() {
+            const cursor = document.getElementById('cursor');
+            const hoverTriggers = document.querySelectorAll('.hover-trigger');
+            
+            // Check if device supports hover
+            if (!window.matchMedia('(hover: hover)').matches) {
+                cursor.style.display = 'none';
+                return;
+            }
+
+            let mouseX = 0, mouseY = 0;
+            let cursorX = 0, cursorY = 0;
+            let trails = [];
+            const maxTrails = 8;
+
+            document.addEventListener('mousemove', (e) => {
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+                
+                // إضافة trail بناءً على السرعة
+                if (bioPulse.mouseSpeed > 10 && trails.length < maxTrails) {
+                    createTrail(mouseX, mouseY);
+                }
+            });
+
+            function updateCursor() {
+                cursorX += (mouseX - cursorX) * 0.2;
+                cursorY += (mouseY - cursorY) * 0.2;
+                cursor.style.left = cursorX + 'px';
+                cursor.style.top = cursorY + 'px';
+                
+                // تحديث trails
+                trails = trails.filter(trail => {
+                    trail.opacity -= 0.03;
+                    trail.element.style.opacity = trail.opacity;
+                    
+                    if (trail.opacity <= 0) {
+                        trail.element.remove();
+                        return false;
+                    }
+                    return true;
+                });
+                
+                requestAnimationFrame(updateCursor);
+            }
+            updateCursor();
+            
+            function createTrail(x, y) {
+                const trail = document.createElement('div');
+                trail.className = 'cursor-trail';
+                trail.style.left = x + 'px';
+                trail.style.top = y + 'px';
+                document.body.appendChild(trail);
+                
+                trails.push({
+                    element: trail,
+                    opacity: 0.6
+                });
+            }
+
+            hoverTriggers.forEach(el => {
+                el.addEventListener('mouseenter', () => {
+                    cursor.classList.add('hovered');
+                });
+                el.addEventListener('mouseleave', () => {
+                    cursor.classList.remove('hovered');
+                });
+            });
+            
+            // نبض الماوس بناءً على النشاط
+            bioPulse.onPulse(({ intensity }) => {
+                if (intensity > 0.5) {
+                    cursor.classList.add('pulse-active');
+                } else {
+                    cursor.classList.remove('pulse-active');
+                }
+            });
+            
+            // تأثير click
+            document.addEventListener('click', (e) => {
+                const clickRing = document.createElement('div');
+                Object.assign(clickRing.style, {
+                    position: 'fixed',
+                    left: e.clientX + 'px',
+                    top: e.clientY + 'px',
+                    width: '20px',
+                    height: '20px',
+                    border: '2px solid var(--cyber-gold)',
+                    borderRadius: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    pointerEvents: 'none',
+                    zIndex: '10002'
+                });
+                
+                document.body.appendChild(clickRing);
+                
+                let scale = 1;
+                let opacity = 1;
+                
+                const animate = () => {
+                    scale += 0.15;
+                    opacity -= 0.05;
+                    
+                    if (opacity > 0) {
+                        clickRing.style.transform = `translate(-50%, -50%) scale(${scale})`;
+                        clickRing.style.opacity = opacity;
+                        requestAnimationFrame(animate);
+                    } else {
+                        clickRing.remove();
+                    }
+                };
+                
+                requestAnimationFrame(animate);
+            });
+        }
+
+        // خلفية المصفوفة النقطية - Optimized مع موجات بيومترية
+        function initCanvas() {
+            const canvas = document.getElementById('canvas-bg');
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d', { alpha: true });
+            let width, height;
+            let particles = [];
+            let waves = [];
+            let animationId;
+
+            function resize() {
+                width = window.innerWidth;
+                height = window.innerHeight;
+                canvas.width = width;
+                canvas.height = height;
+                createParticles();
+            }
+
+            function createParticles() {
+                particles = [];
+                const particleCount = Math.min(50, Math.floor((width * height) / 15000));
+                for(let i = 0; i < particleCount; i++) {
+                    particles.push({
+                        x: Math.random() * width,
+                        y: Math.random() * height,
+                        vx: (Math.random() - 0.5) * 0.3,
+                        vy: (Math.random() - 0.5) * 0.3,
+                        size: Math.random() * 2 + 0.5,
+                        pulsePhase: Math.random() * Math.PI * 2
+                    });
+                }
+            }
+            
+            // نظام موجات النبض البيومترية
+            bioPulse.onPulse(({ bpm, intensity, activity }) => {
+                // إنشاء موجة جديدة بناءً على النشاط
+                if (activity > 20 && Math.random() < intensity * 0.3) {
+                    waves.push({
+                        x: Math.random() * width,
+                        y: Math.random() * height,
+                        radius: 0,
+                        maxRadius: 200 + (intensity * 200),
+                        opacity: 0.5 + (intensity * 0.5),
+                        speed: 2 + (intensity * 3),
+                        color: intensity > 0.5 ? 'var(--cyber-gold)' : 'var(--terminal-green)'
+                    });
+                }
+            });
+
+            function draw() {
+                ctx.clearRect(0, 0, width, height);
+                
+                // رسم موجات النبض
+                waves = waves.filter(wave => {
+                    wave.radius += wave.speed;
+                    wave.opacity -= 0.01;
+                    
+                    if (wave.opacity > 0 && wave.radius < wave.maxRadius) {
+                        ctx.strokeStyle = wave.color === 'var(--cyber-gold)' 
+                            ? `rgba(212, 175, 55, ${wave.opacity})` 
+                            : `rgba(16, 185, 129, ${wave.opacity})`;
+                        ctx.lineWidth = 2;
+                        ctx.beginPath();
+                        ctx.arc(wave.x, wave.y, wave.radius, 0, Math.PI * 2);
+                        ctx.stroke();
+                        
+                        // تأثير توهج إضافي
+                        ctx.strokeStyle = wave.color === 'var(--cyber-gold)' 
+                            ? `rgba(212, 175, 55, ${wave.opacity * 0.3})` 
+                            : `rgba(16, 185, 129, ${wave.opacity * 0.3})`;
+                        ctx.lineWidth = 6;
+                        ctx.stroke();
+                        
+                        return true;
+                    }
+                    return false;
+                });
+                
+                // رسم الجزيئات مع نبض ديناميكي
+                const currentBPM = bioPulse.getBPM();
+                const pulseSpeed = currentBPM / 60;
+                
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+
+                particles.forEach((p, i) => {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.pulsePhase += 0.05 * pulseSpeed;
+
+                    // Bounce off edges
+                    if(p.x < 0 || p.x > width) p.vx *= -1;
+                    if(p.y < 0 || p.y > height) p.vy *= -1;
+                    
+                    // حجم الجزيء يتغير مع النبض
+                    const pulseFactor = 1 + Math.sin(p.pulsePhase) * 0.3;
+                    const dynamicSize = p.size * pulseFactor;
+
+                    // Draw particle
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, dynamicSize, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Connect nearby particles
+                    for(let j = i + 1; j < particles.length; j++) {
+                        const p2 = particles[j];
+                        const dx = p.x - p2.x;
+                        const dy = p.y - p2.y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+
+                        if(dist < 120) {
+                            ctx.globalAlpha = 1 - (dist / 120);
+                            ctx.beginPath();
+                            ctx.moveTo(p.x, p.y);
+                            ctx.lineTo(p2.x, p2.y);
+                            ctx.stroke();
+                            ctx.globalAlpha = 1;
+                        }
+                    }
+                });
+                
+                animationId = requestAnimationFrame(draw);
+            }
+
+            // Debounced resize
+            let resizeTimeout;
+            window.addEventListener('resize', () => {
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(resize, 150);
+            });
+
+            // Pause animation when tab is not visible
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) {
+                    cancelAnimationFrame(animationId);
+                } else {
+                    draw();
+                }
+            });
+
+            resize();
+            draw();
+        }
+        
+        // ═══════════════════════════════════════════════════════════════
+        // 💡 DYNAMIC LIGHTING - نظام الإضاءة الديناميكية
+        // ═══════════════════════════════════════════════════════════════
+        
+        function initDynamicLighting() {
+            let mouseX = 0.5;
+            let mouseY = 0.5;
+            
+            document.addEventListener('mousemove', (e) => {
+                mouseX = e.clientX / window.innerWidth;
+                mouseY = e.clientY / window.innerHeight;
+                
+                document.body.style.setProperty('--mouse-x', `${mouseX * 100}%`);
+                document.body.style.setProperty('--mouse-y', `${mouseY * 100}%`);
+            });
+            
+            // تفعيل الإضاءة بناءً على النشاط
+            bioPulse.onPulse(({ intensity }) => {
+                if (intensity > 0.3) {
+                    document.body.classList.add('lighting-active');
+                } else {
+                    document.body.classList.remove('lighting-active');
+                }
+            });
+        }
+        
+        // Initialize dynamic lighting
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initDynamicLighting);
+        } else {
+            initDynamicLighting();
+        }
+        
+        // ═══════════════════════════════════════════════════════════════
+        // 🔊 INTERACTIVE AUDIO SYSTEM - نظام الأصوات التفاعلية
+        // ═══════════════════════════════════════════════════════════════
+        
+        class AudioFeedbackSystem {
+            constructor() {
+                this.enabled = false;
+                this.audioContext = null;
+                this.sounds = {};
+                this.toggle = document.getElementById('soundToggle');
+                this.statusText = this.toggle.querySelector('.sound-status');
+                
+                this.initToggle();
+                this.generateSounds();
+            }
+            
+            initToggle() {
+                this.toggle.addEventListener('click', () => {
+                    this.enabled = !this.enabled;
+                    this.toggle.classList.toggle('active', this.enabled);
+                    this.statusText.textContent = this.enabled ? 'ON' : 'OFF';
+                    
+                    if (this.enabled && !this.audioContext) {
+                        this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    }
+                    
+                    // تشغيل صوت تأكيد
+                    if (this.enabled) {
+                        this.playSound('success', 0.3);
+                    }
+                });
+            }
+            
+            generateSounds() {
+                // إنشاء الأصوات باستخدام Web Audio API
+                this.sounds = {
+                    hover: { frequency: 800, duration: 0.05, type: 'sine' },
+                    click: { frequency: 600, duration: 0.1, type: 'square' },
+                    success: { frequency: 1000, duration: 0.15, type: 'sine' },
+                    pulse: { frequency: 400, duration: 0.08, type: 'triangle' },
+                    notification: { frequency: 1200, duration: 0.12, type: 'sine' }
+                };
+            }
+            
+            playSound(type, volume = 0.2) {
+                if (!this.enabled || !this.audioContext) return;
+                
+                const sound = this.sounds[type];
+                if (!sound) return;
+                
+                try {
+                    const oscillator = this.audioContext.createOscillator();
+                    const gainNode = this.audioContext.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(this.audioContext.destination);
+                    
+                    oscillator.type = sound.type;
+                    oscillator.frequency.value = sound.frequency;
+                    
+                    gainNode.gain.setValueAtTime(volume, this.audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(
+                        0.01,
+                        this.audioContext.currentTime + sound.duration
+                    );
+                    
+                    oscillator.start(this.audioContext.currentTime);
+                    oscillator.stop(this.audioContext.currentTime + sound.duration);
+                } catch (error) {
+                    console.log('خطأ في تشغيل الصوت:', error);
+                }
+            }
+            
+            playPulseSound(intensity) {
+                if (!this.enabled) return;
+                
+                const frequency = 400 + (intensity * 400); // 400-800 Hz
+                const volume = 0.1 + (intensity * 0.1); // 0.1-0.2
+                
+                if (this.audioContext) {
+                    try {
+                        const oscillator = this.audioContext.createOscillator();
+                        const gainNode = this.audioContext.createGain();
+                        
+                        oscillator.connect(gainNode);
+                        gainNode.connect(this.audioContext.destination);
+                        
+                        oscillator.type = 'sine';
+                        oscillator.frequency.value = frequency;
+                        
+                        gainNode.gain.setValueAtTime(volume, this.audioContext.currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(
+                            0.01,
+                            this.audioContext.currentTime + 0.05
+                        );
+                        
+                        oscillator.start(this.audioContext.currentTime);
+                        oscillator.stop(this.audioContext.currentTime + 0.05);
+                    } catch (error) {
+                        console.log('خطأ في pulse sound:', error);
+                    }
+                }
+            }
+        }
+        
+        // تهيئة نظام الأصوات
+        const audioSystem = new AudioFeedbackSystem();
+        
+        // ربط الأصوات بالتفاعلات
+        document.addEventListener('DOMContentLoaded', () => {
+            // أصوات Hover
+            document.querySelectorAll('[data-sound="true"], .hover-trigger').forEach(el => {
+                el.addEventListener('mouseenter', () => audioSystem.playSound('hover', 0.15));
+            });
+            
+            // أصوات Click
+            document.querySelectorAll('a, button, .card').forEach(el => {
+                el.addEventListener('click', () => audioSystem.playSound('click', 0.2));
+            });
+            
+            // صوت مع النبض البيومتري
+            let lastPulseSound = 0;
+            bioPulse.onPulse(({ intensity, bpm }) => {
+                const now = Date.now();
+                // تشغيل صوت نبض كل ثانية إذا كان النشاط عالي
+                if (intensity > 0.7 && now - lastPulseSound > 1000) {
+                    audioSystem.playPulseSound(intensity);
+                    lastPulseSound = now;
+                }
+            });
+        });
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Error handling for external links
+        document.querySelectorAll('a[href^="http"]').forEach(link => {
+            link.addEventListener('click', (e) => {
+                // Track clicks if analytics is available
+                if (typeof gtag !== 'undefined') {
+                    gtag('event', 'click', {
+                        'event_category': 'outbound',
+                        'event_label': link.href
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

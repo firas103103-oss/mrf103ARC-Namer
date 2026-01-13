@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XReal AR - Secret Agent HUD</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body, html {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #000000;
+            color: #00d4ff;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            cursor: none;
+        }
+
+        /* Main HUD Container */
+        #hud-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at center, rgba(0, 50, 80, 0.3) 0%, rgba(0, 0, 0, 0.9) 70%);
+            overflow: hidden;
+        }
+
+        /* HUD Grid System */
+        .hud-grid {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 212, 255, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 212, 255, 0.1) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+            animation: gridPulse 4s ease-in-out infinite;
+        }
+
+        @keyframes gridPulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.1; }
+        }
+
+        /* HUD Panels */
+        .hud-panel {
+            position: absolute;
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.15) 0%, rgba(0, 150, 200, 0.05) 100%);
+            border: 1px solid rgba(0, 212, 255, 0.5);
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+            padding: 15px;
+            font-size: 12px;
+            animation: panelSlideIn 0.8s ease-out;
+            box-shadow: 
+                0 0 20px rgba(0, 212, 255, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .hud-panel.active {
+            border-color: #00ff88;
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.5);
+        }
+
+        @keyframes panelSlideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* Status Panel (Top Left) */
+        .status-panel {
+            top: 20px;
+            left: 20px;
+            width: 280px;
+            height: 150px;
+        }
+
+        .status-title {
+            color: #00ff88;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+        }
+
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            animation: dataUpdate 2s ease-in-out infinite;
+        }
+
+        .status-value {
+            color: #ffffff;
+            font-weight: bold;
+        }
+
+        /* Navigation Panel (Top Right) */
+        .nav-panel {
+            top: 20px;
+            right: 20px;
+            width: 250px;
+            height: 120px;
+        }
+
+        /* Experience Selector */
+        .experience-selector {
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+        }
+
+        .experience-btn {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.2) 0%, rgba(0, 150, 200, 0.1) 100%);
+            border: 1px solid rgba(0, 212, 255, 0.5);
+            border-radius: 20px;
+            padding: 10px 20px;
+            color: #00d4ff;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .experience-btn:hover, .experience-btn.active {
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.3) 0%, rgba(0, 200, 100, 0.1) 100%);
+            border-color: #00ff88;
+            color: #00ff88;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+            transform: translateY(-2px);
+        }
+
+        /* Contextual Info Panel (Left Side) */
+        .context-panel {
+            top: 200px;
+            left: 20px;
+            width: 300px;
+            height: 250px;
+        }
+
+        /* Quick Actions (Right Side) */
+        .actions-panel {
+            top: 170px;
+            right: 20px;
+            width: 200px;
+            height: 200px;
+        }
+
+        .action-btn {
+            display: block;
+            width: 100%;
+            margin-bottom: 8px;
+            padding: 8px;
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 4px;
+            color: #00d4ff;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .action-btn:hover {
+            background: rgba(0, 255, 136, 0.2);
+            border-color: #00ff88;
+            color: #00ff88;
+        }
+
+        /* Center Display Area */
+        .center-display {
+            position: absolute;
+            top: 30%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 400px;
+            height: 200px;
+            text-align: center;
+        }
+
+        .center-title {
+            font-size: 24px;
+            color: #00ff88;
+            text-shadow: 0 0 20px rgba(0, 255, 136, 0.7);
+            margin-bottom: 20px;
+            animation: titleGlow 3s ease-in-out infinite;
+        }
+
+        @keyframes titleGlow {
+            0%, 100% { text-shadow: 0 0 20px rgba(0, 255, 136, 0.7); }
+            50% { text-shadow: 0 0 30px rgba(0, 255, 136, 1); }
+        }
+
+        /* Notification Popup */
+        .notification {
+            position: absolute;
+            top: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, rgba(255, 165, 0, 0.9) 0%, rgba(255, 100, 0, 0.7) 100%);
+            border: 1px solid #ffa500;
+            border-radius: 6px;
+            padding: 10px 20px;
+            color: #fff;
+            font-size: 12px;
+            z-index: 1000;
+            animation: notificationSlide 0.5s ease-out;
+            box-shadow: 0 0 20px rgba(255, 165, 0, 0.5);
+        }
+
+        @keyframes notificationSlide {
+            from { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+
+        /* Data Visualization */
+        .data-viz {
+            position: absolute;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 300px;
+            height: 60px;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 4px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+        }
+
+        .data-bar {
+            height: 8px;
+            background: linear-gradient(90deg, #00d4ff 0%, #00ff88 100%);
+            border-radius: 4px;
+            margin: 5px 0;
+            animation: dataFlow 2s ease-in-out infinite;
+        }
+
+        @keyframes dataFlow {
+            0%, 100% { width: 60%; }
+            50% { width: 85%; }
+        }
+
+        /* Eye Tracking Indicator */
+        .eye-tracker {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #00ff88;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 1000;
+            animation: eyeTrackPulse 1s ease-in-out infinite;
+        }
+
+        @keyframes eyeTrackPulse {
+            0%, 100% { transform: scale(1); opacity: 0.7; }
+            50% { transform: scale(1.2); opacity: 1; }
+        }
+
+        /* Hologram Effect */
+        .hologram {
+            position: relative;
+            animation: hologramFlicker 0.1s linear infinite;
+        }
+
+        @keyframes hologramFlicker {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.95; }
+        }
+
+        /* Experience Specific Styles */
+        .driving-mode .status-panel { border-color: #ff4444; }
+        .driving-mode .status-title { color: #ff4444; }
+        
+        .meeting-mode .status-panel { border-color: #44ff44; }
+        .meeting-mode .status-title { color: #44ff44; }
+        
+        .phone-mode .status-panel { border-color: #ffaa44; }
+        .phone-mode .status-title { color: #ffaa44; }
+
+        /* Responsive Design for AR Glasses */
+        @media (max-width: 1200px) {
+            .status-panel, .nav-panel, .context-panel, .actions-panel {
+                transform: scale(0.9);
+            }
+            
+            .center-title {
+                font-size: 20px;
+            }
+        }
+
+        /* Accessibility and Performance Optimizations for AR */
+        .high-contrast {
+            filter: contrast(150%) brightness(120%);
+        }
+
+        .large-text {
+            font-size: 1.2em;
+        }
+
+        /* Reduced motion preferences */
+        .reduced-motion * {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+        }
+
+        .reduced-motion .eye-tracker {
+            animation: none;
+            opacity: 0.5;
+        }
+
+        /* Stereo display optimizations for XReal */
+        .stereo-display {
+            font-size: 1.1em;
+        }
+
+        .stereo-display .hud-panel {
+            border-width: 2px;
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.4);
+        }
+
+        /* Performance mode styles */
+        .performance-mode .particle {
+            animation-duration: 8s;
+        }
+
+        .performance-mode .data-bar {
+            animation-duration: 4s;
+        }
+
+        /* Battery saving mode */
+        .battery-saver .hologram {
+            animation: none;
+        }
+
+        .battery-saver .hud-grid {
+            opacity: 0.1;
+            animation: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="hud-container" class="hologram">
+        <!-- HUD Grid Background -->
+        <div class="hud-grid"></div>
+        
+        <!-- Eye Tracking Indicator -->
+        <div class="eye-tracker" id="eyeTracker"></div>
+        
+        <!-- Status Panel -->
+        <div class="hud-panel status-panel">
+            <div class="status-title" id="statusTitle">AGENT STATUS</div>
+            <div class="status-item">
+                <span>Mode:</span>
+                <span class="status-value" id="currentMode">STANDBY</span>
+            </div>
+            <div class="status-item">
+                <span>Location:</span>
+                <span class="status-value" id="location">UNKNOWN</span>
+            </div>
+            <div class="status-item">
+                <span>Time:</span>
+                <span class="status-value" id="currentTime">--:--</span>
+            </div>
+            <div class="status-item">
+                <span>Battery:</span>
+                <span class="status-value" id="battery">100%</span>
+            </div>
+            <div class="status-item">
+                <span>Connection:</span>
+                <span class="status-value" id="connection">SECURE</span>
+            </div>
+        </div>
+
+        <!-- Navigation Panel -->
+        <div class="hud-panel nav-panel">
+            <div class="status-title">NAVIGATION</div>
+            <div class="status-item">
+                <span>Destination:</span>
+                <span class="status-value" id="destination">None</span>
+            </div>
+            <div class="status-item">
+                <span>ETA:</span>
+                <span class="status-value" id="eta">--:--</span>
+            </div>
+            <div class="status-item">
+                <span>Speed:</span>
+                <span class="status-value" id="speed">0 mph</span>
+            </div>
+        </div>
+
+        <!-- Contextual Information Panel -->
+        <div class="hud-panel context-panel">
+            <div class="status-title" id="contextTitle">CONTEXTUAL DATA</div>
+            <div id="contextContent">
+                <div class="status-item">
+                    <span>Weather:</span>
+                    <span class="status-value">72°F Clear</span>
+                </div>
+                <div class="status-item">
+                    <span>Next Event:</span>
+                    <span class="status-value">Meeting @ 3:00 PM</span>
+                </div>
+                <div class="status-item">
+                    <span>Notifications:</span>
+                    <span class="status-value">3 pending</span>
+                </div>
+                <div class="status-item">
+                    <span>Priority:</span>
+                    <span class="status-value">Medium</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions Panel -->
+        <div class="hud-panel actions-panel">
+            <div class="status-title">QUICK ACTIONS</div>
+            <button class="action-btn" onclick="hudSystem.executeAction('call')">📞 Make Call</button>
+            <button class="action-btn" onclick="hudSystem.executeAction('message')">💬 Send Message</button>
+            <button class="action-btn" onclick="hudSystem.executeAction('navigate')">🗺️ Navigate</button>
+            <button class="action-btn" onclick="hudSystem.executeAction('reminder')">⏰ Set Reminder</button>
+            <button class="action-btn" onclick="hudSystem.executeAction('photo')">📷 Capture</button>
+            <button class="action-btn" onclick="hudSystem.executeAction('translate')">🌐 Translate</button>
+        </div>
+
+        <!-- Center Display -->
+        <div class="center-display">
+            <div class="center-title" id="centerTitle">DIGITAL REALITY ENHANCED</div>
+            <div id="centerContent">
+                <p>Secret Agent Mode Activated</p>
+                <p>Ready for Mission</p>
+            </div>
+        </div>
+
+        <!-- Data Visualization -->
+        <div class="data-viz">
+            <div class="data-bar" style="width: 75%;"></div>
+            <div class="data-bar" style="width: 60%; animation-delay: 0.5s;"></div>
+            <div class="data-bar" style="width: 90%; animation-delay: 1s;"></div>
+        </div>
+
+        <!-- Experience Mode Selector -->
+        <div class="hud-panel experience-selector">
+            <button class="experience-btn active" data-mode="standby" onclick="hudSystem.switchMode('standby')">🏠 Daily</button>
+            <button class="experience-btn" data-mode="driving" onclick="hudSystem.switchMode('driving')">🚗 Driving</button>
+            <button class="experience-btn" data-mode="meeting" onclick="hudSystem.switchMode('meeting')">👥 Meeting</button>
+            <button class="experience-btn" data-mode="phone" onclick="hudSystem.switchMode('phone')">📱 Apps</button>
+            <button class="experience-btn" data-mode="workout" onclick="hudSystem.switchMode('workout')">💪 Fitness</button>
+        </div>
+    </div>
+
+    <script>
+        class XRealHUDSystem {
+            constructor() {
+                this.currentMode = 'standby';
+                this.eyeTracker = document.getElementById('eyeTracker');
+                this.notifications = [];
+                this.isTracking = true;
+                
+                this.init();
+            }
+
+            init() {
+                this.updateTime();
+                this.startEyeTracking();
+                this.initializeGeolocation();
+                this.loadPersonalizedData();
+                this.startDataSimulation();
+                this.setupPerformanceOptimizations();
+                
+                // Update time every second
+                this.timeInterval = setInterval(() => this.updateTime(), 1000);
+                
+                // Update contextual data every 30 seconds
+                this.contextInterval = setInterval(() => this.updateContextualData(), 30000);
+            }
+
+            setupPerformanceOptimizations() {
+                // Pause animations and updates when page is hidden (save battery)
+                document.addEventListener('visibilitychange', () => {
+                    if (document.hidden) {
+                        this.isTracking = false;
+                        clearInterval(this.timeInterval);
+                        clearInterval(this.contextInterval);
+                        clearInterval(this.dataSimInterval);
+                    } else {
+                        this.isTracking = true;
+                        this.startEyeTracking();
+                        this.timeInterval = setInterval(() => this.updateTime(), 1000);
+                        this.contextInterval = setInterval(() => this.updateContextualData(), 30000);
+                        this.startDataSimulation();
+                    }
+                });
+
+                // Battery API for real battery status (when supported)
+                if ('getBattery' in navigator) {
+                    navigator.getBattery().then((battery) => {
+                        const updateBattery = () => {
+                            const batteryLevel = Math.floor(battery.level * 100);
+                            document.getElementById('battery').textContent = batteryLevel + '%';
+                        };
+                        
+                        updateBattery();
+                        battery.addEventListener('levelchange', updateBattery);
+                    });
+                }
+
+                // Optimize for XReal glasses display
+                this.optimizeForXReal();
+            }
+
+            optimizeForXReal() {
+                // XReal specific optimizations
+                const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+                if (mediaQuery.matches) {
+                    document.body.classList.add('reduced-motion');
+                }
+                
+                // Optimize for stereo display if detected
+                if (window.screen && window.screen.width > 2000) {
+                    document.body.classList.add('stereo-display');
+                }
+
+                // Add high contrast mode for better visibility
+                const contrastQuery = window.matchMedia('(prefers-contrast: high)');
+                if (contrastQuery.matches) {
+                    document.body.classList.add('high-contrast');
+                }
+            }
+
+            updateTime() {
+                const now = new Date();
+                const timeString = now.toLocaleTimeString('en-US', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: false
+                });
+                document.getElementById('currentTime').textContent = timeString;
+            }
+
+            startEyeTracking() {
+                let x = window.innerWidth / 2;
+                let y = window.innerHeight / 2;
+                let lastTime = 0;
+                const targetFPS = 30; // Limit to 30 FPS for battery optimization
+                const frameInterval = 1000 / targetFPS;
+                
+                const updateEyeTracking = (currentTime) => {
+                    if (currentTime - lastTime >= frameInterval && this.isTracking && !document.hidden) {
+                        // Check for reduced motion preference
+                        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                        const movementScale = prefersReducedMotion ? 0.2 : 1;
+                        
+                        x += (Math.random() - 0.5) * 40 * movementScale;
+                        y += (Math.random() - 0.5) * 30 * movementScale;
+                        
+                        // Keep within bounds
+                        x = Math.max(20, Math.min(window.innerWidth - 20, x));
+                        y = Math.max(20, Math.min(window.innerHeight - 20, y));
+                        
+                        this.eyeTracker.style.left = x + 'px';
+                        this.eyeTracker.style.top = y + 'px';
+                        
+                        lastTime = currentTime;
+                    }
+                    
+                    if (this.isTracking) {
+                        requestAnimationFrame(updateEyeTracking);
+                    }
+                };
+                
+                requestAnimationFrame(updateEyeTracking);
+            }
+
+            switchMode(mode) {
+                this.currentMode = mode;
+                
+                // Update active button
+                document.querySelectorAll('.experience-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                    if (btn.dataset.mode === mode) {
+                        btn.classList.add('active');
+                    }
+                });
+
+                // Update HUD container class
+                const container = document.getElementById('hud-container');
+                container.className = `hologram ${mode}-mode`;
+
+                // Update mode display
+                document.getElementById('currentMode').textContent = mode.toUpperCase();
+
+                // Mode-specific updates
+                this.updateModeContent(mode);
+                this.showNotification(`Switched to ${mode.toUpperCase()} mode`);
+            }
+
+            updateModeContent(mode) {
+                const centerTitle = document.getElementById('centerTitle');
+                const centerContent = document.getElementById('centerContent');
+                const contextTitle = document.getElementById('contextTitle');
+                const contextContent = document.getElementById('contextContent');
+
+                switch(mode) {
+                    case 'driving':
+                        centerTitle.textContent = 'DRIVING ASSISTANCE ACTIVE';
+                        centerContent.innerHTML = '<p>Enhanced Navigation Online</p><p>Traffic Analysis: OPTIMAL</p>';
+                        contextTitle.textContent = 'VEHICLE STATUS';
+                        contextContent.innerHTML = `
+                            <div class="status-item"><span>Fuel:</span><span class="status-value">85%</span></div>
+                            <div class="status-item"><span>Speed:</span><span class="status-value">65 mph</span></div>
+                            <div class="status-item"><span>Traffic:</span><span class="status-value">Light</span></div>
+                            <div class="status-item"><span>Route:</span><span class="status-value">Optimal</span></div>
+                        `;
+                        document.getElementById('speed').textContent = '65 mph';
+                        document.getElementById('destination').textContent = 'Home';
+                        document.getElementById('eta').textContent = '15:30';
+                        break;
+
+                    case 'meeting':
+                        centerTitle.textContent = 'MEETING ENHANCEMENT ACTIVE';
+                        centerContent.innerHTML = '<p>Participant Analysis: 4 People</p><p>Smart Notes: Recording</p>';
+                        contextTitle.textContent = 'MEETING DATA';
+                        contextContent.innerHTML = `
+                            <div class="status-item"><span>Participants:</span><span class="status-value">4 Active</span></div>
+                            <div class="status-item"><span>Duration:</span><span class="status-value">23 min</span></div>
+                            <div class="status-item"><span>Agenda:</span><span class="status-value">Item 2/5</span></div>
+                            <div class="status-item"><span>Actions:</span><span class="status-value">3 Items</span></div>
+                        `;
+                        break;
+
+                    case 'phone':
+                        centerTitle.textContent = 'APP ENHANCEMENT ACTIVE';
+                        centerContent.innerHTML = '<p>Smart Notifications: ON</p><p>Context Awareness: HIGH</p>';
+                        contextTitle.textContent = 'APP ACTIVITY';
+                        contextContent.innerHTML = `
+                            <div class="status-item"><span>Messages:</span><span class="status-value">5 Unread</span></div>
+                            <div class="status-item"><span>Calls:</span><span class="status-value">2 Missed</span></div>
+                            <div class="status-item"><span>Calendar:</span><span class="status-value">Next: 2PM</span></div>
+                            <div class="status-item"><span>Battery:</span><span class="status-value">78%</span></div>
+                        `;
+                        break;
+
+                    case 'workout':
+                        centerTitle.textContent = 'FITNESS TRACKING ACTIVE';
+                        centerContent.innerHTML = '<p>Biometric Monitoring: ON</p><p>Performance Analysis: READY</p>';
+                        contextTitle.textContent = 'FITNESS DATA';
+                        contextContent.innerHTML = `
+                            <div class="status-item"><span>Heart Rate:</span><span class="status-value">72 BPM</span></div>
+                            <div class="status-item"><span>Steps:</span><span class="status-value">8,247</span></div>
+                            <div class="status-item"><span>Calories:</span><span class="status-value">420</span></div>
+                            <div class="status-item"><span>Goal:</span><span class="status-value">65% Done</span></div>
+                        `;
+                        break;
+
+                    default: // standby
+                        centerTitle.textContent = 'DIGITAL REALITY ENHANCED';
+                        centerContent.innerHTML = '<p>Secret Agent Mode Activated</p><p>Ready for Mission</p>';
+                        contextTitle.textContent = 'CONTEXTUAL DATA';
+                        contextContent.innerHTML = `
+                            <div class="status-item"><span>Weather:</span><span class="status-value">72°F Clear</span></div>
+                            <div class="status-item"><span>Next Event:</span><span class="status-value">Meeting @ 3:00 PM</span></div>
+                            <div class="status-item"><span>Notifications:</span><span class="status-value">3 pending</span></div>
+                            <div class="status-item"><span>Priority:</span><span class="status-value">Medium</span></div>
+                        `;
+                        break;
+                }
+            }
+
+            executeAction(action) {
+                const actions = {
+                    'call': 'Initiating secure call...',
+                    'message': 'Composing message...',
+                    'navigate': 'Loading navigation...',
+                    'reminder': 'Setting reminder...',
+                    'photo': 'Capturing image...',
+                    'translate': 'Activating translator...'
+                };
+
+                this.showNotification(actions[action] || 'Action executed');
+
+                // Simulate action feedback
+                setTimeout(() => {
+                    this.showNotification(`${action.toUpperCase()} completed successfully`);
+                }, 2000);
+            }
+
+            showNotification(message) {
+                const notification = document.createElement('div');
+                notification.className = 'notification';
+                notification.textContent = message;
+                
+                document.getElementById('hud-container').appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.style.opacity = '0';
+                    setTimeout(() => notification.remove(), 500);
+                }, 3000);
+            }
+
+            initializeGeolocation() {
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                        (position) => {
+                            // Update location (simplified)
+                            document.getElementById('location').textContent = 'ACQUIRED';
+                        },
+                        () => {
+                            document.getElementById('location').textContent = 'GPS UNAVAILABLE';
+                        }
+                    );
+                }
+            }
+
+            loadPersonalizedData() {
+                // Simulate loading user preferences and data
+                setTimeout(() => {
+                    document.getElementById('battery').textContent = '89%';
+                    document.getElementById('connection').textContent = 'SECURE 5G';
+                }, 1000);
+            }
+
+            updateContextualData() {
+                // Simulate updating contextual information
+                const battery = Math.max(20, parseInt(document.getElementById('battery').textContent) - Math.floor(Math.random() * 3));
+                document.getElementById('battery').textContent = battery + '%';
+            }
+
+            startDataSimulation() {
+                // Simulate data flow animations
+                this.dataSimInterval = setInterval(() => {
+                    if (!document.hidden) { // Only update when page is visible
+                        const bars = document.querySelectorAll('.data-bar');
+                        bars.forEach(bar => {
+                            const width = Math.random() * 40 + 50;
+                            bar.style.width = width + '%';
+                        });
+                    }
+                }, 3000);
+            }
+        }
+
+        // Initialize HUD System
+        const hudSystem = new XRealHUDSystem();
+
+        // Handle keyboard shortcuts for quick mode switching
+        document.addEventListener('keydown', (e) => {
+            switch(e.key) {
+                case '1': hudSystem.switchMode('standby'); break;
+                case '2': hudSystem.switchMode('driving'); break;
+                case '3': hudSystem.switchMode('meeting'); break;
+                case '4': hudSystem.switchMode('phone'); break;
+                case '5': hudSystem.switchMode('workout'); break;
+            }
+        });
+
+        // Voice command simulation (placeholder)
+        window.addEventListener('speech', (e) => {
+            // Voice command handling would go here
+            console.log('Voice command received:', e.detail);
+        });
+
+        // Handle orientation changes for AR glasses
+        window.addEventListener('orientationchange', () => {
+            setTimeout(() => {
+                // Adjust layout for orientation
+                hudSystem.isTracking = false;
+                setTimeout(() => hudSystem.isTracking = true, 1000);
+            }, 500);
+        });
+    </script>
+</body>
+</html>

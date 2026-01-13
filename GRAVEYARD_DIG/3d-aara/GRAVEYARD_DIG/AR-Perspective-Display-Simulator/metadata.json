@@ -1,0 +1,5 @@
+{
+  "name": "AR Perspective Display Simulator",
+  "description": "An interactive web application that simulates various Augmented Reality perspective shifts, powered by Gemini. Explore concepts like temporal scrubbing, symbiotic sightlines, and reality manipulation through a dynamic, AI-generated narrative interface.",
+  "requestFramePermissions": []
+}

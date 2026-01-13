@@ -1,0 +1,392 @@
+<div class="min-h-screen flex flex-col items-center py-12 px-4 sm:px-6 lg:px-8 arabic-text">
+  
+  <!-- Header -->
+  <header class="max-w-4xl w-full text-center mb-10">
+    <div class="inline-block p-4 rounded-full bg-white/60 shadow-md ring-1 ring-stone-300/50 backdrop-blur-sm mb-4">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-stone-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+      </svg>
+    </div>
+    <h1 class="text-5xl font-bold text-stone-800 tracking-tight font-serif mb-2 flex items-center justify-center gap-4">
+      <span>النسّيك</span>
+      <span class="text-sm font-sans bg-amber-600 text-white px-3 py-1 rounded-full shadow">V2.1 Design</span>
+    </h1>
+    <p class="text-xl text-stone-600/90 italic">"صياغة الحكمة، وإتقان التعبير."</p>
+  </header>
+
+  <main class="max-w-5xl w-full bg-white/80 backdrop-blur-lg shadow-2xl shadow-stone-300/50 rounded-2xl overflow-hidden ring-1 ring-black/5">
+    
+    <!-- Main View Tabs -->
+    <div class="border-b border-stone-200/80 bg-stone-50/50">
+      <nav class="flex justify-center" aria-label="Tabs">
+        <button 
+          (click)="mainView.set('editor')"
+          [class]="mainView() === 'editor' ? 'border-amber-700 text-amber-900' : 'border-transparent text-stone-500 hover:text-stone-800 hover:border-stone-400'"
+          class="w-1/2 py-5 px-1 text-center border-b-4 font-medium text-lg transition-all duration-300 flex items-center justify-center gap-3">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+          محرر المخطوطات
+        </button>
+        <button 
+          (click)="mainView.set('assistant')"
+          [class]="mainView() === 'assistant' ? 'border-amber-700 text-amber-900' : 'border-transparent text-stone-500 hover:text-stone-800 hover:border-stone-400'"
+          class="w-1/2 py-5 px-1 text-center border-b-4 font-medium text-lg transition-all duration-300 flex items-center justify-center gap-3">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
+          الفانوس السحري
+        </button>
+      </nav>
+    </div>
+
+    <!-- ===== EDITOR VIEW ===== -->
+    @if (mainView() === 'editor') {
+      @if (!result() && !isProcessing()) {
+        <div class="p-8 sm:p-12">
+          <div class="text-center mb-8 animate-fade-in">
+            <h2 class="text-3xl font-semibold text-stone-800 mb-2 font-serif">محرر المخطوطات</h2>
+            <p class="text-stone-600">ارفع مسوداتك (TXT أو DOCX) واختر أداة التحرير المناسبة لصقل عملك.</p>
+          </div>
+
+          <div class="flex items-center justify-center w-full mb-8">
+            <label for="dropzone-file" class="flex flex-col items-center justify-center w-full h-48 border-2 border-stone-300/70 border-dashed rounded-lg cursor-pointer bg-stone-50/50 hover:bg-amber-50/50 hover:border-amber-400 transition-all group">
+              <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                <svg class="w-10 h-10 mb-4 text-stone-400 group-hover:text-amber-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
+                </svg>
+                <p class="mb-2 text-sm text-stone-600"><span class="font-semibold text-amber-800">انقر للرفع</span> أو اسحب الملفات إلى هنا</p>
+                <p class="text-xs text-stone-500">ملفات وورد (docx.) أو نصية (txt.)</p>
+              </div>
+              <input id="dropzone-file" type="file" multiple accept=".txt,.docx" class="hidden" (change)="onFileSelected($event)" />
+            </label>
+          </div>
+
+          @if (hasFiles()) {
+            <div class="mb-8 pt-6 border-t border-stone-200/80">
+              <h3 class="text-sm font-bold text-stone-500 uppercase tracking-widest mb-4">المسودات المرفوعة ({{fileCount()}})</h3>
+              <div class="space-y-2 max-h-40 overflow-y-auto pr-2 custom-scrollbar">
+                @for (file of uploadedFiles(); track file.name; let i = $index) {
+                  <div class="flex items-center justify-between p-3 bg-stone-50/70 rounded-md border border-stone-200">
+                    <div class="flex items-center space-x-3 rtl:space-x-reverse overflow-hidden">
+                      <div class="flex-shrink-0 text-stone-500">
+                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                      </div>
+                      <span class="text-sm font-medium text-stone-700 truncate">{{file.name}}</span>
+                      <span class="text-xs text-stone-500 flex-shrink-0">({{file.content.length | number}} حرف)</span>
+                    </div>
+                    <button (click)="removeFile(i)" class="text-stone-400 hover:text-red-500 p-1 flex-shrink-0 transition-colors">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                  </div>
+                }
+              </div>
+            </div>
+
+            <div class="mb-10">
+              <h3 class="text-sm font-bold text-stone-500 uppercase tracking-widest mb-4">اختر عملية التحرير</h3>
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                @for (mode of modes; track mode.id) {
+                  @if(mode.id !== 'image_generation' && mode.id !== 'publishing_analysis') {
+                    <div 
+                      (click)="setMode(mode.id)"
+                      [class]="selectedMode() === mode.id ? 'border-amber-600 bg-amber-50/80 ring-2 ring-amber-600/50' : 'border-stone-200/80 bg-white/50 hover:border-amber-400 hover:bg-amber-50/50'"
+                      class="cursor-pointer border rounded-lg p-4 flex items-start transition-all duration-200 transform hover:scale-[1.02] shadow-sm hover:shadow-md">
+                      <div class="flex-shrink-0 text-amber-700 bg-amber-100 p-2 rounded-md" [innerHTML]="mode.icon | safeHtml"></div>
+                      <div class="mr-4">
+                        <p class="font-bold text-stone-900">{{ mode.title }}</p>
+                        <p class="text-xs text-stone-600 mt-1">{{ mode.description }}</p>
+                      </div>
+                    </div>
+                  }
+                }
+                <div 
+                  (click)="setMode('trilogy_architect')"
+                  [class]="selectedMode() === 'trilogy_architect' ? 'border-amber-600 bg-amber-50/80 ring-2 ring-amber-600/50' : 'border-stone-200/80 bg-white/50 hover:border-amber-400 hover:bg-amber-50/50'"
+                  class="cursor-pointer border rounded-lg p-4 flex items-start transition-all duration-200 transform hover:scale-[1.02] shadow-sm hover:shadow-md col-span-1 md:col-span-2 lg:col-span-3">
+                  <div class="flex-shrink-0 text-amber-700 bg-amber-100 p-2 rounded-md" [innerHTML]="trilogyArchitectMode.icon | safeHtml"></div>
+                  <div class="mr-4 flex-1">
+                    <p class="font-bold text-stone-900 flex items-center gap-2">
+                       {{ trilogyArchitectMode.title }}
+                       <span class="bg-amber-800 text-white text-[10px] px-2 py-0.5 rounded-full tracking-wide">جديد</span>
+                    </p>
+                    <p class="text-xs text-stone-600 mt-1">{{ trilogyArchitectMode.description }}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex justify-center pt-4">
+              <button (click)="startProcessing()" class="w-full sm:w-auto px-10 py-4 bg-gradient-to-br from-stone-700 to-stone-900 text-white font-serif tracking-wide text-lg rounded-lg shadow-lg hover:shadow-xl hover:from-stone-800 focus:outline-none focus:ring-4 focus:ring-amber-500/50 transition-all transform hover:-translate-y-0.5">
+                تنفيذ: {{ currentModeTitle() }}
+              </button>
+            </div>
+          }
+        </div>
+      }
+    }
+
+    <!-- ===== MAGIC LANTERN (ASSISTANT) VIEW ===== -->
+    @if (mainView() === 'assistant') {
+      @if (!result() && !isProcessing()) {
+        <div class="p-8 sm:p-12">
+           <div class="text-center mb-10 animate-fade-in">
+             <h2 class="text-3xl font-semibold text-stone-800 mb-2 font-serif">مرحباً بك في الفانوس السحري</h2>
+             <p class="text-stone-600 max-w-2xl mx-auto">أنا Mr. F، مساعد النشر الذكي. يمكنني مساعدتك في تجهيز كتابك للنشر العالمي، من تصميم غلاف مذهل إلى ضمان توافق المحتوى مع قوانين النشر الدولية.</p>
+           </div>
+          
+           <!-- Image Generation Module -->
+           <div class="mb-12 p-8 bg-stone-50/60 rounded-xl border border-stone-200/80 shadow-sm">
+              <h3 class="text-xl font-bold text-stone-800 mb-4 border-b border-stone-200 pb-3 flex items-center gap-3"><span class="text-amber-700 bg-amber-100 p-2 rounded-md"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg></span>تصميم غلاف الكتاب</h3>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start mt-6">
+                  <div>
+                    <label for="image-prompt" class="block text-sm font-medium text-stone-700 mb-2">وصف الغلاف المقترح</label>
+                    <textarea 
+                      id="image-prompt"
+                      rows="4" 
+                      placeholder="مثال: فارس وحيد يقف على قمة جبل ثلجي، ينظر إلى قمر عملاق في سماء الليل، بأسلوب رسم زيتي درامي..."
+                      class="block w-full rounded-md border-stone-300 bg-white shadow-sm focus:border-amber-500 focus:ring-amber-500 sm:text-sm p-3 border leading-relaxed"
+                      (input)="imagePrompt.set($any($event.target).value)"></textarea>
+                  </div>
+                  <div class="grid grid-cols-2 gap-4">
+                    <div>
+                      <label for="aspect-ratio" class="block text-sm font-medium text-stone-700 mb-2">نسبة الأبعاد</label>
+                      <select id="aspect-ratio" (change)="aspectRatio.set($any($event.target).value)" class="block w-full rounded-md border-stone-300 bg-white shadow-sm focus:border-amber-500 focus:ring-amber-500 sm:text-sm p-2.5 border">
+                        @for(ratio of aspectRatios; track ratio.value) {
+                           <option [value]="ratio.value">{{ratio.label}}</option>
+                        }
+                      </select>
+                    </div>
+                    <div>
+                      <label for="image-size" class="block text-sm font-medium text-stone-700 mb-2">جودة الصورة</label>
+                      <select id="image-size" (change)="imageSize.set(+$any($event.target).value)" class="block w-full rounded-md border-stone-300 bg-white shadow-sm focus:border-amber-500 focus:ring-amber-500 sm:text-sm p-2.5 border">
+                        @for(size of imageSizes; track size.value) {
+                           <option [value]="size.value">{{size.label}}</option>
+                        }
+                      </select>
+                    </div>
+                    <div class="col-span-2">
+                      <button (click)="startImageGeneration()" [disabled]="!imagePrompt()" class="w-full mt-2 px-8 py-3 bg-gradient-to-br from-amber-600 to-amber-800 text-white font-medium rounded-lg shadow-md hover:shadow-lg hover:from-amber-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all">
+                        إنشاء تصميم الغلاف
+                      </button>
+                    </div>
+                  </div>
+              </div>
+           </div>
+
+           <!-- Publishing Analysis Module -->
+           <div class="p-8 bg-stone-50/60 rounded-xl border border-stone-200/80 shadow-sm">
+              <h3 class="text-xl font-bold text-stone-800 mb-4 border-b border-stone-200 pb-3 flex items-center gap-3"><span class="text-amber-700 bg-amber-100 p-2 rounded-md"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9V3m0 18a9 9 0 009-9M3 12a9 9 0 009 9"></path></svg></span>تحليل التوافق للنشر</h3>
+              <p class="text-sm text-stone-600 mb-6 mt-4">لتحليل مخطوطتك، ارفعها من قسم "المحرر"، ثم حدد المعايير أدناه لبدء الفحص العميق.</p>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
+                  <div>
+                    <label for="target-country" class="block text-sm font-medium text-stone-700 mb-2">بلد النشر المستهدف</label>
+                    <input type="text" id="target-country" (input)="publishingTargetCountry.set($any($event.target).value)" placeholder="مثال: المملكة العربية السعودية, ألمانيا..." class="block w-full rounded-md border-stone-300 bg-white shadow-sm focus:border-amber-500 focus:ring-amber-500 sm:text-sm p-2.5 border">
+                  </div>
+                  <div>
+                     <label for="publishing-platform" class="block text-sm font-medium text-stone-700 mb-2">منصة النشر</label>
+                     <select id="publishing-platform" (change)="publishingPlatform.set($any($event.target).value)" class="block w-full rounded-md border-stone-300 bg-white shadow-sm focus:border-amber-500 focus:ring-amber-500 sm:text-sm p-2.5 border">
+                       <option value="Amazon KDP">Amazon KDP</option>
+                       <option value="دور النشر التقليدية">دور النشر التقليدية</option>
+                       <option value="عام">عام / غير محدد</option>
+                     </select>
+                  </div>
+              </div>
+              <div class="mt-6 flex justify-center">
+                 <button (click)="startPublishingAnalysis()" [disabled]="!hasFiles() || !publishingTargetCountry()" class="w-full sm:w-auto px-10 py-4 bg-gradient-to-br from-stone-700 to-stone-900 text-white font-serif tracking-wide text-lg rounded-lg shadow-lg hover:shadow-xl hover:from-stone-800 focus:outline-none focus:ring-4 focus:ring-amber-500/50 transition-all transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed">
+                   بدء التحليل الشامل
+                 </button>
+              </div>
+           </div>
+
+        </div>
+      }
+    }
+
+    <!-- ===== PROCESSING & RESULTS (SHARED) ===== -->
+    @if (error()) {
+      <div class="m-8 p-4 bg-red-100 border-r-4 border-red-500 text-red-800 rounded-md shadow-lg animate-fade-in">
+         <div class="flex">
+           <div class="flex-shrink-0">
+             <svg class="h-5 w-5 text-red-500 ml-3" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" /></svg>
+           </div>
+           <div class="mr-3">
+             <h3 class="text-sm font-medium">خطأ في المعالجة</h3>
+             <div class="mt-2 text-sm"><p>{{ error() }}</p></div>
+           </div>
+         </div>
+      </div>
+    }
+
+    @if (isProcessing()) {
+      <div class="p-16 flex flex-col items-center justify-center text-center min-h-[600px]">
+        <div class="relative w-24 h-24 mb-10">
+           <div class="absolute inset-0 border-4 border-stone-200/50 rounded-full"></div>
+           <div class="absolute inset-0 border-4 border-amber-600 rounded-full border-t-transparent animate-spin"></div>
+        </div>
+        <h3 class="text-3xl font-serif font-medium text-stone-900 mb-3">{{isGeneratingImage() ? 'جاري إنشاء تصميم الغلاف' : 'جاري معالجة المخطوطة'}}</h3>
+        <p class="text-stone-600 animate-pulse font-mono text-sm uppercase tracking-wide">{{ processingStep() }}</p>
+        <div class="mt-12 max-w-lg p-6 bg-stone-50/50 rounded-lg border border-stone-200/80">
+          <p class="text-sm text-stone-700 italic font-serif">
+            "الصبر مفتاح الفرج، والإتقان مفتاح الإبداع."
+          </p>
+        </div>
+      </div>
+    }
+
+    @if (result()) {
+      <div class="flex flex-col h-full animate-fade-in bg-stone-50/50">
+        <div class="bg-stone-800 text-white p-6 flex justify-between items-center flex-wrap gap-4 shadow-lg">
+           <div>
+             <h2 class="text-2xl font-bold font-serif tracking-wide text-white">النتائج النهائية</h2>
+             <p class="text-sm text-stone-300">العملية: {{ currentModeTitle() }}</p>
+           </div>
+           <div class="flex gap-3">
+             <button (click)="reset()" class="px-5 py-2.5 text-stone-200 bg-stone-700 border border-stone-600 rounded-lg hover:bg-stone-600 hover:text-white transition-colors">
+               بدء مشروع جديد
+             </button>
+           </div>
+        </div>
+        
+        <!-- Image Generation Result -->
+        @if(result()?.generatedImage) {
+          <div class="p-8 sm:p-12 text-center bg-stone-100">
+             <h3 class="text-2xl font-serif font-bold text-stone-800 mb-6">تصميم الغلاف المقترح</h3>
+             <div class="flex justify-center">
+                <div class="bg-white p-4 rounded-lg shadow-2xl shadow-stone-400/50 ring-1 ring-black/5">
+                  <img [src]="result()?.generatedImage" alt="Generated book cover" class="rounded-md max-w-full h-auto max-h-[70vh]"/>
+                </div>
+             </div>
+          </div>
+        }
+
+        <!-- Publishing Analysis Result -->
+        @if(result()?.publishingReport) {
+          <div class="p-8 sm:p-12">
+            <h3 class="text-2xl font-serif font-bold text-stone-800 mb-6 border-b border-stone-200 pb-4">تقرير تحليل النشر</h3>
+            <div class="space-y-6">
+              <div class="p-4 bg-white rounded-lg border border-stone-200 shadow-sm">
+                <p><strong>بلد النشر:</strong> {{ result()?.publishingReport?.targetCountry }}</p>
+                <p><strong>المنصة:</strong> {{ result()?.publishingReport?.platform }}</p>
+              </div>
+              <div class="p-6 bg-white rounded-lg border border-stone-200 shadow-sm">
+                <h4 class="font-bold text-lg text-stone-800 mb-3">ملخص التقرير:</h4>
+                <p class="text-stone-600 leading-relaxed">{{ result()?.publishingReport?.summary }}</p>
+              </div>
+              <div class="p-6 bg-green-50 rounded-lg border border-green-200 shadow-sm">
+                <h4 class="font-bold text-lg text-green-800 mb-3">النقاط الإيجابية:</h4>
+                <ul class="list-disc pr-5 space-y-2 text-green-700">
+                  @for(point of result()?.publishingReport?.positivePoints; track $index) {
+                    <li>{{point}}</li>
+                  }
+                </ul>
+              </div>
+              <div class="p-6 bg-red-50 rounded-lg border border-red-200 shadow-sm">
+                <h4 class="font-bold text-lg text-red-800 mb-3">نقاط تتطلب المراجعة:</h4>
+                @if(result()?.publishingReport?.concerns.length === 0) {
+                   <p class="text-gray-600">لم يتم العثور على نقاط جوهرية تثير القلق. عمل رائع!</p>
+                } @else {
+                  <ul class="list-disc pr-5 space-y-2 text-red-700">
+                    @for(concern of result()?.publishingReport?.concerns; track $index) {
+                      <li>{{concern}}</li>
+                    }
+                  </ul>
+                }
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- Editor Result -->
+        @if(result()?.mergedContent) {
+          <div class="grid grid-cols-1 lg:grid-cols-3">
+            <div class="p-6 lg:col-span-1 bg-stone-100/70 space-y-6 border-l border-stone-200/80">
+              <div class="bg-white p-5 rounded-lg shadow-sm border border-stone-200/80">
+                <h4 class="text-sm font-bold text-stone-500 uppercase tracking-wide">إحصائيات المخطوطة</h4>
+                <div class="mt-3 flex flex-col gap-2">
+                   <div class="flex justify-between items-baseline border-b border-stone-100 pb-2">
+                     <span class="text-sm text-stone-600">إجمالي الكلمات</span>
+                     <span class="text-xl font-bold text-stone-900">{{ result()?.wordCount | number }}</span>
+                   </div>
+                   <div class="flex justify-between items-baseline pt-1">
+                     <span class="text-sm text-stone-600">التصنيف</span>
+                     <span class="text-xs font-medium px-2 py-1 rounded bg-stone-100 text-stone-700">{{ wordCountStatus() }}</span>
+                   </div>
+                </div>
+              </div>
+              <div class="bg-white p-5 rounded-lg shadow-sm border border-stone-200/80">
+                <h4 class="text-sm font-bold text-stone-500 uppercase tracking-wide">
+                  {{ selectedMode() === 'philosophical' ? 'رؤى فلسفية' : 'ملاحظات المحرر' }}
+                </h4>
+                <ul class="mt-3 space-y-3">
+                  @for (mod of result()?.modifications; track $index) {
+                    <li class="text-sm text-stone-700 flex items-start group">
+                      <span class="text-amber-500 mr-2 mt-1 group-hover:text-amber-600">•</span>
+                      {{ mod }}
+                    </li>
+                  }
+                </ul>
+              </div>
+            </div>
+            <div class="p-8 lg:col-span-2 bg-white">
+              @if (selectedMode() === 'logical_split' && result()?.splitSegments) {
+                <h3 class="text-2xl font-serif font-bold text-stone-800 mb-6">الفصول المقسّمة</h3>
+                <div class="space-y-4">
+                   @for (segment of result()?.splitSegments; track $index) {
+                     <div class="p-4 border border-stone-200/80 rounded-lg bg-stone-50/50 hover:border-amber-400 transition-colors">
+                        <div class="flex justify-between items-start gap-4">
+                          <div class="flex-1">
+                            <h4 class="font-bold text-stone-900 text-lg font-serif">{{segment.title}}</h4>
+                            <p class="text-sm text-stone-600 mt-1 italic">{{segment.rationale}}</p>
+                          </div>
+                          <button (click)="downloadSegment(segment, $index)" class="flex-shrink-0 flex items-center text-sm font-medium text-stone-700 bg-white border border-stone-300 px-3 py-1.5 rounded-md hover:bg-stone-800 hover:text-white transition-colors">
+                            <svg class="w-4 h-4 ml-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                            تحميل
+                          </button>
+                        </div>
+                     </div>
+                   }
+                </div>
+              } @else if (selectedMode() === 'trilogy_architect' && result()?.trilogyBooks) {
+                <h3 class="text-2xl font-serif font-bold text-stone-800 mb-6">مخطط الثلاثية</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                   @for (book of result()?.trilogyBooks; track $index) {
+                     <div class="flex flex-col h-full relative group">
+                       <div class="bg-stone-800 text-stone-100 p-6 rounded-t-lg shadow-lg relative overflow-hidden h-48 flex flex-col justify-center text-center border-b-4 border-amber-400">
+                          <div class="absolute inset-0 opacity-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-white to-transparent"></div>
+                          <span class="text-xs tracking-[0.2em] text-stone-400 mb-2 uppercase">المجلد 0{{book.volumeNumber}}</span>
+                          <h4 class="font-serif font-bold text-xl leading-tight mb-2">{{book.bookTitle}}</h4>
+                          <p class="text-xs font-light italic text-stone-400 border-t border-stone-600 pt-2 inline-block mx-auto">{{book.subtitle}}</p>
+                       </div>
+                       <div class="bg-white border-x border-b border-stone-200/80 p-4 rounded-b-lg flex-1 flex flex-col shadow-sm">
+                         <p class="text-xs text-stone-600 italic mb-4 flex-1">
+                           <span class="font-bold text-stone-800 not-italic">الرؤية:</span> {{book.architecturalRationale}}
+                         </p>
+                         <button (click)="downloadBook(book)" class="w-full mt-2 py-2 text-xs font-bold uppercase tracking-wider text-stone-800 border border-stone-800 hover:bg-stone-800 hover:text-white transition-all rounded-md">
+                           تحميل المجلد {{book.volumeNumber}}
+                         </button>
+                       </div>
+                     </div>
+                   }
+                </div>
+              } @else {
+                <div class="flex justify-between items-center mb-6">
+                  <h3 class="text-2xl font-serif font-bold text-stone-800">معاينة المخطوطة</h3>
+                  <button (click)="downloadResult()" class="px-4 py-2 text-stone-700 bg-white rounded-lg font-medium hover:bg-stone-100 shadow-md flex items-center transition-all border border-stone-200/80">
+                    <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    تحميل النص الكامل
+                 </button>
+                </div>
+                <div class="prose prose-stone prose-lg max-w-none leading-loose bg-white p-6 rounded-md border border-stone-200/80 max-h-[60vh] overflow-y-auto custom-scrollbar">
+                  <div class="whitespace-pre-wrap text-stone-800 font-light">
+                    {{ result()?.mergedContent }}
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </main>
+  
+  <footer class="mt-12 text-center text-stone-500 text-sm">
+    <p>&copy; 2024 النسّيك للنشر التقني. جميع الحقوق محفوظة لـ فراس العساف (Mr.F).</p>
+  </footer>
+</div>

@@ -1,0 +1,44 @@
+node_modules
+dist
+.DS_Store
+server/public
+vite.config.ts.*
+*.tar.gz
+*.code-profile
+docs/*.code-profile
+
+# Environment Variables (NEVER commit .env files)
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/settings.json
+.idea/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Test files
+*-cookies.txt
+arc-cookies.txt
+# Android build outputs (keep android/ folder for Capacitor)
+android/build/
+android/app/build/
+android/.gradle/
+android/local.properties
+*.txt
+PRODUCTION_STATUS_REPORT.md
+.env.production
+RAILWAY_VARIABLES_COMPLETE.txt
+EXTRACTED_REPOS/
+push-with-token.sh
+
+# Extracted repositories (stored separately on GitHub)
+_FINAL_REPOS-1/
+EXTRACTED_REPOS/
+
+# Deployment logs
+deployment_log_*.txt
+RAILWAY_ENV_SETUP.md

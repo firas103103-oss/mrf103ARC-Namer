@@ -1,0 +1,8 @@
+{
+  "firebase_hosting": {},
+  "cloud_run_deploy": {
+    "region": "europe-west1",
+    "sourceFlag": "--source .",
+    "allowUnauthenticatedInvocationsFlag": "--allow-unauthenticated"
+  }
+}
