@@ -42,3 +42,6 @@ EXTRACTED_REPOS/
 # Deployment logs
 deployment_log_*.txt
 RAILWAY_ENV_SETUP.md
+GRAVEYARD_DIG/
+MRF_AUDIT/
+repos.json*
