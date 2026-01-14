@@ -94,12 +94,12 @@ financeRouter.get('/transactions', async (req, res) => {
 // Get finance team status
 financeRouter.get('/team', async (req, res) => {
   try {
-    const specialists = arcHierarchy.getSpecialists('finance');
+    const specialists = arcHierarchy.getSpecialists('finance' as any);
     
     const team = specialists.map(agent => ({
       id: agent.id,
-      name: agent.nameEn,
-      nameAr: agent.nameAr,
+      name: agent.name || agent.nameEn || 'Agent',
+      nameAr: agent.nameAr || 'وكيل',
       role: agent.role,
       status: agent.status,
       tasksToday: Math.floor(Math.random() * 50) + 30, // TODO: Get from real metrics
