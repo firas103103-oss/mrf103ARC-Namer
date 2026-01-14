@@ -5,47 +5,27 @@
 
 import { Router } from "express";
 import type { Request, Response } from "express";
+import { db } from '../db';
+import { systemSettings } from '@shared/schema';
+import { eq, and } from 'drizzle-orm';
 
 const router = Router();
 
 // GET /api/settings - Get all system settings
 router.get("/", async (req: Request, res: Response) => {
   try {
-    // TODO: Fetch from database
-    const settings = {
-      general: {
-        darkMode: true,
-        language: 'en',
-        timezone: 'UTC',
-        dateFormat: 'YYYY-MM-DD'
-      },
-      notifications: {
-        enabled: true,
-        emailNotifications: true,
-        pushNotifications: false,
-        dailyDigest: true
-      },
-      system: {
-        autoReports: true,
-        learningEnabled: true,
-        autoBackup: true,
-        dataRetention: 90
-      },
-      integrations: {
-        openAI: { enabled: true, model: 'gpt-4', apiKey: '***' },
-        anthropic: { enabled: true, model: 'claude-3-sonnet', apiKey: '***' },
-        supabase: { enabled: true, connected: true },
-        n8n: { enabled: true, webhookUrl: 'https://***' }
-      },
-      security: {
-        twoFactorAuth: false,
-        sessionTimeout: 3600,
-        ipWhitelist: [],
-        rateLimiting: true
+    const allSettings = await db.select().from(systemSettings).execute();
+    
+    // Group by category
+    const grouped = allSettings.reduce((acc: any, setting) => {
+      if (!acc[setting.category]) {
+        acc[setting.category] = {};
       }
-    };
+      acc[setting.category][setting.key] = setting.value;
+      return acc;
+    }, {});
 
-    res.json({ success: true, data: settings });
+    res.json({ success: true, data: grouped });
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch settings" });
   }
@@ -57,8 +37,22 @@ router.put("/:category", async (req: Request, res: Response) => {
     const { category } = req.params;
     const updates = req.body;
 
-    // TODO: Update database
-    console.log(`[SETTINGS] Updating ${category}:`, updates);
+    // Update each setting in the category
+    for (const [key, value] of Object.entries(updates)) {
+      await db
+        .update(systemSettings)
+        .set({ 
+          value: value as any,
+          updatedAt: new Date()
+        })
+        .where(
+          and(
+            eq(systemSettings.category, category),
+            eq(systemSettings.key, key)
+          )
+        )
+        .execute();
+    }
 
     res.json({ 
       success: true, 

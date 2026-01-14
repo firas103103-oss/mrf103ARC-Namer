@@ -98,7 +98,7 @@ financeRouter.get('/team', async (req, res) => {
     
     const team = specialists.map(agent => ({
       id: agent.id,
-      name: agent.name || agent.nameEn || 'Agent',
+      name: agent.name || 'Agent',
       nameAr: agent.nameAr || 'وكيل',
       role: agent.role,
       status: agent.status,

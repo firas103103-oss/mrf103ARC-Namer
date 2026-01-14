@@ -81,7 +81,7 @@ legalRouter.get('/team', async (req, res) => {
     const specialists = arcHierarchy.getSpecialists('legal' as any);
     const team = specialists.map(agent => ({
       id: agent.id,
-      name: agent.name || agent.nameEn || 'Agent',
+      name: agent.name || 'Agent',
       nameAr: agent.nameAr || 'وكيل',
       role: agent.role,
       status: agent.status,
