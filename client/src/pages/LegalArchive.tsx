@@ -1,34 +1,40 @@
 /**
  * ⚖️ Legal Archive - Lexis Command
  * مركز القانون والوثائق
+ * ✅ متصل بـ Backend API
  */
 
-import { useState } from 'react';
-import { Scale, FileText, CheckCircle, Clock, Archive, Shield } from 'lucide-react';
+import { useSectorOverview, useSectorTeam, createRefreshHandler, renderLoading } from '@/lib/apiHooks';
+import { Scale, FileText, CheckCircle, Clock, Archive, Shield, RefreshCw } from 'lucide-react';
 
 export default function LegalArchive() {
-  const [stats] = useState({
-    totalDocuments: 1245,
-    activeContracts: 23,
-    compliance: 98,
-    patents: 5
-  });
+  const { data: overviewData, isLoading: overviewLoading, refetch: refetchOverview } = useSectorOverview('legal');
+  const { data: teamData, isLoading: teamLoading, refetch: refetchTeam } = useSectorTeam('legal');
 
-  const [agents] = useState([
-    { id: 'archive', name: 'Archive', nameAr: 'الأرشيف', role: 'Document Archive', icon: '📚', color: 'hsl(var(--secondary))', tasks: 45 },
-    { id: 'contract', name: 'Contract', nameAr: 'العقود', role: 'Contract Management', icon: '📝', color: '#A78BFA', tasks: 28 },
-    { id: 'compliance', name: 'Compliance', nameAr: 'الامتثال', role: 'Compliance & Policies', icon: '✅', color: 'hsl(var(--secondary))', tasks: 19 },
-    { id: 'patent', name: 'Patent', nameAr: 'البراءات', role: 'Intellectual Property', icon: '💡', color: '#6D28D9', tasks: 12 }
-  ]);
+  const handleRefresh = createRefreshHandler(refetchOverview, refetchTeam);
+
+  if (overviewLoading || teamLoading) {
+    return renderLoading('Loading Legal Archive...');
+  }
+
+  const stats = overviewData?.data || { activeContracts: 0, pendingReviews: 0, completedThisMonth: 0, complianceScore: 0 };
+  const agents = teamData?.data || [];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-background text-white p-8">
       <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-2 flex items-center gap-3">
-          <span className="text-5xl">⚖️</span>
-          Legal Archive
-        </h1>
-        <p className="text-muted-foreground text-lg">Maestro Lexis - ليكسيس | مركز القانون والوثائق</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl font-bold mb-2 flex items-center gap-3">
+              <span className="text-5xl">⚖️</span>
+              Legal Archive
+            </h1>
+            <p className="text-muted-foreground text-lg">Maestro Lexis - ليكسيس | مركز القانون والوثائق</p>
+          </div>
+          <button onClick={handleRefresh} className="p-2 rounded-lg bg-secondary/20 hover:bg-secondary/30 transition-colors" title="Refresh Data">
+            <RefreshCw className="w-5 h-5 text-secondary" />
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">

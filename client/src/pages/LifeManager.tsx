@@ -1,34 +1,40 @@
 /**
  * 🏠 Life Manager - Harmony Command
  * مركز الحياة الشخصية
+ * ✅ متصل بـ Backend API
  */
 
-import { useState } from 'react';
-import { Home, Heart, Users, Calendar, TrendingUp, Activity } from 'lucide-react';
+import { useSectorOverview, useSectorTeam, createRefreshHandler, renderLoading } from '@/lib/apiHooks';
+import { Home, Heart, Users, Calendar, TrendingUp, Activity, RefreshCw } from 'lucide-react';
 
 export default function LifeManager() {
-  const [stats] = useState({
-    healthScore: 92,
-    dailyTasks: 12,
-    upcomingEvents: 5,
-    habitStreak: 28
-  });
+  const { data: overviewData, isLoading: overviewLoading, refetch: refetchOverview } = useSectorOverview('life');
+  const { data: teamData, isLoading: teamLoading, refetch: refetchTeam } = useSectorTeam('life');
 
-  const [agents] = useState([
-    { id: 'wellness', name: 'Wellness', nameAr: 'العافية', role: 'Health & Wellness', icon: '❤️', color: 'hsl(var(--accent))', tasks: 34 },
-    { id: 'social', name: 'Social', nameAr: 'الاجتماعي', role: 'Relationships & Social', icon: '👥', color: 'hsl(var(--accent))', tasks: 28 },
-    { id: 'routine', name: 'Routine', nameAr: 'الروتين', role: 'Daily Tasks & Routines', icon: '📅', color: 'hsl(var(--accent))', tasks: 45 },
-    { id: 'growth', name: 'Growth', nameAr: 'النمو', role: 'Personal Development', icon: '🌱', color: '#BE185D', tasks: 21 }
-  ]);
+  const handleRefresh = createRefreshHandler(refetchOverview, refetchTeam);
+
+  if (overviewLoading || teamLoading) {
+    return renderLoading('Loading Life Manager...');
+  }
+
+  const stats = overviewData?.data || { healthScore: 0, productivityScore: 0, tasksCompleted: 0, upcomingEvents: 0 };
+  const agents = teamData?.data || [];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-background text-white p-8">
       <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-2 flex items-center gap-3">
-          <span className="text-5xl">🏠</span>
-          Life Manager
-        </h1>
-        <p className="text-muted-foreground text-lg">Maestro Harmony - هارموني | مركز الحياة الشخصية</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl font-bold mb-2 flex items-center gap-3">
+              <span className="text-5xl">🏠</span>
+              Life Manager
+            </h1>
+            <p className="text-muted-foreground text-lg">Maestro Harmony - هارموني | مركز الحياة الشخصية</p>
+          </div>
+          <button onClick={handleRefresh} className="p-2 rounded-lg bg-accent/20 hover:bg-accent/30 transition-colors" title="Refresh Data">
+            <RefreshCw className="w-5 h-5 text-accent" />
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">

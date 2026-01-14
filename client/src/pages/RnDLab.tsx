@@ -1,34 +1,40 @@
 /**
  * 🔬 R&D Lab - Nova Command
  * مركز البحث والتطوير
+ * ✅ متصل بـ Backend API
  */
 
-import { useState } from 'react';
-import { Microscope, Lightbulb, Cpu, TrendingUp, Zap, Beaker } from 'lucide-react';
+import { useSectorOverview, useSectorTeam, createRefreshHandler, renderLoading } from '@/lib/apiHooks';
+import { Microscope, Lightbulb, Cpu, TrendingUp, Zap, Beaker, RefreshCw } from 'lucide-react';
 
 export default function RnDLab() {
-  const [stats] = useState({
-    activeProjects: 8,
-    innovations: 15,
-    experiments: 23,
-    evolutionIndex: 42
-  });
+  const { data: overviewData, isLoading: overviewLoading, refetch: refetchOverview } = useSectorOverview('rnd');
+  const { data: teamData, isLoading: teamLoading, refetch: refetchTeam } = useSectorTeam('rnd');
 
-  const [agents] = useState([
-    { id: 'lab', name: 'Lab', nameAr: 'المختبر', role: 'Research & Studies', icon: '🧪', color: 'hsl(var(--primary))', tasks: 52 },
-    { id: 'forge', name: 'Forge', nameAr: 'المصنع', role: 'Development & Engineering', icon: '⚙️', color: 'hsl(var(--primary))', tasks: 67 },
-    { id: 'spark', name: 'Spark', nameAr: 'الشرارة', role: 'Innovation & Ideas', icon: '✨', color: 'hsl(var(--primary))', tasks: 41 },
-    { id: 'darwin', name: 'Darwin', nameAr: 'داروين', role: 'Self-Learning & Evolution', icon: '🧬', color: 'hsl(var(--primary))', tasks: 38 }
-  ]);
+  const handleRefresh = createRefreshHandler(refetchOverview, refetchTeam);
+
+  if (overviewLoading || teamLoading) {
+    return renderLoading('Loading R&D Lab...');
+  }
+
+  const stats = overviewData?.data || { activeProjects: 0, completedProjects: 0, experiments: 0, innovationScore: 0 };
+  const agents = teamData?.data || [];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-background text-white p-8">
       <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-2 flex items-center gap-3">
-          <span className="text-5xl">🔬</span>
-          R&D Lab
-        </h1>
-        <p className="text-muted-foreground text-lg">Maestro Nova - نوفا | مركز البحث والتطوير</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl font-bold mb-2 flex items-center gap-3">
+              <span className="text-5xl">🔬</span>
+              R&D Lab
+            </h1>
+            <p className="text-muted-foreground text-lg">Maestro Nova - نوفا | مركز البحث والتطوير</p>
+          </div>
+          <button onClick={handleRefresh} className="p-2 rounded-lg bg-primary/20 hover:bg-primary/30 transition-colors" title="Refresh Data">
+            <RefreshCw className="w-5 h-5 text-primary" />
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
