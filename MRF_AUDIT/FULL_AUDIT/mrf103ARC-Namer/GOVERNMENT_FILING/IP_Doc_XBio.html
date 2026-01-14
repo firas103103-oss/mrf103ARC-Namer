@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XBio Sentinel Field Controller - الوثيقة التقنية</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Tajawal', 'Traditional Arabic', serif;
+            background: #ffffff;
+            color: #1a1a1a;
+            line-height: 1.8;
+            font-size: 14px;
+        }
+        
+        .container {
+            max-width: 210mm;
+            margin: 0 auto;
+            padding: 20mm;
+            background: white;
+        }
+        
+        /* Header */
+        .header {
+            border-bottom: 3px solid #1a1a1a;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+        
+        .logo-section h1 {
+            font-size: 28px;
+            font-weight: 900;
+            color: #1a1a1a;
+            letter-spacing: -1px;
+            margin-bottom: 5px;
+        }
+        
+        .logo-section .subtitle {
+            font-size: 13px;
+            color: #666;
+            font-weight: 400;
+            letter-spacing: 0.5px;
+        }
+        
+        .ref-section {
+            text-align: left;
+            font-size: 11px;
+            color: #666;
+            line-height: 1.6;
+        }
+        
+        .ref-section .ref-number {
+            font-weight: 700;
+            color: #1a1a1a;
+            font-size: 13px;
+            margin-bottom: 5px;
+        }
+        
+        .patent-highlight {
+            background: #f0f4ff;
+            border: 2px solid #1e3a8a;
+            padding: 8px;
+            border-radius: 4px;
+            margin-top: 10px;
+            color: #1e3a8a;
+            font-weight: 600;
+        }
+        
+        /* Sections */
+        .section {
+            margin-bottom: 35px;
+            page-break-inside: avoid;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1a1a1a;
+            border-bottom: 2px solid #1a1a1a;
+            padding-bottom: 8px;
+            margin-bottom: 20px;
+            letter-spacing: -0.5px;
+        }
+        
+        .section-subtitle {
+            font-size: 14px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-top: 20px;
+            margin-bottom: 12px;
+        }
+        
+        .text-block {
+            margin-bottom: 15px;
+            line-height: 2;
+            text-align: justify;
+        }
+        
+        .text-block strong {
+            color: #1a1a1a;
+            font-weight: 600;
+        }
+        
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 13px;
+        }
+        
+        th {
+            background: #1a1a1a;
+            color: white;
+            padding: 12px;
+            text-align: right;
+            font-weight: 600;
+            border: 1px solid #1a1a1a;
+        }
+        
+        td {
+            padding: 10px 12px;
+            border: 1px solid #e0e0e0;
+            text-align: right;
+        }
+        
+        tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+        
+        /* Info Boxes */
+        .info-box {
+            background: #f5f5f5;
+            border-right: 4px solid #1a1a1a;
+            padding: 15px 20px;
+            margin-bottom: 15px;
+        }
+        
+        .info-box-title {
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        .patent-box {
+            background: #f0f4ff;
+            border-right: 4px solid #1e3a8a;
+            padding: 15px 20px;
+            margin-bottom: 15px;
+        }
+        
+        .patent-box-title {
+            font-weight: 700;
+            color: #1e3a8a;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        /* Technical Specs */
+        .spec-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .spec-card {
+            background: white;
+            border: 2px solid #1a1a1a;
+            padding: 15px;
+        }
+        
+        .spec-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 5px;
+        }
+        
+        .spec-content {
+            font-size: 12px;
+            color: #555;
+            line-height: 1.6;
+        }
+        
+        /* Code Blocks */
+        .code-block {
+            background: #f8f8f8;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            margin: 15px 0;
+            overflow-x: auto;
+        }
+        
+        /* Footer */
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 2px solid #e0e0e0;
+            text-align: center;
+            font-size: 11px;
+            color: #999;
+        }
+        
+        .confidential {
+            margin-top: 20px;
+            font-weight: 600;
+            color: #1a1a1a;
+            font-size: 12px;
+        }
+        
+        /* Print Styles */
+        @media print {
+            body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .section { page-break-inside: avoid; }
+            @page { size: A4; margin: 15mm; }
+        }
+        
+        .accent { color: #1e3a8a; font-weight: 600; }
+        .highlight { background-color: #fff3cd; padding: 2px 4px; border-radius: 2px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-top">
+                <div class="logo-section">
+                    <h1>XBio Sentinel Field Controller</h1>
+                    <div class="subtitle">نظام الاستشعار البيئي الذكي</div>
+                </div>
+                <div class="ref-section">
+                    <div class="ref-number">XBIO-IP-DOC-001</div>
+                    <div>الوثيقة التقنية</div>
+                    <div>يناير 2026</div>
+                    <div>الحالة: تحت التطوير</div>
+                    <div class="patent-highlight">
+                        براءة اختراع: SA 1020258841
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Patent Information -->
+        <section class="section">
+            <h2 class="section-title">معلومات براءة الاختراع</h2>
+            
+            <div class="patent-box">
+                <div class="patent-box-title">طلب براءة الاختراع SA 1020258841</div>
+                <div><strong>اسم الاختراع:</strong> نظام استشعار بيئي ذكي بالذكاء الاصطناعي المحلي</div>
+                <div><strong>المخترع:</strong> م. فراس أيهم عساف</div>
+                <div><strong>تاريخ التقديم:</strong> يناير 2026</div>
+                <div><strong>الحالة:</strong> قيد المراجعة لدى الهيئة السعودية للملكية الفكرية (SAIP)</div>
+                <div><strong>التصنيف:</strong> G01N 33/00 (تحليل المواد الكيميائية)</div>
+            </div>
+            
+            <div class="text-block">
+                يغطي طلب البراءة الابتكار الجوهري في <span class="highlight">تصنيف الروائح باستخدام الذكاء الاصطناعي المحلي</span> بدون الحاجة لاتصال بالإنترنت، مما يجعل النظام قابلاً للعمل في البيئات المعزولة والحساسة أمنياً.
+            </div>
+        </section>
+
+        <!-- System Overview -->
+        <section class="section">
+            <h2 class="section-title">نظرة عامة على النظام</h2>
+            
+            <div class="text-block">
+                <strong>XBio Sentinel</strong> هو نظام استشعار بيئي متقدم يجمع بين الأجهزة المادية والذكاء الاصطناعي لتحليل وتصنيف جودة الهواء والروائح في الوقت الفعلي. يعمل النظام <span class="accent">بدون اتصال بالإنترنت</span> (Offline-AI) مما يضمن الخصوصية والأمان الكامل.
+            </div>
+            
+            <div class="text-block">
+                يستهدف النظام التطبيقات الصناعية، الطبية، الغذائية، والبيئية حيث تكون مراقبة جودة الهواء أمراً بالغ الأهمية للسلامة والجودة.
+            </div>
+
+            <div class="spec-grid">
+                <div class="spec-card">
+                    <div class="spec-title">المكونات الأساسية</div>
+                    <div class="spec-content">
+                        • معالج ESP32-S3 N16R8<br>
+                        • مستشعر BME688 الغازي<br>
+                        • شاشة OLED للعرض<br>
+                        • وحدة WiFi/Bluetooth<br>
+                        • بطارية ليثيوم قابلة للشحن<br>
+                        • هيكل مقاوم للماء IP65
+                    </div>
+                </div>
+                <div class="spec-card">
+                    <div class="spec-title">القدرات التقنية</div>
+                    <div class="spec-content">
+                        • تصنيف 50+ نوع رائحة<br>
+                        • دقة تزيد عن 92%<br>
+                        • زمن استجابة أقل من 3 ثواني<br>
+                        • عمل مستمر لـ 48 ساعة<br>
+                        • مقاومة درجات حرارة -10°C إلى +60°C<br>
+                        • ذاكرة تخزين 500,000 قراءة
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Offline AI Innovation -->
+        <section class="section">
+            <h2 class="section-title">الابتكار في الذكاء الاصطناعي المحلي</h2>
+
+            <h3 class="section-subtitle">آلية التصنيف الذكي</h3>
+            <div class="text-block">
+                يعتمد النظام على <span class="accent">نموذج ذكاء اصطناعي محلي مدرب مسبقاً</span> يعمل مباشرة على معالج ESP32-S3 بدون الحاجة لاتصال خارجي. هذا الابتكار يحل مشكلة الخصوصية والأمان في التطبيقات الحساسة.
+            </div>
+
+            <div class="info-box">
+                <div class="info-box-title">الخوارزمية الأساسية</div>
+                <div>1. <strong>جمع البيانات:</strong> قراءة مقاومة الغاز، درجة الحرارة، والرطوبة من BME688</div>
+                <div>2. <strong>المعالجة المحلية:</strong> تطبيق نموذج التعلم الآلي المدرب على 10,000+ عينة</div>
+                <div>3. <strong>التصنيف الذكي:</strong> تحديد نوع الرائحة مع نسبة ثقة</div>
+                <div>4. <strong>التعلم المستمر:</strong> تحديث النموذج بناءً على الملاحظات المحلية</div>
+                <div>5. <strong>الإنذار المبكر:</strong> تنبيهات فورية للروائح الخطيرة أو غير المرغوبة</div>
+            </div>
+
+            <h3 class="section-subtitle">تقنية BME688 المتقدمة</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>المعامل</th>
+                        <th>النطاق</th>
+                        <th>الدقة</th>
+                        <th>الاستخدام</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>مقاومة الغاز</td>
+                        <td>10 Ω إلى 10 MΩ</td>
+                        <td>±15%</td>
+                        <td>تصنيف الروائح الأساسي</td>
+                    </tr>
+                    <tr>
+                        <td>درجة الحرارة</td>
+                        <td>-40°C إلى +85°C</td>
+                        <td>±1°C</td>
+                        <td>تصحيح القراءات</td>
+                    </tr>
+                    <tr>
+                        <td>الرطوبة النسبية</td>
+                        <td>0% إلى 100%</td>
+                        <td>±3%</td>
+                        <td>تعويض العوامل البيئية</td>
+                    </tr>
+                    <tr>
+                        <td>الضغط الجوي</td>
+                        <td>300-1100 hPa</td>
+                        <td>±1 hPa</td>
+                        <td>حساب مؤشر جودة الهواء</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Technical Implementation -->
+        <section class="section">
+            <h2 class="section-title">التنفيذ التقني</h2>
+
+            <h3 class="section-subtitle">معمارية البرمجيات</h3>
+            <div class="code-block">
+// Platform: ESP32-S3 with Arduino Framework
+// Compiler: GCC 8.4.0 (Xtensa LX7)
+// Memory: 512KB SRAM, 16MB Flash, 8MB PSRAM
+// AI Framework: TensorFlow Lite Micro
+// Communication: WebSocket + HTTP REST API
+
+#include &lt;WiFi.h&gt;
+#include &lt;WebSocketsServer.h&gt;
+#include &lt;ArduinoJson.h&gt;
+#include &lt;TensorFlowLite_ESP32.h&gt;
+#include "bme688_sensor.h"
+#include "ai_classifier.h"
+
+class XBioSentinel {
+  private:
+    BME688Sensor sensor;
+    AIClassifier classifier;
+    WebSocketsServer webSocket;
+    
+  public:
+    void initialize();
+    SensorReading readEnvironment();
+    SmellClassification classifyOdor(SensorReading data);
+    void sendToCloud(SmellClassification result);
+};
+            </div>
+
+            <h3 class="section-subtitle">بروتوكول التواصل</h3>
+            <div class="text-block">
+                يستخدم النظام بروتوكولين للتواصل: <strong>WebSocket</strong> للبيانات الحية، و<strong>HTTP REST API</strong> للتحكم والتكوين.
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>نوع الرسالة</th>
+                        <th>البروتوكول</th>
+                        <th>التكرار</th>
+                        <th>الغرض</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>sensor_reading</td>
+                        <td>WebSocket</td>
+                        <td>كل 5 ثواني</td>
+                        <td>إرسال بيانات الاستشعار الخام</td>
+                    </tr>
+                    <tr>
+                        <td>smell_detected</td>
+                        <td>WebSocket</td>
+                        <td>عند الكشف</td>
+                        <td>تصنيف رائحة جديدة</td>
+                    </tr>
+                    <tr>
+                        <td>alert_triggered</td>
+                        <td>WebSocket</td>
+                        <td>عند التنبيه</td>
+                        <td>إنذار مبكر لرائحة خطيرة</td>
+                    </tr>
+                    <tr>
+                        <td>device_config</td>
+                        <td>HTTP POST</td>
+                        <td>عند الطلب</td>
+                        <td>تحديث إعدادات الجهاز</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3 class="section-subtitle">استهلاك الطاقة والكفاءة</h3>
+            <div class="info-box">
+                <div class="info-box-title">مواصفات الطاقة</div>
+                <div><strong>الاستهلاك في الوضع النشط:</strong> 150 مللي أمبير عند 3.7 فولت</div>
+                <div><strong>الاستهلاك في وضع النوم:</strong> 10 ميكرو أمبير</div>
+                <div><strong>سعة البطارية:</strong> 2500 مللي أمبير في الساعة</div>
+                <div><strong>مدة التشغيل المستمر:</strong> 48 ساعة (قراءة كل 5 ثواني)</div>
+                <div><strong>مدة التشغيل الموفرة:</strong> 30 يوم (قراءة كل 10 دقائق)</div>
+            </div>
+        </section>
+
+        <!-- Applications and Use Cases -->
+        <section class="section">
+            <h2 class="section-title">التطبيقات ونماذج الاستخدام</h2>
+
+            <h3 class="section-subtitle">القطاعات المستهدفة</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>القطاع</th>
+                        <th>التطبيق المحدد</th>
+                        <th>الفائدة الأساسية</th>
+                        <th>ROI المتوقع</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>الصناعات الغذائية</td>
+                        <td>كشف فساد المنتجات</td>
+                        <td>تقليل الفاقد بنسبة 30%</td>
+                        <td>15x خلال سنة</td>
+                    </tr>
+                    <tr>
+                        <td>المستشفيات والعيادات</td>
+                        <td>مراقبة جودة الهواء الطبي</td>
+                        <td>منع انتشار العدوى</td>
+                        <td>غير قابل للقياس (سلامة)</td>
+                    </tr>
+                    <tr>
+                        <td>المناطق الصناعية</td>
+                        <td>رصد التسريبات الكيميائية</td>
+                        <td>إنذار مبكر وحماية العمال</td>
+                        <td>50x (تجنب الحوادث)</td>
+                    </tr>
+                    <tr>
+                        <td>المباني الذكية</td>
+                        <td>تحسين جودة الهواء الداخلي</td>
+                        <td>زيادة الإنتاجية 20%</td>
+                        <td>8x خلال سنتين</td>
+                    </tr>
+                    <tr>
+                        <td>الزراعة الذكية</td>
+                        <td>مراقبة صحة المحاصيل</td>
+                        <td>كشف الأمراض مبكراً</td>
+                        <td>12x خلال موسم</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3 class="section-subtitle">مثال تطبيقي: مراقبة مستشفى</h3>
+            <div class="info-box">
+                <div class="info-box-title">سيناريو الاستخدام</div>
+                <div><strong>المكان:</strong> وحدة العناية المركزة - مستشفى الملك فيصل التخصصي</div>
+                <div><strong>الهدف:</strong> مراقبة جودة الهواء ومنع انتشار العدوى</div>
+                <div><strong>التنصيب:</strong> 10 أجهزة XBio موزعة في غرف المرضى والممرات</div>
+                <div><strong>النتائج المتوقعة:</strong></div>
+                <div>- كشف مبكر لروائح العدوى بدقة 94%</div>
+                <div>- تقليل معدل العدوى المكتسبة بالمستشفى 40%</div>
+                <div>- توفير 2.5 مليون ريال سنوياً في تكاليف العلاج</div>
+                <div>- تحسين سمعة المستشفى ومعدلات رضا المرضى</div>
+            </div>
+        </section>
+
+        <!-- Competitive Advantages -->
+        <section class="section">
+            <h2 class="section-title">المزايا التنافسية</h2>
+
+            <h3 class="section-subtitle">مقارنة مع الحلول الموجودة</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>الميزة</th>
+                        <th>XBio Sentinel</th>
+                        <th>المنافسون التقليديون</th>
+                        <th>التفوق</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>الذكاء الاصطناعي</td>
+                        <td>محلي وفوري</td>
+                        <td>يتطلب إنترنت وسحابة</td>
+                        <td>خصوصية وسرعة أعلى</td>
+                    </tr>
+                    <tr>
+                        <td>التكلفة</td>
+                        <td>1,500 ريال للوحدة</td>
+                        <td>5,000-15,000 ريال</td>
+                        <td>70% أقل تكلفة</td>
+                    </tr>
+                    <tr>
+                        <td>سهولة التنصيب</td>
+                        <td>5 دقائق plug-and-play</td>
+                        <td>ساعات مع فني متخصص</td>
+                        <td>90% أسرع</td>
+                    </tr>
+                    <tr>
+                        <td>دقة التصنيف</td>
+                        <td>92% للروائح المعقدة</td>
+                        <td>75-85%</td>
+                        <td>15% تحسن في الدقة</td>
+                    </tr>
+                    <tr>
+                        <td>عمر البطارية</td>
+                        <td>48 ساعة مستمر</td>
+                        <td>8-12 ساعة</td>
+                        <td>4x أطول</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3 class="section-subtitle">الابتكارات الحصرية</h3>
+            <div class="spec-grid">
+                <div class="spec-card">
+                    <div class="spec-title">الغريزة الرقمية (Digital Instinct)</div>
+                    <div class="spec-content">
+                        نظام ذكي يتعلم من البيئة المحلية ويطور "غريزة" للكشف المبكر عن التغيرات غير الطبيعية، حتى قبل أن تصل لمستوى الخطر.
+                    </div>
+                </div>
+                <div class="spec-card">
+                    <div class="spec-title">التعلم التدريجي (Incremental Learning)</div>
+                    <div class="spec-content">
+                        قدرة النظام على تحسين أدائه تلقائياً بناءً على البيانات المحلية دون الحاجة لإعادة تدريب النموذج بالكامل.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Future Enhancements -->
+        <section class="section">
+            <h2 class="section-title">التطويرات المستقبلية</h2>
+
+            <h3 class="section-subtitle">خارطة الطريق التقنية (2026-2028)</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>الإصدار</th>
+                        <th>التاريخ المتوقع</th>
+                        <th>التطويرات الرئيسية</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>XBio 1.0</td>
+                        <td>Q2 2026</td>
+                        <td>النموذج الأساسي، 50 نوع رائحة، دقة 92%</td>
+                    </tr>
+                    <tr>
+                        <td>XBio 1.5</td>
+                        <td>Q4 2026</td>
+                        <td>تحسين الدقة إلى 95%، إضافة 25 نوع جديد</td>
+                    </tr>
+                    <tr>
+                        <td>XBio 2.0</td>
+                        <td>Q2 2027</td>
+                        <td>شاشة ملونة، GPS، تسجيل الصوت، شبكة Mesh</td>
+                    </tr>
+                    <tr>
+                        <td>XBio 2.5</td>
+                        <td>Q4 2027</td>
+                        <td>كاميرا حرارية، تحليل الطيف، 5G connectivity</td>
+                    </tr>
+                    <tr>
+                        <td>XBio 3.0</td>
+                        <td>Q2 2028</td>
+                        <td>نماذج AI قابلة للتخصيص، تكامل البلوك تشين</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3 class="section-subtitle">التطبيقات المستقبلية</h3>
+            <div class="text-block">
+                مع تطور التقنية، نتوقع توسع استخدامات XBio لتشمل الكشف الطبي المبكر (السرطان، السكري)، مراقبة الأمن الغذائي على نطاق واسع، والتكامل مع أنظمة المدن الذكية.
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div>
+                <strong>للتواصل:</strong> MR.F@MRF103.COM | Patent: SA 1020258841
+            </div>
+            <div>
+                <strong>المخترع:</strong> م. فراس أيهم عساف | الرياض، المملكة العربية السعودية
+            </div>
+            <div class="confidential">
+                هذا المستند يحتوي على معلومات تقنية محمية ببراءة اختراع.<br>
+                يُحظر الاستخدام أو النشر أو النسخ بدون إذن خطي صريح من المخترع.
+            </div>
+            <div style="margin-top: 20px; font-size: 10px;">
+                © 2026 MRF103 ARC Advanced Environmental Technologies. جميع الحقوق محفوظة.
+            </div>
+        </footer>
+    </div>
+</body>
+</html>

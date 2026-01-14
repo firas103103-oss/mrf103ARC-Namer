@@ -6,6 +6,9 @@ import {
   pgTable,
   varchar,
   timestamp,
+  text,
+  timestamp,
+  varchar,
   boolean,
 } from "drizzle-orm/pg-core";
 
@@ -14,6 +17,7 @@ import {
 // ============================================
 
 // جدول ملفات المستخدمين (User Profiles)
+// User Profiles Table
 export const userProfiles = pgTable("user_profiles", {
   id: varchar("id")
     .primaryKey()
@@ -30,6 +34,13 @@ export const userProfiles = pgTable("user_profiles", {
   projectsInfo: jsonb("projects_info").default({}), // { github, gitlab, portfolio, etc }
   
   // معلومات التواصل الاجتماعي
+  // Personal information
+  personalInfo: jsonb("personal_info").default({}), // { skills, jobTitle, bio, etc }
+  
+  // Project information
+  projectsInfo: jsonb("projects_info").default({}), // { github, gitlab, portfolio, etc }
+  
+  // Social media information
   socialInfo: jsonb("social_info").default({}), // { linkedin, twitter, etc }
   
   createdAt: timestamp("created_at").defaultNow(),
@@ -40,6 +51,7 @@ export const userProfiles = pgTable("user_profiles", {
 ]);
 
 // جدول ملفات المستخدمين (Files)
+// User Files Table
 export const userFiles = pgTable("user_files", {
   id: varchar("id")
     .primaryKey()
@@ -58,6 +70,7 @@ export const userFiles = pgTable("user_files", {
 ]);
 
 // جدول أجهزة IoT للمستخدمين
+// User IoT Devices Table
 export const userIotDevices = pgTable("user_iot_devices", {
   id: varchar("id")
     .primaryKey()
@@ -75,6 +88,10 @@ export const userIotDevices = pgTable("user_iot_devices", {
 ]);
 
 // Relations للنظام
+// ============================================
+// RELATIONS
+// ============================================
+
 export const userProfilesRelations = relations(userProfiles, ({ many }) => ({
   files: many(userFiles),
   iotDevices: many(userIotDevices),

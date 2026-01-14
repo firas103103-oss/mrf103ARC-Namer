@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">ARC Operator (Dev)</string>
+    <string name="title_activity_main">ARC Operator (Dev)</string>
+    <string name="package_name">app.arc.operator</string>
+    <string name="custom_url_scheme">app.arc.operator</string>
+</resources>

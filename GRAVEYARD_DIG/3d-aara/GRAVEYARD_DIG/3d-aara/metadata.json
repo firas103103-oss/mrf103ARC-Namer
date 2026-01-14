@@ -1,0 +1,7 @@
+{
+  "name": "3D Asset Creation PRO - IDigital",
+  "description": "A smart, AI-powered visual guide to capturing professional 3D models using 15-shot photogrammetry and video analysis.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

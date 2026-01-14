@@ -1,4 +1,9 @@
 import { Router, Request, Response } from "express";
+/* eslint-disable no-undef */
+import { Router, Request, Response } from "express";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
 import bcrypt from "bcrypt";
 import { db } from "../db/connection";
 import { userProfiles, userFiles, userIotDevices } from "../db/schema";
@@ -8,11 +13,74 @@ import { upload } from "../middleware/multer-config";
 const router = Router();
 
 // الـ Passcode من متغيرات البيئة
+
+const router = Router();
+
+// Setup file storage using Multer
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadDir = path.join(process.cwd(), "uploads", "cloning");
+    
+    // Create directory if it doesn't exist
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    // Create unique filename
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    const ext = path.extname(file.originalname);
+    const name = path.basename(file.originalname, ext);
+    cb(null, `${name}-${uniqueSuffix}${ext}`);
+  },
+});
+
+// Allowed file types filter
+const fileFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+  const allowedTypes = [
+    // Audio files
+    "audio/mpeg",
+    "audio/mp3",
+    "audio/wav",
+    "audio/ogg",
+    "audio/webm",
+    // Image files
+    "image/jpeg",
+    "image/jpg",
+    "image/png",
+    "image/gif",
+    "image/webp",
+    // Document files
+    "application/pdf",
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "text/plain",
+  ];
+
+  if (allowedTypes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error(`File type not allowed: ${file.mimetype}`));
+  }
+};
+
+const upload = multer({
+  storage: storage,
+  fileFilter: fileFilter,
+  limits: {
+    fileSize: 50 * 1024 * 1024, // 50MB max per file
+  },
+});
+
+// Static passcode
 const CLONING_PASSCODE = process.env.PASSCODE || "passcodemrf1Q@";
 
 /**
  * POST /api/cloning/verify-passcode
  * التحقق من الـ Passcode
+ * Verify passcode
  */
 router.post("/verify-passcode", async (req: Request, res: Response) => {
   try {
@@ -22,6 +90,7 @@ router.post("/verify-passcode", async (req: Request, res: Response) => {
       return res.status(400).json({
         success: false,
         message: "الرجاء إدخال رمز المرور",
+        message: "Please enter passcode",
       });
     }
 
@@ -29,6 +98,7 @@ router.post("/verify-passcode", async (req: Request, res: Response) => {
       return res.status(200).json({
         success: true,
         message: "تم التحقق بنجاح",
+        message: "Verification successful",
       });
     } else {
       return res.status(401).json({
@@ -41,6 +111,14 @@ router.post("/verify-passcode", async (req: Request, res: Response) => {
     return res.status(500).json({
       success: false,
       message: "حدث خطأ أثناء التحقق",
+        message: "Incorrect passcode",
+      });
+    }
+  } catch (error) {
+    console.error("Error verifying passcode:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error during verification",
     });
   }
 });
@@ -48,6 +126,7 @@ router.post("/verify-passcode", async (req: Request, res: Response) => {
 /**
  * POST /api/cloning/register
  * تسجيل مستخدم جديد مع رفع الملفات
+ * Register new user with file uploads
  */
 router.post(
   "/register",
@@ -78,6 +157,18 @@ router.post(
       }
 
       // التحقق من وجود المستخدم
+        selectedIntegrations,
+      } = req.body;
+
+      // Validate required fields
+      if (!username || !email || !password) {
+        return res.status(400).json({
+          success: false,
+          message: "Please enter all required fields",
+        });
+      }
+
+      // Check if user exists
       const existingUser = await db
         .select()
         .from(userProfiles)
@@ -95,6 +186,14 @@ router.post(
       const hashedPassword = await bcrypt.hash(password, 10);
 
       // إنشاء ملف المستخدم
+          message: "Email already registered",
+        });
+      }
+
+      // Hash password
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      // Create user profile
       const [newUser] = await db
         .insert(userProfiles)
         .values({
@@ -109,6 +208,7 @@ router.post(
         .returning();
 
       // معالجة الملفات المرفوعة
+      // Process uploaded files
       const files = req.files as Record<string, Express.Multer.File[]>;
       const uploadedFiles: any[] = [];
 
@@ -139,6 +239,7 @@ router.post(
       }
 
       // إضافة الأجهزة المختارة
+      // Add selected devices
       const devices = selectedDevices ? JSON.parse(selectedDevices) : [];
       const addedDevices: any[] = [];
 
@@ -160,6 +261,7 @@ router.post(
       return res.status(201).json({
         success: true,
         message: "تم التسجيل بنجاح",
+        message: "Registration successful",
         data: {
           user: {
             id: newUser.id,
@@ -175,6 +277,10 @@ router.post(
       return res.status(500).json({
         success: false,
         message: "حدث خطأ أثناء التسجيل",
+      console.error("Error during registration:", error);
+      return res.status(500).json({
+        success: false,
+        message: "Error during registration",
         error: (error instanceof Error ? error.message : 'Unknown error'),
       });
     }
@@ -184,12 +290,14 @@ router.post(
 /**
  * GET /api/cloning/profile/:userId
  * الحصول على معلومات المستخدم الكاملة
+ * Get complete user information
  */
 router.get("/profile/:userId", async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
 
     // الحصول على معلومات المستخدم
+    // Get user information
     const [user] = await db
       .select()
       .from(userProfiles)
@@ -204,12 +312,18 @@ router.get("/profile/:userId", async (req: Request, res: Response) => {
     }
 
     // الحصول على الملفات
+        message: "User not found",
+      });
+    }
+
+    // Get files
     const files = await db
       .select()
       .from(userFiles)
       .where(eq(userFiles.userId, userId));
 
     // الحصول على الأجهزة
+    // Get devices
     const devices = await db
       .select()
       .from(userIotDevices)
@@ -237,6 +351,10 @@ router.get("/profile/:userId", async (req: Request, res: Response) => {
     return res.status(500).json({
       success: false,
       message: "حدث خطأ أثناء جلب المعلومات",
+    console.error("Error fetching user information:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error fetching information",
       error: (error instanceof Error ? error.message : 'Unknown error'),
     });
   }
@@ -245,6 +363,7 @@ router.get("/profile/:userId", async (req: Request, res: Response) => {
 /**
  * PUT /api/cloning/profile/:userId
  * تحديث معلومات المستخدم
+ * Update user information
  */
 router.put(
   "/profile/:userId",
@@ -259,6 +378,7 @@ router.put(
       const { personalInfo, projectsInfo, socialInfo } = req.body;
 
       // التحقق من وجود المستخدم
+      // Check if user exists
       const [user] = await db
         .select()
         .from(userProfiles)
@@ -273,6 +393,11 @@ router.put(
       }
 
       // تحديث البيانات
+          message: "User not found",
+        });
+      }
+
+      // Update data
       const updateData: any = {};
       if (personalInfo) updateData.personalInfo = JSON.parse(personalInfo);
       if (projectsInfo) updateData.projectsInfo = JSON.parse(projectsInfo);
@@ -285,6 +410,7 @@ router.put(
         .where(eq(userProfiles.id, userId));
 
       // معالجة الملفات الجديدة
+      // Process new files
       const files = req.files as Record<string, Express.Multer.File[]>;
       const uploadedFiles: any[] = [];
 
@@ -317,6 +443,7 @@ router.put(
       return res.status(200).json({
         success: true,
         message: "تم تحديث المعلومات بنجاح",
+        message: "Information updated successfully",
         data: {
           newFilesCount: uploadedFiles.length,
         },
@@ -326,6 +453,10 @@ router.put(
       return res.status(500).json({
         success: false,
         message: "حدث خطأ أثناء التحديث",
+      console.error("Error updating information:", error);
+      return res.status(500).json({
+        success: false,
+        message: "Error during update",
         error: (error instanceof Error ? error.message : 'Unknown error'),
       });
     }

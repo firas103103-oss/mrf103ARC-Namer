@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ملف الاستثمار - منظومة آرك للتقنيات البيئية المتقدمة</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Tajawal', sans-serif; background: #fff; color: #1a1a2e; line-height: 1.8; font-size: 13px; }
+        .container { max-width: 210mm; margin: 0 auto; padding: 15mm; background: white; }
+        
+        /* Header */
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #006c35; padding-bottom: 15px; margin-bottom: 25px; }
+        .logo-section { display: flex; align-items: center; gap: 12px; }
+        .logo-icon { font-size: 42px; }
+        .logo-text h1 { font-size: 22px; font-weight: 800; color: #006c35; }
+        .logo-text p { font-size: 12px; color: #666; }
+        .date-section { text-align: left; color: #666; font-size: 12px; }
+        .date-section .date { font-size: 16px; font-weight: 700; color: #006c35; }
+        
+        /* Sections */
+        .section { margin-bottom: 20px; page-break-inside: avoid; }
+        .section-title { font-size: 16px; font-weight: 700; color: #006c35; border-right: 4px solid #006c35; padding-right: 12px; margin-bottom: 12px; }
+        .section-content { padding-right: 16px; }
+        
+        /* Info Grid */
+        .info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        .info-box { background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 6px; padding: 10px; }
+        .info-label { font-size: 10px; color: #666; margin-bottom: 3px; }
+        .info-value { font-size: 13px; font-weight: 600; color: #1a1a2e; }
+        
+        /* Products */
+        .product-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 12px; }
+        .product-card { background: linear-gradient(135deg, #006c35 0%, #004d26 100%); color: white; border-radius: 10px; padding: 15px; text-align: center; }
+        .product-card .icon { font-size: 32px; margin-bottom: 8px; }
+        .product-card h3 { font-size: 14px; margin-bottom: 5px; }
+        .product-card p { font-size: 11px; opacity: 0.9; }
+        
+        /* Tables */
+        table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 11px; }
+        th, td { padding: 8px 10px; text-align: right; border-bottom: 1px solid #e9ecef; }
+        th { background: #006c35; color: white; font-weight: 600; }
+        tr:nth-child(even) { background: #f8f9fa; }
+        
+        /* Vision Grid */
+        .vision-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 10px; }
+        .vision-item { background: #f0fdf4; border: 2px solid #006c35; border-radius: 6px; padding: 10px; text-align: center; }
+        .vision-item .icon { font-size: 24px; margin-bottom: 5px; }
+        .vision-item h4 { font-size: 11px; color: #006c35; margin-bottom: 3px; }
+        .vision-item p { font-size: 9px; color: #666; }
+        
+        /* Sectors */
+        .sectors-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-top: 10px; }
+        .sector-item { background: #1a1a2e; color: white; border-radius: 8px; padding: 10px; text-align: center; }
+        .sector-item .icon { font-size: 20px; margin-bottom: 5px; }
+        .sector-item h4 { font-size: 10px; margin-bottom: 3px; }
+        .sector-item p { font-size: 9px; opacity: 0.8; }
+        
+        /* Gov Examples */
+        .gov-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; }
+        .gov-card { background: #fef3c7; border: 2px solid #f59e0b; border-radius: 8px; padding: 12px; }
+        .gov-card h4 { font-size: 12px; color: #92400e; margin-bottom: 8px; }
+        .gov-card ul { font-size: 10px; color: #666; padding-right: 15px; }
+        .gov-card li { margin-bottom: 3px; }
+        
+        /* Financial */
+        .financial-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 10px; }
+        .financial-box { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: white; border-radius: 10px; padding: 15px; text-align: center; }
+        .financial-box .label { font-size: 10px; opacity: 0.8; margin-bottom: 3px; }
+        .financial-box .value { font-size: 22px; font-weight: 700; }
+        .financial-box .sub { font-size: 9px; opacity: 0.7; margin-top: 3px; }
+        
+        /* Tech Stack */
+        .tech-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 10px; }
+        .tech-box { background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 6px; padding: 10px; text-align: center; }
+        .tech-box .cat { font-size: 9px; color: #006c35; font-weight: 700; margin-bottom: 5px; }
+        .tech-box .items { font-size: 10px; color: #666; }
+        
+        /* Patent Badge */
+        .patent-badge { display: inline-flex; align-items: center; gap: 6px; background: #fef3c7; border: 2px solid #f59e0b; color: #92400e; padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; margin-top: 8px; }
+        
+        /* Footer */
+        .footer { margin-top: 30px; padding-top: 15px; border-top: 2px solid #e9ecef; text-align: center; color: #666; }
+        .footer .contact { display: flex; justify-content: center; gap: 25px; margin-bottom: 10px; font-size: 11px; }
+        .footer .contact-item { display: flex; align-items: center; gap: 5px; }
+        .footer .copyright { font-size: 10px; color: #999; }
+        
+        /* Print */
+        @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } .section { page-break-inside: avoid; } }
+        @page { size: A4; margin: 10mm; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo-section">
+                <div class="logo-icon">🌿</div>
+                <div class="logo-text">
+                    <h1>منظومة آرك للتقنيات البيئية المتقدمة</h1>
+                    <p>ARC Advanced Environmental Technologies</p>
+                </div>
+            </div>
+            <div class="date-section">
+                <div class="date">يناير 2026</div>
+                <div>ملف الاستثمار</div>
+                <div>ARC-MISA-2026-001</div>
+                <div>براءة: SA 1020258841</div>
+            </div>
+        </header>
+        
+        <!-- Basic Info -->
+        <section class="section">
+            <h2 class="section-title">📋 معلومات المشروع</h2>
+            <div class="section-content">
+                <div class="info-grid">
+                    <div class="info-box">
+                        <div class="info-label">القطاع الرئيسي</div>
+                        <div class="info-value">تقنية المعلومات والاتصالات (ICT)</div>
+                    </div>
+                    <div class="info-box">
+                        <div class="info-label">القطاعات الفرعية</div>
+                        <div class="info-value">الذكاء الاصطناعي • IoT • GreenTech</div>
+                    </div>
+                    <div class="info-box">
+                        <div class="info-label">المقر الرئيسي</div>
+                        <div class="info-value">الرياض، المملكة العربية السعودية</div>
+                    </div>
+                    <div class="info-box">
+                        <div class="info-label">نوع الكيان</div>
+                        <div class="info-value">شركة تقنية ناشئة (Startup)</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- 3 Main Products -->
+        <section class="section">
+            <h2 class="section-title">🚀 المنتجات الثلاثة الرئيسية</h2>
+            <div class="section-content">
+                <div class="product-cards">
+                    <div class="product-card">
+                        <div class="icon">🔬</div>
+                        <h3>XBio Sentinel</h3>
+                        <p>الأنف الإلكتروني الذكي<br>ESP32 + BME688 + Offline AI<br>براءة: SA 1020258841</p>
+                    </div>
+                    <div class="product-card">
+                        <div class="icon">🏢</div>
+                        <h3>ARC Platform</h3>
+                        <p>المكتب الافتراضي الذكي<br>31 وكيل AI × 6 قطاعات<br>Virtual Office + Voice AI</p>
+                    </div>
+                    <div class="product-card">
+                        <div class="icon">👤</div>
+                        <h3>Clone Hub</h3>
+                        <p>منصة HR والإدارة<br>التوأم الرقمي + Admin Panel<br>RBAC + Digital Twin</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- 6 Sectors -->
+        <section class="section">
+            <h2 class="section-title">🏢 القطاعات الستة (31 وكيل ذكي)</h2>
+            <div class="section-content">
+                <div class="sectors-grid">
+                    <div class="sector-item">
+                        <div class="icon">🛡️</div>
+                        <h4>Cipher</h4>
+                        <p>الأمن<br>5 وكلاء</p>
+                    </div>
+                    <div class="sector-item">
+                        <div class="icon">💰</div>
+                        <h4>Vault</h4>
+                        <p>المالية<br>4 وكلاء</p>
+                    </div>
+                    <div class="sector-item">
+                        <div class="icon">⚖️</div>
+                        <h4>Lexis</h4>
+                        <p>القانون<br>4 وكلاء</p>
+                    </div>
+                    <div class="sector-item">
+                        <div class="icon">🏠</div>
+                        <h4>Harmony</h4>
+                        <p>الحياة<br>4 وكلاء</p>
+                    </div>
+                    <div class="sector-item">
+                        <div class="icon">🔬</div>
+                        <h4>Nova</h4>
+                        <p>البحث والتطوير<br>4 وكلاء</p>
+                    </div>
+                    <div class="sector-item">
+                        <div class="icon">🌿</div>
+                        <h4>Scent</h4>
+                        <p>البيئة XBio<br>4 وكلاء</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Gov Examples -->
+        <section class="section">
+            <h2 class="section-title">🏛️ نماذج التطبيق الحكومي</h2>
+            <div class="section-content">
+                <div class="gov-grid">
+                    <div class="gov-card">
+                        <h4>🔬 XBio Sentinel</h4>
+                        <ul>
+                            <li>وزارة البيئة - مراقبة الهواء</li>
+                            <li>وزارة الصحة - بيئة المستشفيات</li>
+                            <li>SFDA - فحص الأغذية</li>
+                            <li>الدفاع المدني - فرق الطوارئ</li>
+                        </ul>
+                    </div>
+                    <div class="gov-card">
+                        <h4>🏢 ARC Platform</h4>
+                        <ul>
+                            <li>هيئة الزكاة - دعم ضريبي ذكي</li>
+                            <li>أبشر - مساعد افتراضي</li>
+                            <li>وزارة التجارة - خدمة المنشآت</li>
+                            <li>هدف - إرشاد الباحثين عن عمل</li>
+                        </ul>
+                    </div>
+                    <div class="gov-card">
+                        <h4>👤 Clone Hub</h4>
+                        <ul>
+                            <li>وزارة التعليم - 500K معلم</li>
+                            <li>وزارة الصحة - سجلات الأطباء</li>
+                            <li>الجامعات - هيئة التدريس</li>
+                            <li>التقاعد - مساعد المتقاعدين</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Tech Stack -->
+        <section class="section">
+            <h2 class="section-title">🛠️ التقنيات المستخدمة</h2>
+            <div class="section-content">
+                <div class="tech-grid">
+                    <div class="tech-box">
+                        <div class="cat">Frontend</div>
+                        <div class="items">React 18 + TypeScript + Tailwind</div>
+                    </div>
+                    <div class="tech-box">
+                        <div class="cat">Backend</div>
+                        <div class="items">Node.js + Express + PostgreSQL</div>
+                    </div>
+                    <div class="tech-box">
+                        <div class="cat">AI</div>
+                        <div class="items">GPT-4 + Claude + ElevenLabs</div>
+                    </div>
+                    <div class="tech-box">
+                        <div class="cat">IoT</div>
+                        <div class="items">ESP32-S3 + BME688 + BLE</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Vision 2030 -->
+        <section class="section">
+            <h2 class="section-title">🇸🇦 التوافق مع رؤية 2030</h2>
+            <div class="section-content">
+                <div class="vision-grid">
+                    <div class="vision-item">
+                        <div class="icon">🌱</div>
+                        <h4>السعودية الخضراء</h4>
+                        <p>مراقبة جودة الهواء</p>
+                    </div>
+                    <div class="vision-item">
+                        <div class="icon">💻</div>
+                        <h4>الاقتصاد الرقمي</h4>
+                        <p>منتجات تقنية محلية</p>
+                    </div>
+                    <div class="vision-item">
+                        <div class="icon">📡</div>
+                        <h4>توطين IoT</h4>
+                        <p>تصنيع محلي</p>
+                    </div>
+                    <div class="vision-item">
+                        <div class="icon">🧠</div>
+                        <h4>الذكاء الاصطناعي</h4>
+                        <p>31 وكيل متخصص</p>
+                    </div>
+                    <div class="vision-item">
+                        <div class="icon">👥</div>
+                        <h4>التوظيف</h4>
+                        <p>إدارة الكوادر</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Financial -->
+        <section class="section">
+            <h2 class="section-title">📊 التوقعات المالية</h2>
+            <div class="section-content">
+                <div class="financial-grid">
+                    <div class="financial-box">
+                        <div class="label">الاستثمار البذري</div>
+                        <div class="value">500K</div>
+                        <div class="sub">ريال سعودي</div>
+                    </div>
+                    <div class="financial-box">
+                        <div class="label">إيرادات 2030</div>
+                        <div class="value">75M</div>
+                        <div class="sub">ريال متوقع</div>
+                    </div>
+                    <div class="financial-box">
+                        <div class="label">حجم السوق الحكومي</div>
+                        <div class="value">400M</div>
+                        <div class="sub">60+ جهة مستهدفة</div>
+                    </div>
+                </div>
+                <table style="margin-top: 15px;">
+                    <thead>
+                        <tr>
+                            <th>السنة</th>
+                            <th>الإيرادات</th>
+                            <th>العملاء</th>
+                            <th>الموظفين</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>2026</td><td>500,000 ر.س</td><td>50</td><td>5</td></tr>
+                        <tr><td>2027</td><td>2,000,000 ر.س</td><td>200</td><td>15</td></tr>
+                        <tr><td>2028</td><td>8,000,000 ر.س</td><td>800</td><td>40</td></tr>
+                        <tr><td>2029</td><td>25,000,000 ر.س</td><td>2,500</td><td>100</td></tr>
+                        <tr><td>2030</td><td>75,000,000 ر.س</td><td>7,500</td><td>250</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        
+        <!-- Founder -->
+        <section class="section">
+            <h2 class="section-title">👨‍💼 المؤسس</h2>
+            <div class="section-content">
+                <div class="info-grid">
+                    <div class="info-box">
+                        <div class="info-label">الاسم</div>
+                        <div class="info-value">م. فراس</div>
+                    </div>
+                    <div class="info-box">
+                        <div class="info-label">المؤهلات</div>
+                        <div class="info-value">ATPL Pilot + استشاري تقني</div>
+                    </div>
+                    <div class="info-box">
+                        <div class="info-label">الخبرة</div>
+                        <div class="info-value">+10 سنوات في التقنية والطيران</div>
+                    </div>
+                    <div class="info-box">
+                        <div class="info-label">الموقع</div>
+                        <div class="info-value">الرياض، السعودية</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="contact">
+                <div class="contact-item">
+                    <span>📧</span>
+                    <span>MR.F@MRF103.COM</span>
+                </div>
+                <div class="contact-item">
+                    <span>💻</span>
+                    <span>github.com/firas103103-oss</span>
+                </div>
+                <div class="contact-item">
+                    <span>📍</span>
+                    <span>الرياض، السعودية</span>
+                </div>
+            </div>
+            <div class="copyright">
+                © 2026 ARC Advanced Environmental Technologies | جميع الحقوق محفوظة<br>
+                <em>هذا المستند سري ومُعد لأغراض التقديم الحكومي فقط</em>
+            </div>
+        </footer>
+    </div>
+</body>
+</html>

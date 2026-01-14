@@ -8,3 +8,9 @@ uploads/**/*
 *.log
 .DS_Store
 tsconfig.tsbuildinfo
+=======
+uploads/
+*.log
+.DS_Store
+*.tsbuildinfo
+.vite

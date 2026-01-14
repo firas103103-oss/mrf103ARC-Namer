@@ -1,0 +1,22 @@
+:root {
+    --gold: #D4AF37;
+    --cyber-blue: #0ea5e9;
+    --deep-black: #000000;
+    --void-gray: #0a0a0a;
+    --glass-bg: rgba(15, 23, 42, 0.25);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    cursor: none;
+    font-family: 'Space Grotesk', 'Tajawal', sans-serif;
+    background: var(--deep-black);
+    color: #fff;
+    overflow-x: hidden;
+    position: relative;
+}

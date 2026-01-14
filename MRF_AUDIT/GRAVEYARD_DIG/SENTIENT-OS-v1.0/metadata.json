@@ -1,0 +1,5 @@
+{
+  "name": "Sentient AR HUD",
+  "description": "A futuristic, intelligent UI platform for XREAL AR glasses, inspired by Iron Man's interface. It integrates with smart devices to enhance daily life, driving, and work productivity with context-aware modes and a high-tech, seamless user experience.",
+  "requestFramePermissions": []
+}

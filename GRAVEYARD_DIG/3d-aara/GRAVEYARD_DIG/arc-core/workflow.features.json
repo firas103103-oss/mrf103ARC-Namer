@@ -1,0 +1,7 @@
+{
+  "id":"wf_features",
+  "steps":[
+    {"action":"plan","payload":{"plan":[{"tool":"echo","args":{"msg":"hello"}},{"tool":"add","args":{"a":2,"b":3}}]}},
+    {"action":"remember","payload":{"agent":"agent_demo","key":"last_sum","value":5}}
+  ]
+}

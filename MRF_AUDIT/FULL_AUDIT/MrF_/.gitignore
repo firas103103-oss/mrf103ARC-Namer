@@ -1,0 +1,50 @@
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Build output
+dist/
+build/
+.vite/
+*.local
+
+# Environment files
+.env
+.env.local
+.env.production
+.env.development
+
+# Editor directories and files
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Temporary files
+.temp/
+.tmp/
+*.tmp
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Old/backup files
+*.old
+*.backup
+index.html.old

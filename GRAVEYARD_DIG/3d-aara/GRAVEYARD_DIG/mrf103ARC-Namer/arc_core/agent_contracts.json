@@ -1,0 +1,172 @@
+{
+  "$schema": "./contracts-schema.json",
+  "version": "1.0.0",
+  "updated_at": "2024-12-22T00:00:00Z",
+  "description": "ARC Agent Contracts - Policy enforcement rules for the multi-agent system",
+  "contracts": {
+    "global": {
+      "rate_limits": {
+        "chat_per_minute": 30,
+        "tts_per_minute": 10,
+        "execute_per_minute": 60
+      },
+      "cost_limits": {
+        "daily_usd": 50.0,
+        "monthly_usd": 500.0
+      },
+      "allowed_models": ["gpt-4o", "gpt-4o-mini", "gpt-4-turbo"],
+      "max_token_output": 4096,
+      "require_auth": true
+    },
+    "agents": {
+      "mrf": {
+        "name": "Mr.F",
+        "role": "Executive Orchestrator",
+        "permissions": ["chat", "tts", "coordinate", "approve", "escalate"],
+        "restrictions": [],
+        "priority": 1,
+        "escalation_target": null,
+        "cost_multiplier": 1.5
+      },
+      "l0-ops": {
+        "name": "L0-Ops",
+        "role": "Operations Commander",
+        "permissions": ["chat", "tts", "execute", "db_query"],
+        "restrictions": ["approve", "escalate"],
+        "priority": 2,
+        "escalation_target": "mrf",
+        "cost_multiplier": 1.0
+      },
+      "l0-comms": {
+        "name": "L0-Comms",
+        "role": "Communications Director",
+        "permissions": ["chat", "tts", "broadcast"],
+        "restrictions": ["execute", "db_query"],
+        "priority": 2,
+        "escalation_target": "mrf",
+        "cost_multiplier": 1.0
+      },
+      "l0-intel": {
+        "name": "L0-Intel",
+        "role": "Intelligence Analyst",
+        "permissions": ["chat", "tts", "analyze", "db_query"],
+        "restrictions": ["execute", "approve"],
+        "priority": 2,
+        "escalation_target": "mrf",
+        "cost_multiplier": 1.2
+      },
+      "photographer": {
+        "name": "Alex Vision",
+        "role": "Visual Media Director",
+        "permissions": ["chat", "tts", "create_media"],
+        "restrictions": ["execute", "db_query", "approve"],
+        "priority": 3,
+        "escalation_target": "l0-ops",
+        "cost_multiplier": 0.8
+      },
+      "grants": {
+        "name": "Diana Grant",
+        "role": "Grants Specialist",
+        "permissions": ["chat", "tts", "research"],
+        "restrictions": ["execute", "db_query"],
+        "priority": 3,
+        "escalation_target": "l0-ops",
+        "cost_multiplier": 0.8
+      },
+      "legal": {
+        "name": "Marcus Law",
+        "role": "Legal Advisor",
+        "permissions": ["chat", "tts", "review"],
+        "restrictions": ["execute", "db_query"],
+        "priority": 3,
+        "escalation_target": "mrf",
+        "cost_multiplier": 1.0
+      },
+      "finance": {
+        "name": "Sarah Numbers",
+        "role": "Financial Analyst",
+        "permissions": ["chat", "tts", "analyze", "db_query"],
+        "restrictions": ["execute", "approve"],
+        "priority": 3,
+        "escalation_target": "l0-ops",
+        "cost_multiplier": 1.0
+      },
+      "creative": {
+        "name": "Jordan Spark",
+        "role": "Creative Director",
+        "permissions": ["chat", "tts", "create_content"],
+        "restrictions": ["execute", "db_query", "approve"],
+        "priority": 3,
+        "escalation_target": "l0-comms",
+        "cost_multiplier": 0.8
+      },
+      "researcher": {
+        "name": "Dr. Maya Quest",
+        "role": "Research Lead",
+        "permissions": ["chat", "tts", "research", "analyze"],
+        "restrictions": ["execute", "approve"],
+        "priority": 3,
+        "escalation_target": "l0-intel",
+        "cost_multiplier": 1.2
+      }
+    },
+    "actions": {
+      "chat": {
+        "description": "Send messages via AI agents",
+        "requires_auth": true,
+        "log_level": "info",
+        "cost_per_call_usd": 0.01
+      },
+      "tts": {
+        "description": "Text-to-speech generation",
+        "requires_auth": true,
+        "log_level": "info",
+        "cost_per_call_usd": 0.05
+      },
+      "execute": {
+        "description": "Execute system commands",
+        "requires_auth": true,
+        "log_level": "warn",
+        "cost_per_call_usd": 0.02
+      },
+      "db_query": {
+        "description": "Query database (read-only)",
+        "requires_auth": true,
+        "log_level": "info",
+        "cost_per_call_usd": 0.001
+      },
+      "broadcast": {
+        "description": "Send broadcast notifications",
+        "requires_auth": true,
+        "log_level": "info",
+        "cost_per_call_usd": 0.01
+      },
+      "approve": {
+        "description": "Approve actions or decisions",
+        "requires_auth": true,
+        "log_level": "warn",
+        "cost_per_call_usd": 0.0
+      },
+      "escalate": {
+        "description": "Escalate to higher authority",
+        "requires_auth": true,
+        "log_level": "warn",
+        "cost_per_call_usd": 0.0
+      }
+    },
+    "policies": {
+      "content_filtering": {
+        "enabled": true,
+        "block_patterns": ["confidential", "secret", "password", "api_key", "token"]
+      },
+      "audit_logging": {
+        "enabled": true,
+        "retention_days": 90
+      },
+      "cost_tracking": {
+        "enabled": true,
+        "alert_threshold_usd": 10.0
+      }
+    }
+  }
+}

@@ -1,0 +1,75 @@
+{
+  "system_version": "v15.0-ARC2.0",
+  "build_date": "2025-12-20T00:00:00Z",
+  "initialized_at": "2025-12-20T03:15:00Z",
+  "environment": {
+    "supabase_url": "https://udcwitnnogxrvoxefrge.supabase.co",
+    "supabase_table_map": {
+      "agent_events": "agent_events",
+      "executive_summaries": "executive_summaries",
+      "ceo_reminders": "ceo_reminders",
+      "arc_logs": "arc_command_log"
+    },
+    "replit_endpoints": {
+      "receive": "/api/arc/receive",
+      "selfcheck": "/selfcheck",
+      "ping": "/ping",
+      "chat": "/api/chat",
+      "tts": "/api/tts"
+    },
+    "n8n_webhook": "https://feras102.app.n8n.cloud/webhook/arc-events",
+    "reports_dir": "/reports",
+    "archives_dir": "/archives",
+    "replit_runtime": true
+  },
+  "agents": {
+    "Mr.F": {
+      "role": "Executive Brain",
+      "voice_id": "HRaipzPqzrU15BUS5ypU"
+    },
+    "L0-Ops": {
+      "role": "Operations Commander",
+      "voice_id": "CxlDiOFUbSOiMn57bk3w"
+    },
+    "L0-Comms": {
+      "role": "Communications Director",
+      "voice_id": "0hJmISqttjKhoHxPrKoy"
+    },
+    "L0-Intel": {
+      "role": "Intelligence Analyst",
+      "voice_id": "rFDdsCQRZCUL8cPOWtnP"
+    },
+    "Dr. Maya Quest": {
+      "role": "Research Analyst",
+      "voice_id": "PB6BdkFkZLbI39GHdnbQ"
+    },
+    "Jordan Spark": {
+      "role": "Creative Director",
+      "voice_id": "jAAHNNqlbAX9iWjJPEtE"
+    }
+  },
+  "security": {
+    "auth_header": "X-ARC-SECRET",
+    "report_cycle": "weekly",
+    "summary_interval": "6h",
+    "timezone": "Asia/Riyadh"
+  },
+  "modules": [
+    "Supabase Integration",
+    "n8n Automation",
+    "Executive Summary Generator",
+    "SelfCheck Dashboard",
+    "Realtime Bridge",
+    "Voice Layer",
+    "Report Archiver",
+    "Actions",
+    "Context",
+    "Reasoning",
+    "Execution"
+  ],
+  "status": {
+    "health": "stable",
+    "last_update": "2025-12-20T09:00:00+03:00",
+    "next_summary_run": "2025-12-20T15:00:00+03:00"
+  }
+}

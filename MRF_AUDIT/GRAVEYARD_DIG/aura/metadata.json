@@ -1,0 +1,8 @@
+{
+  "name": "Aura: The Hidden Reality",
+  "description": "An AR experience that reveals a hidden, sound-reactive world through your device. Interact with an AI guide, watch virtual entities react to your environment's sounds, and uncover the secrets of a reality layered on top of our own.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}

@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MRF103 Holdings - The Future Is Now</title>
+    <meta name="description" content="MRF103 Holdings - Enterprise Technology & Innovation Hub. AI, Quantum Computing, Space Tech, and More.">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <style>
+        :root {
+            --primary: #0080FF;
+            --secondary: #8B4FFF;
+            --accent: #FF006E;
+            --success: #00FFAA;
+            --warning: #FFB800;
+            --destructive: #DC143C;
+            --background: #010208;
+            --foreground: #FFFFFF;
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: var(--background);
+            color: var(--foreground);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* 3D Background Canvas */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        /* Glassmorphism Container */
+        .glass-container {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+        }
+
+        /* Header */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            padding: 20px 60px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(1, 2, 8, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .logo {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 28px;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--primary), var(--secondary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 3px;
+        }
+
+        .logo span {
+            color: var(--accent);
+            -webkit-text-fill-color: var(--accent);
+        }
+
+        nav {
+            display: flex;
+            gap: 40px;
+        }
+
+        nav a {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        nav a:hover {
+            color: var(--primary);
+            text-shadow: 0 0 20px var(--primary);
+        }
+
+        nav a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            transition: width 0.3s ease;
+        }
+
+        nav a:hover::after {
+            width: 100%;
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 120px 60px;
+            position: relative;
+        }
+
+        .hero-badge {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: var(--success);
+            background: rgba(0, 255, 170, 0.1);
+            border: 1px solid rgba(0, 255, 170, 0.3);
+            padding: 8px 24px;
+            border-radius: 50px;
+            margin-bottom: 30px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .hero h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(48px, 8vw, 120px);
+            font-weight: 900;
+            line-height: 1.1;
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, #FFFFFF 0%, var(--primary) 50%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 20px;
+            color: rgba(255, 255, 255, 0.6);
+            max-width: 600px;
+            margin-bottom: 50px;
+            line-height: 1.8;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            padding: 18px 40px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            box-shadow: 0 0 30px rgba(0, 128, 255, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0 50px rgba(0, 128, 255, 0.5);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--primary);
+        }
+
+        /* 7 Pillars Section */
+        .pillars {
+            padding: 100px 60px;
+            position: relative;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 80px;
+        }
+
+        .section-header h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 48px;
+            font-weight: 800;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .section-header p {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 18px;
+            color: rgba(255, 255, 255, 0.5);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .pillars-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 30px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .pillar-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 40px;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pillar-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .pillar-card:hover::before {
+            opacity: 1;
+        }
+
+        .pillar-card:hover {
+            transform: translateY(-10px);
+            border-color: rgba(0, 128, 255, 0.3);
+            box-shadow: 0 20px 60px rgba(0, 128, 255, 0.1);
+        }
+
+        .pillar-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        .pillar-card h3 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: white;
+        }
+
+        .pillar-card p {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.6);
+            line-height: 1.7;
+        }
+
+        .pillar-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 20px;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--success);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success);
+            animation: blink 1.5s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        /* Stats Section */
+        .stats {
+            padding: 100px 60px;
+            background: linear-gradient(180deg, transparent, rgba(0, 128, 255, 0.03), transparent);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 56px;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--primary), var(--success));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.5);
+            margin-top: 10px;
+        }
+
+        /* Footer */
+        footer {
+            padding: 60px;
+            text-align: center;
+            border-top: 1px solid var(--glass-border);
+        }
+
+        footer p {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        footer .logo {
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            header {
+                padding: 15px 30px;
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            nav {
+                gap: 20px;
+            }
+
+            .hero {
+                padding: 100px 30px;
+            }
+
+            .pillars, .stats {
+                padding: 60px 30px;
+            }
+
+            .section-header h2 {
+                font-size: 32px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 3D Background -->
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- Header -->
+    <header>
+        <div class="logo">MRF<span>103</span></div>
+        <nav>
+            <a href="#pillars">Pillars</a>
+            <a href="#ecosystem">Ecosystem</a>
+            <a href="#contact">Contact</a>
+            <a href="https://app.mrf103.com" target="_blank">Launch App</a>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <span class="hero-badge">🔮 System Status: Online</span>
+        <h1>THE FUTURE<br/>IS NOW</h1>
+        <p>MRF103 Holdings - Enterprise Technology & Innovation Hub. Building the infrastructure for tomorrow's digital economy through AI, Quantum Computing, and Autonomous Systems.</p>
+        <div class="hero-buttons">
+            <a href="https://app.mrf103.com" class="btn btn-primary">
+                ⚡ Launch Platform
+            </a>
+            <a href="#pillars" class="btn btn-secondary">
+                📖 Explore Pillars
+            </a>
+        </div>
+    </section>
+
+    <!-- 7 Pillars Section -->
+    <section class="pillars" id="pillars">
+        <div class="section-header">
+            <h2>THE 7 PILLARS</h2>
+            <p>Our strategic divisions driving innovation across multiple verticals</p>
+        </div>
+        <div class="pillars-grid">
+            <!-- Pillar 1: ARC Platform -->
+            <div class="pillar-card">
+                <span class="pillar-icon">🤖</span>
+                <h3>ARC Platform</h3>
+                <p>31-Agent AI Orchestration System. Multi-tier hierarchy with GPT-4 integration, real-time monitoring, and enterprise-grade performance.</p>
+                <span class="pillar-status"><span class="status-dot"></span> Production Ready</span>
+            </div>
+
+            <!-- Pillar 2: XBook Engine -->
+            <div class="pillar-card">
+                <span class="pillar-icon">📚</span>
+                <h3>XBook Engine</h3>
+                <p>AI-Powered Content Generation Platform. Automated book creation, story generation, and intelligent publishing workflows.</p>
+                <span class="pillar-status"><span class="status-dot"></span> Active Development</span>
+            </div>
+
+            <!-- Pillar 3: BioSentinel -->
+            <div class="pillar-card">
+                <span class="pillar-icon">💓</span>
+                <h3>BioSentinel</h3>
+                <p>IoT Health Monitoring System. ESP32 firmware integration, ML-powered anomaly detection, and real-time biometric analysis.</p>
+                <span class="pillar-status"><span class="status-dot"></span> Hardware Ready</span>
+            </div>
+
+            <!-- Pillar 4: Quantum Labs -->
+            <div class="pillar-card">
+                <span class="pillar-icon">⚛️</span>
+                <h3>Quantum Labs</h3>
+                <p>Next-generation quantum computing research. Quantum algorithms, cryptography, and hybrid classical-quantum systems.</p>
+                <span class="pillar-status"><span class="status-dot"></span> Research Phase</span>
+            </div>
+
+            <!-- Pillar 5: Space Tech -->
+            <div class="pillar-card">
+                <span class="pillar-icon">🚀</span>
+                <h3>Space Tech</h3>
+                <p>Satellite communications and space-based computing infrastructure. Ground station networks and orbital data processing.</p>
+                <span class="pillar-status"><span class="status-dot"></span> Planning</span>
+            </div>
+
+            <!-- Pillar 6: FinTech Core -->
+            <div class="pillar-card">
+                <span class="pillar-icon">💎</span>
+                <h3>FinTech Core</h3>
+                <p>Decentralized finance infrastructure. Smart contracts, automated trading systems, and blockchain integration.</p>
+                <span class="pillar-status"><span class="status-dot"></span> In Development</span>
+            </div>
+
+            <!-- Pillar 7: MetaVerse -->
+            <div class="pillar-card">
+                <span class="pillar-icon">🌐</span>
+                <h3>MetaVerse</h3>
+                <p>Immersive virtual environments and digital asset management. VR/AR platforms and spatial computing solutions.</p>
+                <span class="pillar-status"><span class="status-dot"></span> Concept Phase</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats" id="ecosystem">
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="stat-value">31</div>
+                <div class="stat-label">AI Agents</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">67+</div>
+                <div class="stat-label">API Endpoints</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">48</div>
+                <div class="stat-label">Database Tables</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">7</div>
+                <div class="stat-label">Strategic Pillars</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">100%</div>
+                <div class="stat-label">System Health</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer id="contact">
+        <span class="logo">MRF<span>103</span></span>
+        <p>© 2026 MRF103 Holdings. All Rights Reserved. | Building Tomorrow's Technology Today</p>
+    </footer>
+
+    <!-- 3D Background Script -->
+    <script>
+        // Three.js Background Animation
+        const canvas = document.getElementById('bg-canvas');
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+        
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        
+        // Particles
+        const particlesGeometry = new THREE.BufferGeometry();
+        const particlesCount = 3000;
+        const posArray = new Float32Array(particlesCount * 3);
+        
+        for (let i = 0; i < particlesCount * 3; i++) {
+            posArray[i] = (Math.random() - 0.5) * 10;
+        }
+        
+        particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+        
+        const particlesMaterial = new THREE.PointsMaterial({
+            size: 0.005,
+            color: 0x0080FF,
+            transparent: true,
+            opacity: 0.8,
+            blending: THREE.AdditiveBlending
+        });
+        
+        const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+        scene.add(particlesMesh);
+        
+        // Torus for visual effect
+        const torusGeometry = new THREE.TorusGeometry(2, 0.02, 16, 100);
+        const torusMaterial = new THREE.MeshBasicMaterial({ 
+            color: 0x8B4FFF,
+            transparent: true,
+            opacity: 0.3
+        });
+        const torus = new THREE.Mesh(torusGeometry, torusMaterial);
+        torus.rotation.x = Math.PI / 2;
+        scene.add(torus);
+        
+        // Second Torus
+        const torus2Geometry = new THREE.TorusGeometry(2.5, 0.015, 16, 100);
+        const torus2Material = new THREE.MeshBasicMaterial({ 
+            color: 0xFF006E,
+            transparent: true,
+            opacity: 0.2
+        });
+        const torus2 = new THREE.Mesh(torus2Geometry, torus2Material);
+        torus2.rotation.x = Math.PI / 3;
+        scene.add(torus2);
+        
+        camera.position.z = 3;
+        
+        // Mouse interaction
+        let mouseX = 0;
+        let mouseY = 0;
+        
+        document.addEventListener('mousemove', (event) => {
+            mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+            mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+        });
+        
+        // Animation
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            particlesMesh.rotation.y += 0.0005;
+            particlesMesh.rotation.x += 0.0002;
+            
+            torus.rotation.z += 0.002;
+            torus2.rotation.z -= 0.001;
+            torus2.rotation.y += 0.001;
+            
+            // Mouse interaction
+            camera.position.x += (mouseX * 0.5 - camera.position.x) * 0.05;
+            camera.position.y += (mouseY * 0.5 - camera.position.y) * 0.05;
+            camera.lookAt(scene.position);
+            
+            renderer.render(scene, camera);
+        }
+        
+        animate();
+        
+        // Resize handler
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>

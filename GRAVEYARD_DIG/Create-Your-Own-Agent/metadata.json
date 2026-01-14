@@ -1,0 +1,5 @@
+{
+  "name": "Gemini Agent Chat",
+  "description": "A versatile chat assistant powered by Gemini. Users can select a specialized 'gem' or agent (like a creative writer, code assistant, etc.) to tailor the conversation to their specific needs.",
+  "requestFramePermissions": []
+}
