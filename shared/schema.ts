@@ -1113,3 +1113,189 @@ export const agentRegistry = pgTable("agent_registry", {
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
+// ============================================
+// SECTION: FINANCE SECTOR (Maestro Vault)
+// ============================================
+
+export const financialTransactions = pgTable(
+  "financial_transactions",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    type: varchar("type", { length: 50 }).notNull(), // income, expense, investment, transfer
+    category: varchar("category", { length: 100 }), // salary, equipment, marketing, etc.
+    amount: numeric("amount", { precision: 15, scale: 2 }).notNull(),
+    currency: varchar("currency", { length: 10 }).default("USD"),
+    description: text("description"),
+    status: varchar("status", { length: 50 }).default("completed"), // pending, completed, cancelled
+    metadata: jsonb("metadata").default({}),
+    userId: varchar("user_id").references(() => users.id),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (table) => [
+    index("idx_transactions_type").on(table.type),
+    index("idx_transactions_created").on(table.createdAt),
+    index("idx_transactions_user").on(table.userId),
+  ],
+);
+
+export const budgets = pgTable("budgets", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  sector: varchar("sector", { length: 50 }).notNull(), // finance, security, legal, life, rnd, xbio
+  period: varchar("period", { length: 50 }).notNull(), // monthly, quarterly, yearly
+  startDate: timestamp("start_date").notNull(),
+  endDate: timestamp("end_date").notNull(),
+  allocatedAmount: numeric("allocated_amount", { precision: 15, scale: 2 }).notNull(),
+  spentAmount: numeric("spent_amount", { precision: 15, scale: 2 }).default("0"),
+  currency: varchar("currency", { length: 10 }).default("USD"),
+  status: varchar("status", { length: 50 }).default("active"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// ============================================
+// SECTION: SECURITY SECTOR (Maestro Cipher)
+// ============================================
+
+export const securityEvents = pgTable(
+  "security_events",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    eventType: varchar("event_type", { length: 100 }).notNull(), // login_attempt, firewall_block, threat_detected
+    severity: varchar("severity", { length: 50 }).notNull(), // low, medium, high, critical
+    source: varchar("source", { length: 255 }), // IP address, service name
+    target: varchar("target", { length: 255 }), // affected resource
+    description: text("description"),
+    metadata: jsonb("metadata").default({}),
+    resolved: boolean("resolved").default(false),
+    resolvedAt: timestamp("resolved_at"),
+    resolvedBy: varchar("resolved_by"),
+    createdAt: timestamp("created_at").defaultNow(),
+  },
+  (table) => [
+    index("idx_security_events_type").on(table.eventType),
+    index("idx_security_events_severity").on(table.severity),
+    index("idx_security_events_created").on(table.createdAt),
+  ],
+);
+
+export const firewallRules = pgTable("firewall_rules", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  name: varchar("name", { length: 255 }).notNull(),
+  ruleType: varchar("rule_type", { length: 50 }).notNull(), // allow, deny, rate_limit
+  source: varchar("source", { length: 255 }), // IP, CIDR, country code
+  target: varchar("target", { length: 255 }),
+  port: integer("port"),
+  protocol: varchar("protocol", { length: 50 }), // tcp, udp, http, https
+  priority: integer("priority").default(100),
+  enabled: boolean("enabled").default(true),
+  metadata: jsonb("metadata").default({}),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// ============================================
+// SECTION: LEGAL SECTOR (Maestro Lexis)
+// ============================================
+
+export const legalDocuments = pgTable(
+  "legal_documents",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    title: varchar("title", { length: 500 }).notNull(),
+    documentType: varchar("document_type", { length: 100 }).notNull(), // contract, policy, agreement, patent
+    category: varchar("category", { length: 100 }), // employment, vendor, client, ip
+    status: varchar("status", { length: 50 }).default("draft"), // draft, review, active, expired, archived
+    fileUrl: text("file_url"),
+    content: text("content"),
+    version: varchar("version", { length: 50 }).default("1.0"),
+    effectiveDate: timestamp("effective_date"),
+    expirationDate: timestamp("expiration_date"),
+    parties: jsonb("parties").default([]), // [{name, role, email}]
+    metadata: jsonb("metadata").default({}),
+    createdBy: varchar("created_by").references(() => users.id),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (table) => [
+    index("idx_legal_docs_type").on(table.documentType),
+    index("idx_legal_docs_status").on(table.status),
+    index("idx_legal_docs_created").on(table.createdAt),
+  ],
+);
+
+export const complianceChecks = pgTable("compliance_checks", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  checkType: varchar("check_type", { length: 100 }).notNull(), // gdpr, hipaa, sox, iso27001
+  status: varchar("status", { length: 50 }).default("pending"), // pending, passed, failed, warning
+  score: integer("score"), // 0-100
+  findings: jsonb("findings").default([]),
+  recommendations: jsonb("recommendations").default([]),
+  checkedAt: timestamp("checked_at").defaultNow(),
+  nextCheckDate: timestamp("next_check_date"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// ============================================
+// SECTION: REPORTS (Cross-Sector)
+// ============================================
+
+export const reports = pgTable(
+  "reports",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    title: varchar("title", { length: 500 }).notNull(),
+    reportType: varchar("report_type", { length: 50 }).notNull(), // daily, weekly, monthly, semi_annual, custom
+    sectors: jsonb("sectors").default([]), // ["finance", "security", "legal"]
+    status: varchar("status", { length: 50 }).default("draft"), // draft, generating, completed, failed
+    summary: text("summary"),
+    content: jsonb("content").default({}), // {sections: [...], metrics: {...}}
+    fileUrl: text("file_url"), // PDF/Excel download link
+    generatedBy: varchar("generated_by"), // user_id or "system"
+    periodStart: timestamp("period_start"),
+    periodEnd: timestamp("period_end"),
+    metadata: jsonb("metadata").default({}),
+    createdAt: timestamp("created_at").defaultNow(),
+    completedAt: timestamp("completed_at"),
+  },
+  (table) => [
+    index("idx_reports_type").on(table.reportType),
+    index("idx_reports_status").on(table.status),
+    index("idx_reports_created").on(table.createdAt),
+  ],
+);
+
+// ============================================
+// SECTION: SETTINGS (System Configuration)
+// ============================================
+
+export const systemSettings = pgTable("system_settings", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  category: varchar("category", { length: 100 }).notNull(), // general, notifications, security, integrations
+  key: varchar("key", { length: 100 }).notNull(),
+  value: jsonb("value").notNull(),
+  valueType: varchar("value_type", { length: 50 }).notNull(), // boolean, string, number, json
+  description: text("description"),
+  isPublic: boolean("is_public").default(false), // can users see this setting?
+  isEditable: boolean("is_editable").default(true), // can users change this?
+  tenantId: varchar("tenant_id").references(() => tenants.id), // null = global
+  updatedBy: varchar("updated_by").references(() => users.id),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
