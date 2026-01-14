@@ -1,41 +1,88 @@
-# Virtual Office Platform
+# 🚀 Virtual Office Platform
 
 ## Digital Twin Creation & Virtual Workspace Platform
 
-A comprehensive platform for creating digital twins, managing files, integrating IoT devices, and collaborating in virtual workspaces.
+A complete, standalone platform for creating digital twins with advanced AI integration, file management, and IoT device connectivity.
 
-## Features
+---
 
-### 🎭 Digital Twin Creation
-- **Voice Cloning**: Upload voice samples (up to 5 files, 50MB each)
-- **Visual Cloning**: Upload photos (up to 10 files)
-- **Document Management**: Store personal and professional documents
-- **Profile Management**: Comprehensive user profiles with personal, project, and social information
+## ✨ Features
 
-### 🔌 IoT Device Integration
-- XBio Sentinel integration
-- Personal XBio devices
-- Auto XBio support
-- Real-time device monitoring
-- Device configuration management
+### 🔐 Security
+- **Passcode Protection**: Secure access with configurable passcode (`passcodemrf1Q@`)
+- **Encrypted Storage**: Bcrypt password hashing
+- **Session Management**: PostgreSQL-backed sessions
+- **Rate Limiting**: Protection against abuse
+- **CORS & Helmet**: Enhanced security headers
 
-### 🤖 AI Integrations
-- OpenAI integration
-- Anthropic Claude
-- Google Gemini
-- Extensible integration framework
+### 📤 File Upload System
+- **Voice Samples**: Up to 5 files (MP3, WAV, OGG, WebM) - Max 50MB each
+- **Photos**: Up to 10 images (JPG, PNG, GIF, WebP) - Max 50MB each
+- **Documents**: Up to 10 files (PDF, DOC, DOCX, TXT) - Max 50MB each
+- **Automatic Organization**: Files sorted into categorized directories
 
-### 🏢 Virtual Workspace
-- Collaborative environment
-- Real-time communication
-- File sharing and management
-- Team coordination tools
+### 🤖 IoT Device Integration
+**Available Devices:**
+- ✅ XBio Sentinel
+- ✅ Personal XBio
+- ✅ Auto XBio
 
-## Quick Start
+**Coming Soon:**
+- ⏳ Home XBio
+- ⏳ Enterprise XBio
+- ⏳ Medical XBio
+- ⏳ Research XBio
+
+### 🔗 API Integrations
+**Active:**
+- ✅ Google OAuth
+- ✅ GitHub
+- ✅ OpenAI
+- ✅ Anthropic Claude
+- ✅ Google Gemini
+
+**Coming Soon:**
+- ⏳ Slack
+- ⏳ Discord
+- ⏳ Notion
+- ⏳ Zapier
+- ⏳ Make
+
+---
+
+## 🏗️ Architecture
+
+```
+virtual-office-platform/
+├── client/                 # React + Vite frontend
+│   ├── src/
+│   │   ├── pages/         # Cloning page
+│   │   ├── components/    # UI components
+│   │   └── hooks/         # React hooks
+│   └── index.html
+│
+├── server/                 # Express backend
+│   ├── routes/            # API routes
+│   ├── db/                # Database schema & connection
+│   ├── middleware/        # Custom middleware
+│   └── index.ts
+│
+├── uploads/               # File storage
+│   └── cloning/
+│       ├── voices/
+│       ├── photos/
+│       └── documents/
+│
+├── database/              # SQL migrations
+└── docs/                  # Documentation
+```
+
+---
+
+## 🚀 Quick Start
 
 ### Prerequisites
-
-- Node.js 18+ 
+- Node.js 18+
 - PostgreSQL 14+
 - npm or yarn
 
@@ -47,26 +94,21 @@ git clone <repository-url>
 cd virtual-office-platform
 ```
 
-2. **Install dependencies**
+2. **Run setup script**
 ```bash
-npm install
+npm run setup
 ```
 
 3. **Configure environment**
-```bash
-cp .env.example .env
-# Edit .env with your configuration
+Edit `.env` with your database credentials:
+```env
+DATABASE_URL=postgresql://user:password@localhost:5432/virtual_office
+SESSION_SECRET=your-random-32-char-secret
+PASSCODE=passcodemrf1Q@
 ```
 
-4. **Setup database**
+4. **Initialize database**
 ```bash
-# Create database
-createdb virtual_office
-
-# Run migrations
-psql -d virtual_office -f database/schema.sql
-
-# Or use Drizzle
 npm run db:push
 ```
 
@@ -75,240 +117,171 @@ npm run db:push
 npm run dev
 ```
 
-This will start:
-- Client on `http://localhost:3000`
-- Server on `http://localhost:5000`
+The application will be available at:
+- **Frontend**: http://localhost:3000
+- **Backend**: http://localhost:5000
 
-## Access
+---
 
-### Default Passcode
-The cloning system requires a passcode for access:
+## 📚 Documentation
 
-```
-Passcode: passcodemrf1Q@
-```
+- **[Quick Start Guide](docs/QUICK_START.md)** - Get started in 5 minutes
+- **[System Documentation](docs/SYSTEM_DOCUMENTATION.md)** - Complete system overview
+- **[API Reference](docs/API_REFERENCE.md)** - API endpoints documentation
+- **[Deployment Guide](docs/DEPLOYMENT.md)** - Production deployment
 
-You can change this in `.env`:
-```env
-PASSCODE=your-custom-passcode
-```
+---
 
-## Usage
+## 🔌 API Endpoints
 
-### Creating a Digital Twin
-
-1. Navigate to `http://localhost:3000/cloning`
-2. Enter the passcode: `passcodemrf1Q@`
-3. Fill in your information:
-   - Username and email (required)
-   - Password (required)
-   - Phone number (optional)
-   - Personal information (skills, job title, bio)
-   - Project information (GitHub, GitLab, portfolio)
-   - Social media links
-
-4. Upload files:
-   - **Voice samples**: MP3, WAV, OGG (max 5 files, 50MB each)
-   - **Photos**: JPG, PNG, GIF (max 10 files, 50MB each)
-   - **Documents**: PDF, DOC, DOCX, TXT (max 10 files, 50MB each)
-
-5. Select IoT devices to integrate
-6. Choose AI integrations
-7. Click "إنشاء الملف الشخصي" to create your profile
-
-### API Usage
-
-#### Health Check
-```bash
-curl http://localhost:5000/api/health
-```
+### Cloning System
 
 #### Verify Passcode
-```bash
-curl -X POST http://localhost:5000/api/cloning/verify-passcode \
-  -H "Content-Type: application/json" \
-  -d '{"passcode": "passcodemrf1Q@"}'
+```http
+POST /api/cloning/verify-passcode
+Content-Type: application/json
+
+{
+  "passcode": "passcodemrf1Q@"
+}
 ```
 
 #### Register User
-```bash
-curl -X POST http://localhost:5000/api/cloning/register \
-  -F "username=testuser" \
-  -F "email=test@example.com" \
-  -F "password=securepassword" \
-  -F "voiceSamples=@voice.mp3" \
-  -F "photos=@photo.jpg"
+```http
+POST /api/cloning/register
+Content-Type: multipart/form-data
+
+{
+  "username": "string",
+  "email": "string",
+  "password": "string",
+  "phoneNumber": "string",
+  "personalInfo": "json",
+  "projectsInfo": "json",
+  "socialInfo": "json",
+  "voiceSamples": [files],
+  "photos": [files],
+  "documents": [files],
+  "selectedDevices": ["array"],
+  "selectedIntegrations": ["array"]
+}
 ```
 
-## Project Structure
-
-```
-virtual-office-platform/
-├── client/                 # Frontend React application
-│   ├── src/
-│   │   ├── pages/         # Page components
-│   │   ├── components/    # Reusable components
-│   │   ├── hooks/         # Custom React hooks
-│   │   ├── lib/           # Utility functions
-│   │   └── styles/        # Global styles
-│   └── index.html
-│
-├── server/                # Backend Express server
-│   ├── routes/           # API routes
-│   ├── db/               # Database schema and connection
-│   ├── middleware/       # Express middleware
-│   └── index.ts          # Server entry point
-│
-├── database/             # Database migrations and schema
-│   └── schema.sql
-│
-├── docs/                 # Documentation
-│   ├── QUICK_START.md
-│   ├── SYSTEM_DOCUMENTATION.md
-│   ├── API_REFERENCE.md
-│   └── DEPLOYMENT.md
-│
-├── uploads/              # File storage (gitignored)
-│   ├── voices/
-│   ├── photos/
-│   └── documents/
-│
-└── scripts/              # Utility scripts
+#### Get User Profile
+```http
+GET /api/cloning/profile/:userId
 ```
 
-## Configuration
+---
 
-### Environment Variables
+## 🗄️ Database Schema
 
-See `.env.example` for all available configuration options:
+### Tables
+1. **user_profiles** - User account information
+2. **user_files** - Uploaded files metadata
+3. **user_iot_devices** - Connected IoT devices
 
-#### Database
-- `DATABASE_URL`: PostgreSQL connection string
-- `SUPABASE_URL`: Supabase project URL (optional)
-- `SUPABASE_KEY`: Supabase API key (optional)
+See [database/schema.sql](database/schema.sql) for complete schema.
 
-#### Authentication
-- `SESSION_SECRET`: Secret for session encryption
-- `PASSCODE`: Cloning system access passcode
+---
 
-#### Server
-- `PORT`: Server port (default: 5000)
-- `NODE_ENV`: Environment (development/production)
-- `CORS_ORIGIN`: Allowed CORS origin
+## 🛠️ Technology Stack
 
-#### File Upload
-- `MAX_FILE_SIZE`: Maximum file size in bytes (default: 52428800 = 50MB)
-- `UPLOAD_PATH`: Path for uploaded files
+### Frontend
+- **React 18** - UI framework
+- **Vite** - Build tool
+- **TypeScript** - Type safety
+- **Tailwind CSS** - Styling
+- **Radix UI** - Accessible components
+- **Lucide React** - Icons
 
-## Development
+### Backend
+- **Express** - Web framework
+- **TypeScript** - Type safety
+- **Drizzle ORM** - Database ORM
+- **PostgreSQL** - Database
+- **Multer** - File uploads
+- **Bcrypt** - Password hashing
+- **Helmet** - Security headers
 
-### Available Scripts
+---
 
-- `npm run dev` - Start both client and server in development mode
-- `npm run dev:client` - Start only the client
-- `npm run dev:server` - Start only the server
-- `npm run build` - Build for production
-- `npm run start` - Start production server
-- `npm run db:push` - Push database schema changes
+## 🔒 Security Features
 
-### Building for Production
+- ✅ Bcrypt password hashing (10 rounds)
+- ✅ Session-based authentication
+- ✅ Rate limiting (100 requests per 15 minutes)
+- ✅ CORS protection
+- ✅ Helmet security headers
+- ✅ File type validation
+- ✅ File size limits
+- ✅ SQL injection protection (Drizzle ORM)
+- ✅ XSS protection
 
+---
+
+## 📦 Production Deployment
+
+### Build for Production
 ```bash
 npm run build
+```
+
+### Start Production Server
+```bash
 npm start
 ```
 
-## Database Schema
+### Environment Variables
+Ensure all production environment variables are set:
+- `NODE_ENV=production`
+- `DATABASE_URL` - Production database
+- `SESSION_SECRET` - Strong random secret
+- `CORS_ORIGIN` - Your production domain
 
-### Tables
+---
 
-#### user_profiles
-- User authentication and profile information
-- Personal information (JSON)
-- Projects information (JSON)
-- Social media links (JSON)
+## 🧪 Testing
 
-#### user_files
-- File metadata and storage paths
-- File types: voice, photo, document
-- Associated with user profiles
+The platform includes:
+- File upload validation
+- Passcode verification
+- User registration flow
+- Database operations
 
-#### user_iot_devices
-- IoT device registrations
-- Device configurations
-- Active/inactive status
+---
 
-See `database/schema.sql` for complete schema details.
+## 📝 License
 
-## Security
+MIT License - See LICENSE file for details
 
-- Passwords are hashed with bcrypt (10 rounds)
-- Session-based authentication
-- File upload validation and size limits
-- CORS configuration
-- SQL injection protection via parameterized queries
+---
 
-## File Upload Limits
+## 🤝 Contributing
 
-- **Voice files**: 5 max, 50MB each
-- **Photos**: 10 max, 50MB each
-- **Documents**: 10 max, 50MB each
-- **Allowed types**:
-  - Audio: MP3, WAV, OGG, WebM
-  - Images: JPEG, PNG, GIF, WebP
-  - Documents: PDF, DOC, DOCX, TXT
+Contributions are welcome! Please read the contributing guidelines first.
 
-## Deployment
+---
 
-### Production Checklist
+## 📞 Support
 
-1. Set `NODE_ENV=production`
-2. Use a strong `SESSION_SECRET`
-3. Configure proper `DATABASE_URL`
-4. Set up file storage (local or S3)
-5. Configure CORS for your domain
-6. Set up SSL/HTTPS
-7. Configure reverse proxy (nginx/caddy)
-8. Set up database backups
-9. Configure monitoring and logging
+For support and questions:
+- Documentation: [docs/](docs/)
+- Issues: Open a GitHub issue
 
-See `docs/DEPLOYMENT.md` for detailed deployment instructions.
+---
 
-## API Documentation
+## 🎯 Roadmap
 
-See `docs/API_REFERENCE.md` for complete API documentation.
+- [ ] Add more IoT device types
+- [ ] Enhanced AI integrations
+- [ ] Real-time collaboration features
+- [ ] Mobile application
+- [ ] Advanced analytics dashboard
+- [ ] Multi-language support
 
-## Troubleshooting
+---
 
-### Common Issues
-
-**Database connection fails**
-- Verify DATABASE_URL is correct
-- Ensure PostgreSQL is running
-- Check firewall settings
-
-**File upload fails**
-- Check file size limits
-- Verify file type is allowed
-- Ensure uploads directory exists and is writable
-
-**Build fails**
-- Clear node_modules and reinstall: `rm -rf node_modules && npm install`
-- Check Node.js version (18+ required)
-- Verify all dependencies are installed
-
-## Contributing
-
-This is a standalone extracted platform. For the main project, see the parent repository.
-
-## License
-
-MIT
-
-## Support
-
-For issues and questions, please open an issue in the repository.
-
-## Acknowledgments
-
-Extracted from the mrf103ARC-Namer platform.
+**Version**: 1.0.0  
+**Status**: ✅ Production Ready  
+**Last Updated**: January 2026

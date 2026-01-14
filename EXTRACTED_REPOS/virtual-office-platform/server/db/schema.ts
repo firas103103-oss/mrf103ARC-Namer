@@ -4,6 +4,8 @@ import {
   integer,
   jsonb,
   pgTable,
+  varchar,
+  timestamp,
   text,
   timestamp,
   varchar,
@@ -14,6 +16,7 @@ import {
 // CLONING SYSTEM TABLES
 // ============================================
 
+// جدول ملفات المستخدمين (User Profiles)
 // User Profiles Table
 export const userProfiles = pgTable("user_profiles", {
   id: varchar("id")
@@ -24,6 +27,13 @@ export const userProfiles = pgTable("user_profiles", {
   phoneNumber: varchar("phone_number"),
   password: varchar("password").notNull(), // Hashed with bcrypt
   
+  // معلومات شخصية
+  personalInfo: jsonb("personal_info").default({}), // { skills, jobTitle, bio, etc }
+  
+  // معلومات المشاريع
+  projectsInfo: jsonb("projects_info").default({}), // { github, gitlab, portfolio, etc }
+  
+  // معلومات التواصل الاجتماعي
   // Personal information
   personalInfo: jsonb("personal_info").default({}), // { skills, jobTitle, bio, etc }
   
@@ -40,6 +50,7 @@ export const userProfiles = pgTable("user_profiles", {
   index("idx_user_profiles_email").on(table.email),
 ]);
 
+// جدول ملفات المستخدمين (Files)
 // User Files Table
 export const userFiles = pgTable("user_files", {
   id: varchar("id")
@@ -58,6 +69,7 @@ export const userFiles = pgTable("user_files", {
   index("idx_user_files_user_id").on(table.userId),
 ]);
 
+// جدول أجهزة IoT للمستخدمين
 // User IoT Devices Table
 export const userIotDevices = pgTable("user_iot_devices", {
   id: varchar("id")
@@ -75,6 +87,7 @@ export const userIotDevices = pgTable("user_iot_devices", {
   index("idx_user_iot_devices_user_id").on(table.userId),
 ]);
 
+// Relations للنظام
 // ============================================
 // RELATIONS
 // ============================================
@@ -97,3 +110,11 @@ export const userIotDevicesRelations = relations(userIotDevices, ({ one }) => ({
     references: [userProfiles.id],
   }),
 }));
+
+// Type exports
+export type UserProfile = typeof userProfiles.$inferSelect;
+export type InsertUserProfile = typeof userProfiles.$inferInsert;
+export type UserFile = typeof userFiles.$inferSelect;
+export type InsertUserFile = typeof userFiles.$inferInsert;
+export type UserIotDevice = typeof userIotDevices.$inferSelect;
+export type InsertUserIotDevice = typeof userIotDevices.$inferInsert;

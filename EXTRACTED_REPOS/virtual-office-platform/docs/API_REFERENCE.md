@@ -1,38 +1,49 @@
-# API Reference
+# 📡 API Reference
 
 ## Base URL
 
-- Development: `http://localhost:5000/api`
-- Production: Configure in your deployment
+- **Development**: `http://localhost:5000`
+- **Production**: `https://your-domain.com`
+
+All API endpoints are prefixed with `/api`.
+
+---
 
 ## Authentication
 
-Most endpoints use session-based authentication. The cloning system requires passcode verification before registration.
+The system uses a passcode-based authentication for initial access, followed by session-based authentication.
+
+---
 
 ## Endpoints
 
 ### Health Check
 
-#### GET `/health`
+Check if the API is running.
 
-Check server and database health.
+```http
+GET /api/health
+```
 
 **Response**
 ```json
 {
-  "status": "ok",
-  "timestamp": "2024-01-11T16:00:00.000Z",
-  "database": "connected"
+  "status": "healthy",
+  "timestamp": "2026-01-11T16:00:00.000Z"
 }
 ```
 
 ---
 
-### Cloning System
+## Cloning System
 
-#### POST `/cloning/verify-passcode`
+### 1. Verify Passcode
 
-Verify the access passcode for the cloning system.
+Verify the access passcode before registration.
+
+```http
+POST /api/cloning/verify-passcode
+```
 
 **Request Body**
 ```json
@@ -41,128 +52,109 @@ Verify the access passcode for the cloning system.
 }
 ```
 
-**Response - Success (200)**
+**Success Response (200)**
 ```json
 {
   "success": true,
-  "message": "Verification successful"
+  "message": "تم التحقق بنجاح"
 }
 ```
 
-**Response - Error (401)**
+**Error Response (401)**
 ```json
 {
   "success": false,
-  "message": "Incorrect passcode"
+  "message": "رمز المرور غير صحيح"
 }
 ```
 
 ---
 
-#### POST `/cloning/register`
+### 2. Register User
 
-Register a new user with file uploads.
+Create a new user profile with files.
 
-**Content-Type**: `multipart/form-data`
+```http
+POST /api/cloning/register
+Content-Type: multipart/form-data
+```
 
 **Form Fields**
-- `username` (string, required): Unique username
-- `email` (string, required): Email address
-- `password` (string, required): Password (will be hashed)
-- `phoneNumber` (string, optional): Phone number
-- `personalInfo` (JSON string, optional): Personal information
-  ```json
-  {
-    "skills": "JavaScript, Python",
-    "jobTitle": "Software Engineer",
-    "bio": "Passionate developer"
-  }
-  ```
-- `projectsInfo` (JSON string, optional): Project links
-  ```json
-  {
-    "github": "https://github.com/username",
-    "gitlab": "https://gitlab.com/username",
-    "portfolio": "https://mysite.com"
-  }
-  ```
-- `socialInfo` (JSON string, optional): Social media
-  ```json
-  {
-    "linkedin": "https://linkedin.com/in/username",
-    "twitter": "@username",
-    "telegram": "@username"
-  }
-  ```
-- `selectedDevices` (JSON array string, optional): Device types
-  ```json
-  ["xbio_sentinel", "personal_xbio"]
-  ```
-- `selectedIntegrations` (JSON array string, optional): Integration IDs
-  ```json
-  ["openai", "github"]
-  ```
 
-**File Fields**
-- `voiceSamples[]` (files, max 5): Voice files (MP3, WAV, OGG, WebM)
-- `photos[]` (files, max 10): Image files (JPEG, PNG, GIF, WebP)
-- `documents[]` (files, max 10): Document files (PDF, DOC, DOCX, TXT)
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| username | string | ✅ | Unique username |
+| email | string | ✅ | Unique email address |
+| password | string | ✅ | User password (will be hashed) |
+| phoneNumber | string | ❌ | Phone number |
+| personalInfo | JSON string | ❌ | `{"skills": "...", "jobTitle": "...", "bio": "..."}` |
+| projectsInfo | JSON string | ❌ | `{"github": "...", "gitlab": "...", "portfolio": "..."}` |
+| socialInfo | JSON string | ❌ | `{"linkedin": "...", "twitter": "...", "telegram": "..."}` |
+| voiceSamples | File[] | ❌ | Up to 5 audio files (mp3, wav, ogg, webm) |
+| photos | File[] | ❌ | Up to 10 images (jpg, png, gif, webp) |
+| documents | File[] | ❌ | Up to 10 documents (pdf, doc, docx, txt) |
+| selectedDevices | JSON array | ❌ | `["xbio_sentinel", "personal_xbio"]` |
+| selectedIntegrations | JSON array | ❌ | `["google", "github", "openai"]` |
 
 **File Limits**
 - Max file size: 50MB per file
-- Max files per type: 5 voice, 10 photos, 10 documents
+- Total files: 25 maximum (5 voice + 10 photos + 10 documents)
 
-**Response - Success (201)**
+**Success Response (201)**
 ```json
 {
   "success": true,
-  "message": "Registration successful",
+  "message": "تم التسجيل بنجاح",
   "data": {
     "user": {
       "id": "uuid",
-      "username": "testuser",
-      "email": "test@example.com"
+      "username": "john_doe",
+      "email": "john@example.com"
     },
-    "filesCount": 3,
+    "filesCount": 8,
     "devicesCount": 2
   }
 }
 ```
 
-**Response - Error (409)**
+**Error Response (409)** - User exists
 ```json
 {
   "success": false,
-  "message": "Email already registered"
+  "message": "البريد الإلكتروني مسجل مسبقاً"
 }
 ```
 
-**Response - Error (400)**
+**Error Response (400)** - Validation error
 ```json
 {
   "success": false,
-  "message": "Please enter all required fields"
+  "message": "الرجاء إدخال جميع البيانات المطلوبة"
 }
 ```
 
 ---
 
-#### GET `/cloning/profile/:userId`
+### 3. Get User Profile
 
-Get complete user profile information.
+Retrieve complete user profile including files and devices.
+
+```http
+GET /api/cloning/profile/:userId
+```
 
 **URL Parameters**
-- `userId` (string): User ID
+- `userId` (string, required): User ID
 
-**Response - Success (200)**
+**Success Response (200)**
 ```json
 {
   "success": true,
   "data": {
     "user": {
       "id": "uuid",
-      "username": "testuser",
-      "email": "test@example.com",
+      "username": "john_doe",
+      "email": "john@example.com",
       "phoneNumber": "+1234567890",
       "personalInfo": {
         "skills": "JavaScript, Python",
@@ -170,272 +162,144 @@ Get complete user profile information.
         "bio": "Passionate developer"
       },
       "projectsInfo": {
-        "github": "https://github.com/username"
+        "github": "https://github.com/johndoe",
+        "portfolio": "https://johndoe.com"
       },
       "socialInfo": {
-        "linkedin": "https://linkedin.com/in/username"
+        "linkedin": "https://linkedin.com/in/johndoe"
       },
-      "createdAt": "2024-01-11T16:00:00.000Z"
+      "createdAt": "2026-01-11T16:00:00.000Z",
+      "updatedAt": "2026-01-11T16:00:00.000Z"
     },
     "files": [
       {
         "id": "uuid",
-        "userId": "uuid",
         "fileType": "voice",
         "fileName": "sample.mp3",
-        "filePath": "/uploads/cloning/sample-123456.mp3",
+        "filePath": "/uploads/cloning/voices/123-sample.mp3",
         "fileSize": 1048576,
         "mimeType": "audio/mpeg",
-        "uploadedAt": "2024-01-11T16:00:00.000Z"
+        "uploadedAt": "2026-01-11T16:00:00.000Z"
       }
     ],
     "devices": [
       {
         "id": "uuid",
-        "userId": "uuid",
         "deviceType": "xbio_sentinel",
-        "deviceName": "xbio_sentinel",
+        "deviceName": "XBio Sentinel",
         "deviceConfig": {},
         "isActive": true,
-        "addedAt": "2024-01-11T16:00:00.000Z"
+        "addedAt": "2026-01-11T16:00:00.000Z"
       }
     ]
   }
 }
 ```
 
-**Response - Error (404)**
+**Error Response (404)**
 ```json
 {
   "success": false,
-  "message": "User not found"
+  "message": "المستخدم غير موجود"
 }
 ```
 
 ---
 
-#### PUT `/cloning/profile/:userId`
+## File Types & Validation
 
-Update user profile information and upload additional files.
+### Accepted File Types
 
-**URL Parameters**
-- `userId` (string): User ID
+**Voice Samples**
+- Extensions: `.mp3`, `.wav`, `.ogg`, `.webm`
+- MIME types: `audio/mpeg`, `audio/mp3`, `audio/wav`, `audio/ogg`, `audio/webm`
 
-**Content-Type**: `multipart/form-data`
+**Photos**
+- Extensions: `.jpg`, `.jpeg`, `.png`, `.gif`, `.webp`
+- MIME types: `image/jpeg`, `image/jpg`, `image/png`, `image/gif`, `image/webp`
 
-**Form Fields**
-- `personalInfo` (JSON string, optional): Updated personal info
-- `projectsInfo` (JSON string, optional): Updated project info
-- `socialInfo` (JSON string, optional): Updated social info
-
-**File Fields** (same as registration)
-- `voiceSamples[]` (files, max 5)
-- `photos[]` (files, max 10)
-- `documents[]` (files, max 10)
-
-**Response - Success (200)**
-```json
-{
-  "success": true,
-  "message": "Information updated successfully",
-  "data": {
-    "newFilesCount": 2
-  }
-}
-```
-
-**Response - Error (404)**
-```json
-{
-  "success": false,
-  "message": "User not found"
-}
-```
+**Documents**
+- Extensions: `.pdf`, `.doc`, `.docx`, `.txt`
+- MIME types: `application/pdf`, `application/msword`, `application/vnd.openxmlformats-officedocument.wordprocessingml.document`, `text/plain`
 
 ---
 
-### Virtual Office
+## Error Codes
 
-#### GET `/virtual-office`
-
-Get virtual office API information.
-
-**Response**
-```json
-{
-  "message": "Virtual Office API",
-  "version": "1.0.0",
-  "features": [
-    "Digital Twin Creation",
-    "File Upload & Management",
-    "IoT Device Integration",
-    "User Profile Management"
-  ]
-}
-```
-
----
-
-## Error Responses
-
-All endpoints may return these error responses:
-
-### 400 Bad Request
-```json
-{
-  "success": false,
-  "message": "Invalid request parameters"
-}
-```
-
-### 401 Unauthorized
-```json
-{
-  "success": false,
-  "message": "Authentication required"
-}
-```
-
-### 404 Not Found
-```json
-{
-  "success": false,
-  "message": "Resource not found"
-}
-```
-
-### 409 Conflict
-```json
-{
-  "success": false,
-  "message": "Resource already exists"
-}
-```
-
-### 413 Payload Too Large
-```json
-{
-  "success": false,
-  "message": "File size exceeds the maximum limit of 50MB"
-}
-```
-
-### 500 Internal Server Error
-```json
-{
-  "success": false,
-  "message": "Internal server error",
-  "error": "Error details (development only)"
-}
-```
-
----
-
-## File Storage
-
-Uploaded files are stored in the `uploads/cloning/` directory with unique filenames:
-- Format: `{original-name}-{timestamp}-{random}.{ext}`
-- Example: `voice-sample-1704988800000-123456789.mp3`
-
-Files can be accessed via:
-- URL: `http://localhost:5000/uploads/cloning/{filename}`
-- Path stored in database: `/uploads/cloning/{filename}`
+| Code | Meaning |
+|------|---------|
+| 200 | Success |
+| 201 | Created |
+| 400 | Bad Request |
+| 401 | Unauthorized |
+| 404 | Not Found |
+| 409 | Conflict (duplicate) |
+| 500 | Internal Server Error |
 
 ---
 
 ## Rate Limiting
 
-Currently no rate limiting is implemented. Consider adding rate limiting for production:
-- Recommended: 100 requests per 15 minutes per IP
-- File upload endpoints: 10 requests per hour per IP
+- **Limit**: 100 requests per 15 minutes per IP
+- **Headers**: 
+  - `X-RateLimit-Limit`: Maximum requests allowed
+  - `X-RateLimit-Remaining`: Remaining requests
+  - `X-RateLimit-Reset`: Time when limit resets
 
 ---
 
 ## CORS
 
-CORS is configured to allow requests from:
-- Development: `http://localhost:3000`
-- Production: Configure via `CORS_ORIGIN` environment variable
+Allowed origins are configured via `CORS_ORIGIN` environment variable.
 
-Credentials are enabled for session-based authentication.
+Default: `http://localhost:3000`
 
 ---
 
-## Example Usage
+## Examples
 
-### cURL Examples
-
-**Verify Passcode**
+### cURL Example - Verify Passcode
 ```bash
 curl -X POST http://localhost:5000/api/cloning/verify-passcode \
   -H "Content-Type: application/json" \
-  -d '{"passcode": "passcodemrf1Q@"}'
+  -d '{"passcode":"passcodemrf1Q@"}'
 ```
 
-**Register User**
+### cURL Example - Register User
 ```bash
 curl -X POST http://localhost:5000/api/cloning/register \
   -F "username=johndoe" \
   -F "email=john@example.com" \
   -F "password=SecurePass123!" \
   -F "phoneNumber=+1234567890" \
-  -F 'personalInfo={"skills":"JavaScript, Python","jobTitle":"Developer"}' \
-  -F "voiceSamples=@voice1.mp3" \
-  -F "photos=@photo1.jpg" \
-  -F 'selectedDevices=["xbio_sentinel"]'
+  -F "personalInfo={\"skills\":\"JavaScript\"}" \
+  -F "voiceSamples=@/path/to/voice.mp3" \
+  -F "photos=@/path/to/photo.jpg" \
+  -F "selectedDevices=[\"xbio_sentinel\"]"
 ```
 
-**Get Profile**
-```bash
-curl http://localhost:5000/api/cloning/profile/{userId}
-```
-
-### JavaScript/Fetch Examples
-
-**Register User**
+### JavaScript Example
 ```javascript
-const formData = new FormData();
-formData.append('username', 'johndoe');
-formData.append('email', 'john@example.com');
-formData.append('password', 'SecurePass123!');
-formData.append('personalInfo', JSON.stringify({
-  skills: 'JavaScript, Python',
-  jobTitle: 'Developer'
-}));
-formData.append('voiceSamples', voiceFile);
-formData.append('photos', photoFile);
+// Verify passcode
+const verifyPasscode = async () => {
+  const response = await fetch('http://localhost:5000/api/cloning/verify-passcode', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ passcode: 'passcodemrf1Q@' })
+  });
+  return await response.json();
+};
 
-const response = await fetch('/api/cloning/register', {
-  method: 'POST',
-  body: formData
-});
-
-const data = await response.json();
-console.log(data);
+// Register user
+const registerUser = async (formData) => {
+  const response = await fetch('http://localhost:5000/api/cloning/register', {
+    method: 'POST',
+    body: formData // FormData object with files
+  });
+  return await response.json();
+};
 ```
 
 ---
 
-## Development Notes
-
-- All file uploads are validated for type and size
-- Passwords are automatically hashed with bcrypt (10 rounds)
-- User IDs are UUIDs generated by PostgreSQL
-- Timestamps use PostgreSQL's `now()` function
-- File paths are stored as relative paths
-- JSON fields support nested objects
-
----
-
-## Security Considerations
-
-1. **Always use HTTPS in production**
-2. **Validate file types on both client and server**
-3. **Implement rate limiting**
-4. **Regularly rotate SESSION_SECRET**
-5. **Use strong passwords (enforce on client)**
-6. **Sanitize user inputs**
-7. **Implement CSRF protection for production**
-8. **Use secure session cookies in production**
-9. **Regular security audits**
-10. **Keep dependencies updated**
+**Last Updated**: January 2026

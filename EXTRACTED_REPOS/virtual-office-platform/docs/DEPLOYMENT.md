@@ -1,122 +1,61 @@
-# Deployment Guide
+# 🚀 Deployment Guide
 
-## Table of Contents
-
-1. [Prerequisites](#prerequisites)
-2. [Production Setup](#production-setup)
-3. [Environment Configuration](#environment-configuration)
-4. [Database Setup](#database-setup)
-5. [Build Process](#build-process)
-6. [Server Deployment](#server-deployment)
-7. [Nginx Configuration](#nginx-configuration)
-8. [SSL/HTTPS Setup](#sslhttps-setup)
-9. [File Storage](#file-storage)
-10. [Monitoring & Logging](#monitoring--logging)
-11. [Backup Strategy](#backup-strategy)
-12. [Troubleshooting](#troubleshooting)
+This guide covers deploying the Virtual Office Platform to production.
 
 ---
 
 ## Prerequisites
 
-### System Requirements
-
-- **Server**: Ubuntu 20.04+ or similar Linux distribution
-- **Node.js**: 18.x or higher
-- **PostgreSQL**: 14.x or higher
-- **Memory**: Minimum 2GB RAM (4GB+ recommended)
-- **Storage**: 20GB+ (depending on file uploads)
-- **Domain**: Configured domain name (optional but recommended)
-
-### Tools Required
-
-```bash
-# Update system
-sudo apt update && sudo apt upgrade -y
-
-# Install Node.js 18
-curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-sudo apt install -y nodejs
-
-# Install PostgreSQL
-sudo apt install -y postgresql postgresql-contrib
-
-# Install Nginx (optional, for reverse proxy)
-sudo apt install -y nginx
-
-# Install certbot for SSL (optional)
-sudo apt install -y certbot python3-certbot-nginx
-```
+- Node.js 18+ installed
+- PostgreSQL 14+ database
+- Domain name (optional)
+- SSL certificate (recommended for production)
 
 ---
 
-## Production Setup
+## Environment Setup
 
-### 1. Clone Repository
+### 1. Production Environment Variables
 
-```bash
-cd /var/www
-sudo git clone <repository-url> virtual-office-platform
-cd virtual-office-platform
-```
-
-### 2. Install Dependencies
-
-```bash
-npm ci --production=false
-```
-
-### 3. Set Permissions
-
-```bash
-# Create uploads directory
-mkdir -p uploads/cloning
-
-# Set ownership
-sudo chown -R www-data:www-data uploads/
-sudo chmod -R 755 uploads/
-```
-
----
-
-## Environment Configuration
-
-Create production `.env` file:
-
-```bash
-cp .env.example .env
-nano .env
-```
-
-### Required Production Variables
+Create `.env` file with production values:
 
 ```env
 # Database
-DATABASE_URL=postgresql://dbuser:strong_password@localhost:5432/virtual_office_prod
+DATABASE_URL=postgresql://user:password@prod-db.example.com:5432/virtual_office
 
 # Authentication
-SESSION_SECRET=<generate-strong-random-secret-32-chars-min>
-PASSCODE=<your-custom-passcode>
+SESSION_SECRET=<generate-strong-32-char-random-string>
+PASSCODE=<change-from-default>
+
+# JWT (if using)
+JWT_SECRET=<generate-strong-secret>
+JWT_EXPIRES_IN=7d
+
+# File Upload
+MAX_FILE_SIZE=52428800
+UPLOAD_PATH=./uploads
 
 # Server
 PORT=5000
 NODE_ENV=production
 CORS_ORIGIN=https://yourdomain.com
 
-# File Upload
-MAX_FILE_SIZE=52428800
-UPLOAD_PATH=./uploads
-
-# Optional: Supabase
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_KEY=your-supabase-anon-key
+# Optional: S3 Storage
+USE_S3_STORAGE=true
+AWS_ACCESS_KEY_ID=<your-access-key>
+AWS_SECRET_ACCESS_KEY=<your-secret-key>
+AWS_REGION=us-east-1
+AWS_S3_BUCKET=virtual-office-uploads
 ```
 
-### Generate Secure Secrets
+### 2. Generate Secure Secrets
 
 ```bash
 # Generate SESSION_SECRET
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+
+# Generate JWT_SECRET
+node -e "console.log(require('crypto').randomBytes(64).toString('base64'))"
 ```
 
 ---
@@ -125,184 +64,178 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 
 ### 1. Create Production Database
 
-```bash
-sudo -u postgres psql
-```
-
 ```sql
--- Create database user
-CREATE USER dbuser WITH PASSWORD 'strong_password';
-
--- Create database
-CREATE DATABASE virtual_office_prod OWNER dbuser;
-
--- Grant privileges
-GRANT ALL PRIVILEGES ON DATABASE virtual_office_prod TO dbuser;
-
--- Exit
-\q
+CREATE DATABASE virtual_office;
+CREATE USER virtual_office_user WITH ENCRYPTED PASSWORD 'secure_password';
+GRANT ALL PRIVILEGES ON DATABASE virtual_office TO virtual_office_user;
 ```
 
 ### 2. Run Migrations
 
 ```bash
-# Using SQL file
-psql -U dbuser -d virtual_office_prod -f database/schema.sql
-
-# Or using Drizzle
 npm run db:push
 ```
 
-### 3. Verify Database
+Or manually run the SQL schema:
 
 ```bash
-psql -U dbuser -d virtual_office_prod -c "\dt"
+psql -h your-db-host -U virtual_office_user -d virtual_office -f database/schema.sql
 ```
-
-You should see: `user_profiles`, `user_files`, `user_iot_devices`, `session`
 
 ---
 
-## Build Process
+## Build & Deploy
 
-### 1. Build Application
+### Method 1: Traditional VPS/Server
 
+#### 1. Install Dependencies
+```bash
+npm ci --production
+```
+
+#### 2. Build Application
 ```bash
 npm run build
 ```
 
 This creates:
-- `dist/public/` - Client build
-- `dist/server/` - Server build (if applicable)
+- `dist/public/` - Built frontend
+- `dist/server/` - Compiled backend
 
-### 2. Verify Build
-
+#### 3. Start Production Server
 ```bash
-ls -la dist/public/
-# Should contain: index.html, assets/, etc.
+npm start
+```
+
+Or use PM2:
+```bash
+npm install -g pm2
+pm2 start dist/server/index.js --name virtual-office
+pm2 save
+pm2 startup
 ```
 
 ---
 
-## Server Deployment
+### Method 2: Docker
 
-### Option 1: PM2 (Recommended)
+#### Dockerfile
+```dockerfile
+FROM node:18-alpine
 
-#### Install PM2
+WORKDIR /app
 
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies
+RUN npm ci --production
+
+# Copy application
+COPY . .
+
+# Build
+RUN npm run build
+
+# Expose ports
+EXPOSE 5000
+
+# Start
+CMD ["npm", "start"]
+```
+
+#### Build & Run
 ```bash
-sudo npm install -g pm2
+docker build -t virtual-office .
+docker run -d -p 5000:5000 --env-file .env virtual-office
 ```
 
-#### Create PM2 Ecosystem File
+#### Docker Compose
+```yaml
+version: '3.8'
 
-Create `ecosystem.config.js`:
+services:
+  app:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      - NODE_ENV=production
+    env_file:
+      - .env
+    volumes:
+      - ./uploads:/app/uploads
+    depends_on:
+      - db
 
-```javascript
-module.exports = {
-  apps: [{
-    name: 'virtual-office-platform',
-    script: './server/index.ts',
-    interpreter: 'node',
-    interpreter_args: '--loader tsx',
-    instances: 2,
-    exec_mode: 'cluster',
-    env: {
-      NODE_ENV: 'production',
-      PORT: 5000
-    },
-    error_file: './logs/err.log',
-    out_file: './logs/out.log',
-    log_date_format: 'YYYY-MM-DD HH:mm Z',
-    merge_logs: true
-  }]
-};
+  db:
+    image: postgres:14
+    environment:
+      POSTGRES_DB: virtual_office
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
 ```
 
-#### Start Application
+---
 
+### Method 3: Cloud Platforms
+
+#### Heroku
 ```bash
-# Create logs directory
-mkdir -p logs
+# Install Heroku CLI
+heroku create virtual-office-app
 
-# Start with PM2
-pm2 start ecosystem.config.js
+# Add PostgreSQL
+heroku addons:create heroku-postgresql:hobby-dev
 
-# Save PM2 configuration
-pm2 save
+# Set environment variables
+heroku config:set NODE_ENV=production
+heroku config:set SESSION_SECRET=your-secret
+heroku config:set PASSCODE=your-passcode
 
-# Setup PM2 startup script
-pm2 startup
-# Follow the instructions provided
+# Deploy
+git push heroku main
 ```
 
-#### PM2 Commands
-
+#### Railway
 ```bash
-# View logs
-pm2 logs virtual-office-platform
+# Install Railway CLI
+railway init
 
-# Restart
-pm2 restart virtual-office-platform
+# Link project
+railway link
 
-# Stop
-pm2 stop virtual-office-platform
+# Add PostgreSQL
+railway add postgresql
 
-# Monitor
-pm2 monit
+# Set variables in Railway dashboard
 
-# Status
-pm2 status
+# Deploy
+railway up
 ```
 
-### Option 2: Systemd Service
-
-Create `/etc/systemd/system/virtual-office.service`:
-
-```ini
-[Unit]
-Description=Virtual Office Platform
-After=network.target postgresql.service
-
-[Service]
-Type=simple
-User=www-data
-WorkingDirectory=/var/www/virtual-office-platform
-Environment=NODE_ENV=production
-ExecStart=/usr/bin/node --loader tsx server/index.ts
-Restart=always
-RestartSec=10
-
-[Install]
-WantedBy=multi-user.target
-```
-
-Enable and start:
-
-```bash
-sudo systemctl daemon-reload
-sudo systemctl enable virtual-office
-sudo systemctl start virtual-office
-sudo systemctl status virtual-office
-```
+#### DigitalOcean App Platform
+1. Connect your GitHub repository
+2. Set environment variables in dashboard
+3. Configure build command: `npm run build`
+4. Configure run command: `npm start`
+5. Deploy
 
 ---
 
 ## Nginx Configuration
 
-### 1. Create Nginx Configuration
-
-Create `/etc/nginx/sites-available/virtual-office`:
+### Reverse Proxy Setup
 
 ```nginx
-upstream virtual_office_backend {
-    server 127.0.0.1:5000;
-    keepalive 64;
-}
-
 server {
     listen 80;
-    server_name yourdomain.com www.yourdomain.com;
+    server_name yourdomain.com;
 
     # Redirect to HTTPS
     return 301 https://$server_name$request_uri;
@@ -310,408 +243,230 @@ server {
 
 server {
     listen 443 ssl http2;
-    server_name yourdomain.com www.yourdomain.com;
+    server_name yourdomain.com;
 
-    # SSL certificates (certbot will add these)
-    # ssl_certificate /etc/letsencrypt/live/yourdomain.com/fullchain.pem;
-    # ssl_certificate_key /etc/letsencrypt/live/yourdomain.com/privkey.pem;
+    ssl_certificate /path/to/cert.pem;
+    ssl_certificate_key /path/to/key.pem;
 
-    # SSL configuration
-    ssl_protocols TLSv1.2 TLSv1.3;
-    ssl_ciphers HIGH:!aNULL:!MD5;
-    ssl_prefer_server_ciphers on;
+    # Frontend (if serving separately)
+    location / {
+        root /var/www/virtual-office/dist/public;
+        try_files $uri $uri/ /index.html;
+    }
 
-    # Logging
-    access_log /var/log/nginx/virtual-office-access.log;
-    error_log /var/log/nginx/virtual-office-error.log;
-
-    # Client upload size
-    client_max_body_size 50M;
-
-    # Root for static files
-    root /var/www/virtual-office-platform/dist/public;
-    index index.html;
-
-    # API proxy
-    location /api/ {
-        proxy_pass http://virtual_office_backend;
+    # API
+    location /api {
+        proxy_pass http://localhost:5000;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
         proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_cache_bypass $http_upgrade;
     }
 
-    # Uploads proxy
-    location /uploads/ {
-        proxy_pass http://virtual_office_backend;
-        proxy_http_version 1.1;
+    # Uploads
+    location /uploads {
+        proxy_pass http://localhost:5000;
         proxy_set_header Host $host;
-        proxy_cache_bypass $http_upgrade;
     }
 
-    # Static files
-    location / {
-        try_files $uri $uri/ /index.html;
-    }
-
-    # Cache static assets
-    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
-        expires 1y;
-        add_header Cache-Control "public, immutable";
-    }
+    # File upload size limit
+    client_max_body_size 50M;
 }
-```
-
-### 2. Enable Site
-
-```bash
-sudo ln -s /etc/nginx/sites-available/virtual-office /etc/nginx/sites-enabled/
-sudo nginx -t
-sudo systemctl reload nginx
 ```
 
 ---
 
-## SSL/HTTPS Setup
+## SSL/TLS Setup
 
 ### Using Let's Encrypt (Certbot)
 
 ```bash
-# Install certbot
+# Install Certbot
 sudo apt install certbot python3-certbot-nginx
 
 # Get certificate
-sudo certbot --nginx -d yourdomain.com -d www.yourdomain.com
+sudo certbot --nginx -d yourdomain.com
 
-# Follow prompts
-# Certbot will automatically update Nginx configuration
-
-# Test renewal
+# Auto-renewal
 sudo certbot renew --dry-run
-```
-
-### Auto-renewal
-
-Certbot automatically sets up a cron job. Verify:
-
-```bash
-sudo systemctl status certbot.timer
 ```
 
 ---
 
-## File Storage
+## File Storage Options
 
 ### Local Storage (Default)
+- Files stored in `./uploads`
+- Ensure proper permissions: `chmod 755 uploads`
+- Regular backups recommended
 
-Files are stored in `uploads/cloning/` directory.
+### S3 Storage (Recommended for Production)
 
-**Backup Strategy**:
-```bash
-# Daily backup script
-#!/bin/bash
-tar -czf /backups/uploads-$(date +%Y%m%d).tar.gz /var/www/virtual-office-platform/uploads/
-```
-
-### S3 Storage (Optional)
-
-To use AWS S3 for file storage:
-
-1. Install AWS SDK:
-```bash
-npm install aws-sdk
-```
-
-2. Update environment:
+Update `.env`:
 ```env
+USE_S3_STORAGE=true
 AWS_ACCESS_KEY_ID=your-key
 AWS_SECRET_ACCESS_KEY=your-secret
 AWS_REGION=us-east-1
-AWS_S3_BUCKET=your-bucket-name
+AWS_S3_BUCKET=your-bucket
 ```
 
-3. Modify `server/routes/cloning.ts` to use S3 storage
+Install AWS SDK:
+```bash
+npm install @aws-sdk/client-s3
+```
 
 ---
 
 ## Monitoring & Logging
 
-### Application Logs
-
-**PM2 Logs**:
-```bash
-pm2 logs virtual-office-platform
-pm2 logs virtual-office-platform --err
-pm2 logs virtual-office-platform --out
-```
-
-**Log Files**:
-- Application: `./logs/out.log`, `./logs/err.log`
-- Nginx: `/var/log/nginx/virtual-office-*.log`
-- PostgreSQL: `/var/log/postgresql/`
-
-### Monitoring Tools
-
-**PM2 Monitoring**:
+### PM2 Monitoring
 ```bash
 pm2 monit
+pm2 logs virtual-office
 ```
 
-**Server Monitoring** (optional):
+### Log Files
+Configure log rotation:
 ```bash
-# Install htop
-sudo apt install htop
-
-# Monitor resources
-htop
-```
-
-### Log Rotation
-
-Create `/etc/logrotate.d/virtual-office`:
-
-```
-/var/www/virtual-office-platform/logs/*.log {
+# /etc/logrotate.d/virtual-office
+/var/log/virtual-office/*.log {
     daily
     rotate 14
     compress
     delaycompress
     notifempty
-    missingok
-    create 0644 www-data www-data
+    create 0640 node node
+    sharedscripts
 }
-```
-
----
-
-## Backup Strategy
-
-### Database Backups
-
-**Daily Backup Script** (`/usr/local/bin/backup-db.sh`):
-
-```bash
-#!/bin/bash
-BACKUP_DIR="/backups/database"
-DATE=$(date +%Y%m%d_%H%M%S)
-DB_NAME="virtual_office_prod"
-
-mkdir -p $BACKUP_DIR
-
-pg_dump -U dbuser $DB_NAME | gzip > $BACKUP_DIR/backup_$DATE.sql.gz
-
-# Keep only last 30 days
-find $BACKUP_DIR -name "backup_*.sql.gz" -mtime +30 -delete
-```
-
-**Setup Cron**:
-```bash
-# Edit crontab
-sudo crontab -e
-
-# Add daily backup at 2 AM
-0 2 * * * /usr/local/bin/backup-db.sh
-```
-
-### File Backups
-
-Include uploads directory in regular backups:
-
-```bash
-# Create backup script
-tar -czf /backups/files_$(date +%Y%m%d).tar.gz /var/www/virtual-office-platform/uploads/
 ```
 
 ---
 
 ## Security Checklist
 
-- [ ] Use HTTPS (SSL certificate)
 - [ ] Strong SESSION_SECRET (32+ characters)
-- [ ] Firewall configured (UFW or iptables)
-- [ ] PostgreSQL only accepts local connections
-- [ ] Regular security updates
-- [ ] File upload validation
-- [ ] Rate limiting (consider adding)
-- [ ] CORS properly configured
-- [ ] Secure cookie settings
-- [ ] Regular backups
-- [ ] Log monitoring
-- [ ] Fail2ban for SSH protection
-
-### Firewall Setup
-
-```bash
-# Enable UFW
-sudo ufw enable
-
-# Allow SSH
-sudo ufw allow OpenSSH
-
-# Allow HTTP/HTTPS
-sudo ufw allow 'Nginx Full'
-
-# Check status
-sudo ufw status
-```
+- [ ] Change default PASSCODE
+- [ ] Enable HTTPS/SSL
+- [ ] Set NODE_ENV=production
+- [ ] Configure CORS_ORIGIN to your domain
+- [ ] Set proper file permissions
+- [ ] Enable rate limiting
+- [ ] Regular database backups
+- [ ] Keep dependencies updated
+- [ ] Use environment variables for secrets
+- [ ] Configure firewall (only ports 80, 443, 22)
+- [ ] Set up monitoring/alerting
 
 ---
 
-## Troubleshooting
+## Backup Strategy
 
-### Application Won't Start
-
+### Database Backup
 ```bash
-# Check logs
-pm2 logs virtual-office-platform --err
-
-# Check process
-pm2 status
-
-# Verify environment
-cat .env
-
-# Check Node version
-node --version  # Should be 18+
+# Daily backup script
+#!/bin/bash
+DATE=$(date +%Y%m%d)
+pg_dump -h localhost -U virtual_office_user virtual_office > backup_$DATE.sql
 ```
 
-### Database Connection Issues
-
+### File Backup
 ```bash
-# Test connection
-psql -U dbuser -d virtual_office_prod -c "SELECT 1"
-
-# Check PostgreSQL status
-sudo systemctl status postgresql
-
-# Check PostgreSQL logs
-sudo tail -f /var/log/postgresql/postgresql-14-main.log
+# Backup uploads directory
+tar -czf uploads_backup_$(date +%Y%m%d).tar.gz uploads/
 ```
 
-### File Upload Issues
-
+### Automated Backups
 ```bash
-# Check permissions
-ls -la uploads/
-
-# Fix permissions
-sudo chown -R www-data:www-data uploads/
-sudo chmod -R 755 uploads/
-
-# Check disk space
-df -h
-```
-
-### High Memory Usage
-
-```bash
-# Check PM2 processes
-pm2 monit
-
-# Reduce instances if needed
-pm2 scale virtual-office-platform 1
-
-# Check for memory leaks
-pm2 restart virtual-office-platform
-```
-
-### Nginx Errors
-
-```bash
-# Check Nginx configuration
-sudo nginx -t
-
-# Check Nginx logs
-sudo tail -f /var/log/nginx/virtual-office-error.log
-
-# Restart Nginx
-sudo systemctl restart nginx
+# Add to crontab
+0 2 * * * /path/to/backup-script.sh
 ```
 
 ---
 
 ## Performance Optimization
 
-### Node.js
+### 1. Enable Caching
+- Use Redis for session storage
+- Cache static assets
+- Enable browser caching
 
-- Use cluster mode (PM2)
-- Enable gzip compression
-- Implement caching
-- Use connection pooling for database
-
-### Nginx
-
-- Enable gzip compression
-- Configure caching for static assets
-- Use HTTP/2
-- Optimize worker processes
-
-### Database
-
-- Create indexes on frequently queried columns
-- Regular VACUUM and ANALYZE
+### 2. Database Optimization
+- Add indexes (already included in schema)
+- Regular VACUUM
 - Connection pooling
-- Query optimization
+
+### 3. CDN Integration
+- Serve static assets via CDN
+- Optimize images
+- Enable compression
 
 ---
 
-## Maintenance
+## Troubleshooting
 
-### Regular Tasks
+### Application Won't Start
+1. Check logs: `pm2 logs`
+2. Verify environment variables
+3. Check database connection
+4. Ensure port is available
 
-**Daily**:
-- Monitor logs for errors
-- Check disk space
-- Verify backups ran successfully
+### Database Connection Issues
+1. Check DATABASE_URL format
+2. Verify database exists
+3. Check network/firewall rules
+4. Test connection: `psql $DATABASE_URL`
 
-**Weekly**:
-- Review application performance
-- Check for security updates
-- Analyze logs for patterns
-
-**Monthly**:
-- Update dependencies
-- Test backup restoration
-- Review and optimize database
+### File Upload Failures
+1. Check disk space
+2. Verify upload directory permissions
+3. Check MAX_FILE_SIZE setting
+4. Review nginx client_max_body_size
 
 ---
 
-## Scaling Considerations
+## Health Checks
+
+### Endpoint
+```bash
+curl http://localhost:5000/api/health
+```
+
+### Uptime Monitoring
+Use services like:
+- UptimeRobot
+- Pingdom
+- StatusCake
+
+---
+
+## Scaling
 
 ### Horizontal Scaling
-
-- Use PM2 cluster mode
-- Load balancer (Nginx, HAProxy)
-- Shared session storage (Redis)
-- Distributed file storage (S3, MinIO)
+- Use load balancer (nginx, HAProxy)
+- Multiple application instances
+- Shared database
+- Centralized file storage (S3)
+- Session storage in Redis
 
 ### Vertical Scaling
-
 - Increase server resources
 - Optimize database queries
-- Implement caching (Redis)
-- CDN for static assets
+- Enable caching
 
 ---
 
 ## Support
 
 For deployment issues:
-1. Check application logs
-2. Review Nginx logs
-3. Verify environment configuration
-4. Check system resources
-5. Open issue in repository
+1. Check logs first
+2. Review [SYSTEM_DOCUMENTATION.md](SYSTEM_DOCUMENTATION.md)
+3. Open GitHub issue
 
 ---
 
-## Additional Resources
-
-- [Node.js Best Practices](https://github.com/goldbergyoni/nodebestpractices)
-- [Nginx Documentation](https://nginx.org/en/docs/)
-- [PostgreSQL Performance](https://wiki.postgresql.org/wiki/Performance_Optimization)
-- [PM2 Documentation](https://pm2.keymetrics.io/docs/)
+**Last Updated**: January 2026

@@ -1,3 +1,6 @@
+import { Request, Response, NextFunction } from 'express';
+
+export const errorHandler = (
 import { Request, Response, NextFunction } from "express";
 
 export function errorHandler(
@@ -5,6 +8,10 @@ export function errorHandler(
   req: Request,
   res: Response,
   next: NextFunction
+) => {
+  console.error('Error:', err);
+
+  if (err instanceof Error && err.message.includes('Invalid file type')) {
 ) {
   console.error("Error:", err);
 
@@ -24,6 +31,12 @@ export function errorHandler(
     });
   }
 
+  res.status(500).json({
+    success: false,
+    message: 'حدث خطأ في الخادم',
+    error: process.env.NODE_ENV === 'development' ? err.message : undefined
+  });
+};
   // Database errors
   if (err.message.includes("duplicate key")) {
     return res.status(409).json({

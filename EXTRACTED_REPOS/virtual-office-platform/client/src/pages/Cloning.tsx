@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/app-sidebar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,8 +10,6 @@ import { useToast } from "@/hooks/use-toast";
 import {
   Lock,
   User,
-  Mail,
-  Phone,
   Upload,
   FileAudio,
   FileImage,
@@ -354,7 +354,7 @@ export default function Cloning() {
             </Button>
 
             <div className="text-center text-sm text-muted-foreground mt-4">
-              <p>رمز المرور: passcodemrf1Q@</p>
+              <p>يرجى التواصل مع المسؤول للحصول على رمز المرور.</p>
             </div>
           </CardContent>
         </Card>
@@ -364,6 +364,14 @@ export default function Cloning() {
 
   // واجهة التسجيل
   return (
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
+        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+          <SidebarTrigger className="-ml-1" />
+          <h1 className="text-lg font-semibold">إنشاء ملف تعريفي للاستنساخ</h1>
+        </header>
+        <main className="flex flex-1 flex-col gap-4 p-4 overflow-auto">
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 p-4 py-8">
       <div className="max-w-4xl mx-auto">
         <Card className="bg-black/40 backdrop-blur-xl border-secondary/30">
@@ -838,5 +846,8 @@ export default function Cloning() {
         </Card>
       </div>
     </div>
+        </main>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

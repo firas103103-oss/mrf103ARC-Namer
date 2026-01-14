@@ -1,3 +1,4 @@
+import { Router, Request, Response } from "express";
 /* eslint-disable no-undef */
 import { Router, Request, Response } from "express";
 import multer from "multer";
@@ -7,6 +8,11 @@ import bcrypt from "bcrypt";
 import { db } from "../db/connection";
 import { userProfiles, userFiles, userIotDevices } from "../db/schema";
 import { eq } from "drizzle-orm";
+import { upload } from "../middleware/multer-config";
+
+const router = Router();
+
+// الـ Passcode من متغيرات البيئة
 
 const router = Router();
 
@@ -73,6 +79,7 @@ const CLONING_PASSCODE = process.env.PASSCODE || "passcodemrf1Q@";
 
 /**
  * POST /api/cloning/verify-passcode
+ * التحقق من الـ Passcode
  * Verify passcode
  */
 router.post("/verify-passcode", async (req: Request, res: Response) => {
@@ -82,6 +89,7 @@ router.post("/verify-passcode", async (req: Request, res: Response) => {
     if (!passcode) {
       return res.status(400).json({
         success: false,
+        message: "الرجاء إدخال رمز المرور",
         message: "Please enter passcode",
       });
     }
@@ -89,11 +97,20 @@ router.post("/verify-passcode", async (req: Request, res: Response) => {
     if (passcode === CLONING_PASSCODE) {
       return res.status(200).json({
         success: true,
+        message: "تم التحقق بنجاح",
         message: "Verification successful",
       });
     } else {
       return res.status(401).json({
         success: false,
+        message: "رمز المرور غير صحيح",
+      });
+    }
+  } catch (error) {
+    console.error("خطأ في التحقق من الـ passcode:", error);
+    return res.status(500).json({
+      success: false,
+      message: "حدث خطأ أثناء التحقق",
         message: "Incorrect passcode",
       });
     }
@@ -108,6 +125,7 @@ router.post("/verify-passcode", async (req: Request, res: Response) => {
 
 /**
  * POST /api/cloning/register
+ * تسجيل مستخدم جديد مع رفع الملفات
  * Register new user with file uploads
  */
 router.post(
@@ -128,6 +146,17 @@ router.post(
         projectsInfo,
         socialInfo,
         selectedDevices,
+      } = req.body;
+
+      // التحقق من البيانات الأساسية
+      if (!username || !email || !password) {
+        return res.status(400).json({
+          success: false,
+          message: "الرجاء إدخال جميع البيانات المطلوبة",
+        });
+      }
+
+      // التحقق من وجود المستخدم
         selectedIntegrations,
       } = req.body;
 
@@ -149,6 +178,14 @@ router.post(
       if (existingUser.length > 0) {
         return res.status(409).json({
           success: false,
+          message: "البريد الإلكتروني مسجل مسبقاً",
+        });
+      }
+
+      // تشفير كلمة المرور
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      // إنشاء ملف المستخدم
           message: "Email already registered",
         });
       }
@@ -170,6 +207,7 @@ router.post(
         })
         .returning();
 
+      // معالجة الملفات المرفوعة
       // Process uploaded files
       const files = req.files as Record<string, Express.Multer.File[]>;
       const uploadedFiles: any[] = [];
@@ -200,6 +238,7 @@ router.post(
         }
       }
 
+      // إضافة الأجهزة المختارة
       // Add selected devices
       const devices = selectedDevices ? JSON.parse(selectedDevices) : [];
       const addedDevices: any[] = [];
@@ -221,6 +260,7 @@ router.post(
 
       return res.status(201).json({
         success: true,
+        message: "تم التسجيل بنجاح",
         message: "Registration successful",
         data: {
           user: {
@@ -233,6 +273,10 @@ router.post(
         },
       });
     } catch (error) {
+      console.error("خطأ في التسجيل:", error);
+      return res.status(500).json({
+        success: false,
+        message: "حدث خطأ أثناء التسجيل",
       console.error("Error during registration:", error);
       return res.status(500).json({
         success: false,
@@ -245,12 +289,14 @@ router.post(
 
 /**
  * GET /api/cloning/profile/:userId
+ * الحصول على معلومات المستخدم الكاملة
  * Get complete user information
  */
 router.get("/profile/:userId", async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
 
+    // الحصول على معلومات المستخدم
     // Get user information
     const [user] = await db
       .select()
@@ -261,6 +307,11 @@ router.get("/profile/:userId", async (req: Request, res: Response) => {
     if (!user) {
       return res.status(404).json({
         success: false,
+        message: "المستخدم غير موجود",
+      });
+    }
+
+    // الحصول على الملفات
         message: "User not found",
       });
     }
@@ -271,6 +322,7 @@ router.get("/profile/:userId", async (req: Request, res: Response) => {
       .from(userFiles)
       .where(eq(userFiles.userId, userId));
 
+    // الحصول على الأجهزة
     // Get devices
     const devices = await db
       .select()
@@ -295,6 +347,10 @@ router.get("/profile/:userId", async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
+    console.error("خطأ في جلب معلومات المستخدم:", error);
+    return res.status(500).json({
+      success: false,
+      message: "حدث خطأ أثناء جلب المعلومات",
     console.error("Error fetching user information:", error);
     return res.status(500).json({
       success: false,
@@ -306,6 +362,7 @@ router.get("/profile/:userId", async (req: Request, res: Response) => {
 
 /**
  * PUT /api/cloning/profile/:userId
+ * تحديث معلومات المستخدم
  * Update user information
  */
 router.put(
@@ -320,6 +377,7 @@ router.put(
       const { userId } = req.params;
       const { personalInfo, projectsInfo, socialInfo } = req.body;
 
+      // التحقق من وجود المستخدم
       // Check if user exists
       const [user] = await db
         .select()
@@ -330,6 +388,11 @@ router.put(
       if (!user) {
         return res.status(404).json({
           success: false,
+          message: "المستخدم غير موجود",
+        });
+      }
+
+      // تحديث البيانات
           message: "User not found",
         });
       }
@@ -346,6 +409,7 @@ router.put(
         .set(updateData)
         .where(eq(userProfiles.id, userId));
 
+      // معالجة الملفات الجديدة
       // Process new files
       const files = req.files as Record<string, Express.Multer.File[]>;
       const uploadedFiles: any[] = [];
@@ -378,12 +442,17 @@ router.put(
 
       return res.status(200).json({
         success: true,
+        message: "تم تحديث المعلومات بنجاح",
         message: "Information updated successfully",
         data: {
           newFilesCount: uploadedFiles.length,
         },
       });
     } catch (error) {
+      console.error("خطأ في تحديث المعلومات:", error);
+      return res.status(500).json({
+        success: false,
+        message: "حدث خطأ أثناء التحديث",
       console.error("Error updating information:", error);
       return res.status(500).json({
         success: false,
