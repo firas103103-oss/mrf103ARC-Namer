@@ -1,9 +1,13 @@
 /**
  * 🤖 Agent Dashboard - لوحة تحكم الوكلاء
- * عرض الطبقات الثلاث و 16 وكيل مع حالتهم
+ * عرض الطبقات الثلاث و 31 وكيل مع حالتهم
+ * ✅ متصل بـ Backend API
  */
 
 import React, { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
+import { renderLoading } from '@/lib/apiHooks';
 import { 
   Brain, 
   Shield, 
@@ -256,17 +260,31 @@ const StatsCard: React.FC<{
 export const AgentDashboard: React.FC = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const executiveAgents = agents.filter(a => a.layer === 'executive');
-  const administrativeAgents = agents.filter(a => a.layer === 'administrative');
-  const productiveAgents = agents.filter(a => a.layer === 'productive');
+  // Fetch all agents from backend
+  const { data: agentsData, isLoading, refetch } = useQuery({
+    queryKey: ['all-agents'],
+    queryFn: () => apiRequest('GET', '/api/arc/agents/all'),
+    refetchInterval: 30000
+  });
 
-  const totalTasks = agents.reduce((sum, a) => sum + a.tasksCompleted, 0);
-  const activeTasks = agents.reduce((sum, a) => sum + a.tasksInProgress, 0);
-  const activeAgents = agents.filter(a => a.status === 'active' || a.status === 'busy').length;
-  const avgPerformance = agents.reduce((sum, a) => sum + a.performanceScore, 0) / agents.length;
+  const agents = agentsData?.data || [];
+  
+  if (isLoading) {
+    return renderLoading('Loading Agent Dashboard...');
+  }
+
+  const executiveAgents = agents.filter((a: any) => a.layer === 'executive' || a.layer === 'CEO');
+  const administrativeAgents = agents.filter((a: any) => a.layer === 'administrative' || a.layer === 'Maestro');
+  const productiveAgents = agents.filter((a: any) => a.layer === 'productive' || a.layer === 'Specialist');
+
+  const totalTasks = agents.reduce((sum: number, a: any) => sum + (a.tasksCompleted || 0), 0);
+  const activeTasks = agents.reduce((sum: number, a: any) => sum + (a.tasksInProgress || 0), 0);
+  const activeAgents = agents.filter((a: any) => a.status === 'active' || a.status === 'busy').length;
+  const avgPerformance = agents.length > 0 ? agents.reduce((sum: number, a: any) => sum + (a.performanceScore || 95), 0) / agents.length : 95;
 
   const handleRefresh = () => {
     setIsRefreshing(true);
+    refetch();
     setTimeout(() => setIsRefreshing(false), 1500);
   };
 
@@ -276,7 +294,7 @@ export const AgentDashboard: React.FC = () => {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold gradient-text">🤖 لوحة تحكم الوكلاء</h1>
-          <p className="text-secondary mt-1">نظام ARC متعدد الطبقات - 16 وكيل ذكي</p>
+          <p className="text-secondary mt-1">نظام ARC متعدد الطبقات - {agents.length} وكيل ذكي</p>
         </div>
         <button 
           onClick={handleRefresh}
