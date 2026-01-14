@@ -1,57 +1,28 @@
 /**
  * 📊 Reports API - مركز التقارير
  * Daily, Weekly, Monthly, Semi-Annual Reports
+ * ✅ Phase 3: Connected to Database
  */
 
 import { Router } from "express";
 import type { Request, Response } from "express";
+import { db } from '../db';
+import { reports } from '@shared/schema';
+import { desc, eq } from 'drizzle-orm';
 
 const router = Router();
 
 // GET /api/reports - List all reports
 router.get("/", async (req: Request, res: Response) => {
   try {
-    // TODO: Fetch from database
-    const reports = [
-      {
-        id: 'rpt_daily_001',
-        title: 'Daily Operations Report',
-        type: 'daily',
-        date: new Date().toISOString().split('T')[0],
-        status: 'completed',
-        summary: 'All systems operational. 127 tasks completed, 12 in progress.',
-        metrics: { tasksCompleted: 127, tasksInProgress: 12, efficiency: 94 }
-      },
-      {
-        id: 'rpt_weekly_001',
-        title: 'Weekly Performance Summary',
-        type: 'weekly',
-        date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        status: 'completed',
-        summary: 'Strong performance across all sectors. Finance +12%, Security 98% uptime.',
-        metrics: { totalTasks: 892, completionRate: 96, avgResponseTime: 1.2 }
-      },
-      {
-        id: 'rpt_monthly_001',
-        title: 'Monthly Strategic Report',
-        type: 'monthly',
-        date: '2025-06-01',
-        status: 'completed',
-        summary: 'Major milestones achieved. Revenue targets met, 15 new innovations.',
-        metrics: { revenue: 125000, innovations: 15, clientSatisfaction: 97 }
-      },
-      {
-        id: 'rpt_semi_001',
-        title: 'H1 2025 Strategic Review',
-        type: 'semi_annual',
-        date: '2025-01-01',
-        status: 'completed',
-        summary: 'Exceptional growth. Market expansion in 3 new regions, AI evolution +42%.',
-        metrics: { marketGrowth: 34, aiEvolution: 42, teamExpansion: 8 }
-      }
-    ];
+    const allReports = await db
+      .select()
+      .from(reports)
+      .orderBy(desc(reports.createdAt))
+      .limit(20)
+      .execute();
 
-    res.json({ success: true, data: reports });
+    res.json({ success: true, data: allReports });
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch reports" });
   }
@@ -62,16 +33,13 @@ router.get("/:type", async (req: Request, res: Response) => {
   try {
     const { type } = req.params;
     
-    // TODO: Fetch filtered reports from database
-    const allReports = [
-      { id: 'rpt_daily_001', title: 'Daily Operations Report', type: 'daily', date: new Date().toISOString().split('T')[0], status: 'completed' },
-      { id: 'rpt_daily_002', title: 'Yesterday Operations', type: 'daily', date: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split('T')[0], status: 'completed' },
-      { id: 'rpt_weekly_001', title: 'Weekly Performance Summary', type: 'weekly', date: '2025-06-09', status: 'completed' },
-      { id: 'rpt_monthly_001', title: 'Monthly Strategic Report', type: 'monthly', date: '2025-06-01', status: 'completed' },
-      { id: 'rpt_semi_001', title: 'H1 2025 Strategic Review', type: 'semi_annual', date: '2025-01-01', status: 'completed' }
-    ];
+    const filteredReports = await db
+      .select()
+      .from(reports)
+      .where(eq(reports.reportType, type))
+      .orderBy(desc(reports.createdAt))
+      .execute();
 
-    const filteredReports = allReports.filter(r => r.type === type);
     res.json({ success: true, data: filteredReports });
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch reports by type" });

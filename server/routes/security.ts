@@ -1,10 +1,13 @@
 /**
  * 🛡️ Security Sector API Routes
  * APIs للقطاع الأمني - Maestro Cipher
+ * ✅ Phase 3: Connected to Database
  */
 
 import { Router } from 'express';
 import { db } from '../db';
+import { securityEvents, firewallRules } from '@shared/schema';
+import { desc, eq, sql } from 'drizzle-orm';
 import logger from '../utils/logger';
 import { arcHierarchy } from '../arc/hierarchy_system';
 
@@ -17,14 +20,39 @@ export const securityRouter = Router();
 // Get security overview
 securityRouter.get('/overview', async (req, res) => {
   try {
+    // Get real statistics from database
+    const result = await db
+      .select({
+        totalEvents: sql<number>`COUNT(*)`,
+        criticalEvents: sql<number>`SUM(CASE WHEN severity = 'critical' THEN 1 ELSE 0 END)`,
+        highEvents: sql<number>`SUM(CASE WHEN severity = 'high' THEN 1 ELSE 0 END)`,
+        resolvedEvents: sql<number>`SUM(CASE WHEN resolved = true THEN 1 ELSE 0 END)`,
+        unresolvedEvents: sql<number>`SUM(CASE WHEN resolved = false THEN 1 ELSE 0 END)`,
+      })
+      .from(securityEvents)
+      .execute();
+
+    const firewallResult = await db
+      .select({
+        totalRules: sql<number>`COUNT(*)`,
+        activeRules: sql<number>`SUM(CASE WHEN enabled = true THEN 1 ELSE 0 END)`,
+      })
+      .from(firewallRules)
+      .execute();
+
+    const data = result[0];
+    const fwData = firewallResult[0];
+    const securityScore = Math.max(0, 100 - (Number(data.unresolvedEvents) * 5));
+
     const overview = {
-      securityScore: 98,
-      threatsBlocked: 23,
-      filesEncrypted: 1456,
-      activeMonitoring: 24,
-      vulnerabilities: 2,
+      securityScore,
+      totalEvents: Number(data.totalEvents),
+      threatsBlocked: Number(data.highEvents) + Number(data.criticalEvents),
+      unresolvedIssues: Number(data.unresolvedEvents),
+      firewallRules: Number(fwData.totalRules),
+      activeRules: Number(fwData.activeRules),
       lastScan: new Date(Date.now() - 3600000),
-      status: 'excellent',
+      status: securityScore > 90 ? 'excellent' : securityScore > 70 ? 'good' : 'warning',
       lastUpdated: new Date()
     };
 
@@ -38,42 +66,32 @@ securityRouter.get('/overview', async (req, res) => {
 // Get security events
 securityRouter.get('/events', async (req, res) => {
   try {
-    const { limit = 20, severity, type } = req.query;
+    const { limit = 20, severity, resolved } = req.query;
     
-    const events = [
-      { 
-        id: '1', 
-        type: 'threat', 
-        message: 'Blocked suspicious IP: 192.168.1.100', 
-        agent: 'Aegis', 
-        timestamp: new Date(Date.now() - 120000), 
-        severity: 'high',
-        details: 'Multiple failed login attempts detected'
-      },
-      { 
-        id: '2', 
-        type: 'success', 
-        message: 'Encrypted 145 sensitive files', 
-        agent: 'Phantom', 
-        timestamp: new Date(Date.now() - 300000), 
-        severity: 'low',
-        details: 'Routine encryption completed'
-      },
-      { 
-        id: '3', 
-        type: 'alert', 
-        message: 'Unusual access pattern detected', 
-        agent: 'Watchtower', 
-        timestamp: new Date(Date.now() - 420000), 
-        severity: 'medium',
-        details: 'User accessing system outside normal hours'
-      },
-      { 
-        id: '4', 
-        type: 'success', 
-        message: 'Security audit completed', 
-        agent: 'Ghost', 
-        timestamp: new Date(Date.now() - 600000), 
+    let query = db
+      .select()
+      .from(securityEvents)
+      .orderBy(desc(securityEvents.createdAt))
+      .limit(Number(limit));
+
+    if (severity && typeof severity === 'string') {
+      query = query.where(eq(securityEvents.severity, severity)) as any;
+    }
+
+    if (resolved !== undefined) {
+      query = query.where(eq(securityEvents.resolved, resolved === 'true')) as any;
+    }
+
+    const events = await query.execute();
+
+    res.json({ success: true, data: events });
+  } catch (error) {
+    logger.error('Error fetching security events:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch security events' });
+  }
+});
+
+// Get security team status 
         severity: 'low',
         details: 'All systems passed security audit'
       },
@@ -109,12 +127,12 @@ securityRouter.get('/events', async (req, res) => {
 // Get security team status
 securityRouter.get('/team', async (req, res) => {
   try {
-    const specialists = arcHierarchy.getSpecialists('security');
+    const specialists = arcHierarchy.getSpecialists('security' as any);
     
     const team = specialists.map(agent => ({
       id: agent.id,
-      name: agent.nameEn,
-      nameAr: agent.nameAr,
+      name: agent.name || agent.nameEn || 'Agent',
+      nameAr: agent.nameAr || 'وكيل',
       role: agent.role,
       status: agent.status === 'active' ? 'active' : agent.status === 'busy' ? 'alert' : 'idle',
       tasksToday: Math.floor(Math.random() * 100) + 50,
