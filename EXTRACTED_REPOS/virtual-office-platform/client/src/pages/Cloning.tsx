@@ -10,8 +10,6 @@ import { useToast } from "@/hooks/use-toast";
 import {
   Lock,
   User,
-  Mail,
-  Phone,
   Upload,
   FileAudio,
   FileImage,
@@ -356,7 +354,7 @@ export default function Cloning() {
             </Button>
 
             <div className="text-center text-sm text-muted-foreground mt-4">
-              <p>رمز المرور: passcodemrf1Q@</p>
+              <p>يرجى التواصل مع المسؤول للحصول على رمز المرور.</p>
             </div>
           </CardContent>
         </Card>
