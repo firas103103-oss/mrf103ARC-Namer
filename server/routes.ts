@@ -73,6 +73,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register Security Sector routes
   const securityRoutes = (await import("./routes/security")).default;
   app.use("/api/security", securityRoutes);
+  
+  // Register Legal Sector routes
+  const legalRoutes = (await import("./routes/legal")).default;
+  app.use("/api/legal", legalRoutes);
+  
+  // Register Life Management routes
+  const lifeRoutes = (await import("./routes/life")).default;
+  app.use("/api/life", lifeRoutes);
+  
+  // Register R&D Lab routes
+  const rndRoutes = (await import("./routes/rnd")).default;
+  app.use("/api/rnd", rndRoutes);
+  
+  // Register Reports Center routes
+  const reportsRoutes = (await import("./routes/reports")).default;
+  app.use("/api/reports", reportsRoutes);
 
   // --- KAYAN NEURAL BRIDGE (Webhook for n8n) ---
   app.post("/api/execute", apiLimiter.middleware(), async (req, res) => {

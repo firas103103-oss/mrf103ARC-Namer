@@ -1,13 +1,25 @@
 /**
  * 📊 Reports Center - مركز التقارير
  * التقارير اليومية، الأسبوعية، الشهرية، نصف السنوية
+ * ✅ متصل بـ Backend API
  */
 
 import { useState } from 'react';
-import { FileText, Calendar, Download, TrendingUp } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
+import { renderLoading } from '@/lib/apiHooks';
+import { FileText, Calendar, Download, TrendingUp, RefreshCw } from 'lucide-react';
 
 export default function ReportsCenter() {
   const [reportType, setReportType] = useState<'daily' | 'weekly' | 'monthly' | 'semi_annual'>('daily');
+
+  const { data: reportsData, isLoading, refetch } = useQuery({
+    queryKey: ['reports', reportType],
+    queryFn: () => apiRequest('GET', `/api/reports/${reportType}`),
+    refetchInterval: 60000 // Refresh every minute
+  });
+
+  const reports = reportsData?.data || [];
 
   const reportTypes = [
     { id: 'daily', name: 'Daily', nameAr: 'يومي', icon: '📅', color: 'hsl(var(--primary))' },
@@ -16,21 +28,25 @@ export default function ReportsCenter() {
     { id: 'semi_annual', name: 'Semi-Annual', nameAr: 'نصف سنوي', icon: '📈', color: 'hsl(var(--warning))' }
   ];
 
-  const sampleReports = [
-    { id: '1', title: 'Daily Operations Report', date: '2025-06-10', type: 'daily', status: 'completed' },
-    { id: '2', title: 'Weekly Performance Summary', date: '2025-06-09', type: 'weekly', status: 'completed' },
-    { id: '3', title: 'Monthly Financial Report', date: '2025-06-01', type: 'monthly', status: 'completed' },
-    { id: '4', title: 'H1 2025 Strategic Review', date: '2025-01-01', type: 'semi_annual', status: 'completed' }
-  ];
+  if (isLoading) {
+    return renderLoading('Loading Reports...');
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-background text-white p-8">
       <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-2 flex items-center gap-3">
-          <span className="text-5xl">📊</span>
-          Reports Center
-        </h1>
-        <p className="text-muted-foreground text-lg">مركز التقارير - جميع التقارير الإلزامية</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl font-bold mb-2 flex items-center gap-3">
+              <span className="text-5xl">📊</span>
+              Reports Center
+            </h1>
+            <p className="text-muted-foreground text-lg">مركز التقارير - جميع التقارير الإلزامية</p>
+          </div>
+          <button onClick={() => refetch()} className="p-2 rounded-lg bg-primary/20 hover:bg-primary/30 transition-colors" title="Refresh Reports">
+            <RefreshCw className="w-5 h-5 text-primary" />
+          </button>
+        </div>
       </div>
 
       {/* Report Type Selector */}
@@ -59,7 +75,7 @@ export default function ReportsCenter() {
           Recent Reports
         </h2>
         <div className="space-y-3">
-          {sampleReports.map((report) => (
+          {reports.map((report: any) => (
             <div key={report.id} className="p-4 bg-muted/30 rounded-lg flex items-center justify-between hover:bg-muted/50 transition-all">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-lg bg-primary/20 flex items-center justify-center">
