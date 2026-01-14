@@ -65,6 +65,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register authentication routes (JWT-based enterprise auth)
   const authRoutes = (await import("./routes/auth")).default;
   app.use("/api/auth", authRoutes);
+  
+  // Register Finance Sector routes
+  const financeRoutes = (await import("./routes/finance")).default;
+  app.use("/api/finance", financeRoutes);
+  
+  // Register Security Sector routes
+  const securityRoutes = (await import("./routes/security")).default;
+  app.use("/api/security", securityRoutes);
 
   // --- KAYAN NEURAL BRIDGE (Webhook for n8n) ---
   app.post("/api/execute", apiLimiter.middleware(), async (req, res) => {

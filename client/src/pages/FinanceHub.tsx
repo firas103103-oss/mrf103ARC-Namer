@@ -1,10 +1,13 @@
 /**
  * 💰 Finance Hub - Vault Command
  * مركز المال والأعمال
+ * ✅ متصل بـ Backend API
  */
 
 import { useState } from 'react';
-import { DollarSign, TrendingUp, TrendingDown, PieChart, CreditCard, Receipt, Wallet, Target } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { DollarSign, TrendingUp, TrendingDown, PieChart, CreditCard, Receipt, Wallet, Target, RefreshCw } from 'lucide-react';
+import { apiRequest } from '@/lib/queryClient';
 
 interface FinanceAgent {
   id: string;
@@ -14,44 +17,92 @@ interface FinanceAgent {
   icon: string;
   color: string;
   tasksToday: number;
+  performance: number;
+  status: string;
+}
+
+interface Transaction {
+  id: string;
+  type: 'income' | 'expense' | 'investment';
+  description: string;
+  amount: number;
+  date: Date;
+  category: string;
+  status: string;
 }
 
 export default function FinanceHub() {
-  const [agents] = useState<FinanceAgent[]>([
-    { id: 'ledger', name: 'Ledger', nameAr: 'ليدجر', role: 'Accounting & Books', icon: '📒', color: 'hsl(var(--success))', tasksToday: 67 },
-    { id: 'treasury', name: 'Treasury', nameAr: 'الخزينة', role: 'Budget & Planning', icon: '🏦', color: 'hsl(var(--success))', tasksToday: 42 },
-    { id: 'venture', name: 'Venture', nameAr: 'فينشر', role: 'Investment Analysis', icon: '📈', color: 'hsl(var(--success))', tasksToday: 38 },
-    { id: 'merchant', name: 'Merchant', nameAr: 'التاجر', role: 'Business Operations', icon: '🏪', color: 'hsl(var(--success))', tasksToday: 51 }
-  ]);
-
-  const [financialData] = useState({
-    totalRevenue: 125340,
-    totalExpenses: 78920,
-    netProfit: 46420,
-    roi: 37.0,
-    monthlyBudget: 95000,
-    budgetUsed: 78920,
-    investments: 45000,
-    investmentGrowth: 12.5
+  // Fetch financial overview from Backend
+  const { data: overviewData, isLoading: overviewLoading, refetch: refetchOverview } = useQuery({
+    queryKey: ['finance-overview'],
+    queryFn: () => apiRequest('GET', '/api/finance/overview'),
+    refetchInterval: 30000,
   });
 
-  const [recentTransactions] = useState([
-    { id: '1', type: 'income', description: 'Client Payment - Project Alpha', amount: 15000, date: new Date(Date.now() - 3600000) },
-    { id: '2', type: 'expense', description: 'Cloud Services - AWS', amount: -850, date: new Date(Date.now() - 7200000) },
-    { id: '3', type: 'income', description: 'Subscription Revenue', amount: 2400, date: new Date(Date.now() - 10800000) },
-    { id: '4', type: 'expense', description: 'Office Supplies', amount: -320, date: new Date(Date.now() - 14400000) },
-    { id: '5', type: 'investment', description: 'Stock Purchase - TECH', amount: -5000, date: new Date(Date.now() - 18000000) }
-  ]);
+  // Fetch recent transactions from Backend
+  const { data: transactionsData, isLoading: transLoading, refetch: refetchTransactions } = useQuery({
+    queryKey: ['finance-transactions'],
+    queryFn: () => apiRequest('GET', '/api/finance/transactions?limit=5'),
+    refetchInterval: 30000,
+  });
+
+  // Fetch finance team from Backend
+  const { data: teamData, isLoading: teamLoading, refetch: refetchTeam } = useQuery({
+    queryKey: ['finance-team'],
+    queryFn: () => apiRequest('GET', '/api/finance/team'),
+    refetchInterval: 30000,
+  });
+
+  const agents: FinanceAgent[] = teamData?.data || [];
+  const financialData = overviewData?.data || {
+    totalRevenue: 0,
+    totalExpenses: 0,
+    netProfit: 0,
+    roi: 0,
+    monthlyBudget: 0,
+    budgetUsed: 0,
+    investments: 0,
+    investmentGrowth: 0
+  };
+  const recentTransactions: Transaction[] = transactionsData?.data || [];
+
+  const handleRefresh = () => {
+    refetchOverview();
+    refetchTransactions();
+    refetchTeam();
+  };
+
+  if (overviewLoading || transLoading || teamLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-background text-white p-8 flex items-center justify-center">
+        <div className="text-center">
+          <RefreshCw className="w-12 h-12 animate-spin text-success mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading Finance Hub...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-background text-white p-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-2 flex items-center gap-3">
-          <span className="text-5xl">💰</span>
-          Finance Hub
-        </h1>
-        <p className="text-muted-foreground text-lg">Maestro Vault - فولت | مركز المال والأعمال</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl font-bold mb-2 flex items-center gap-3">
+              <span className="text-5xl">💰</span>
+              Finance Hub
+            </h1>
+            <p className="text-muted-foreground text-lg">Maestro Vault - فولت | مركز المال والأعمال</p>
+          </div>
+          <button 
+            onClick={handleRefresh}
+            className="p-2 rounded-lg bg-success/20 hover:bg-success/30 transition-colors"
+            title="Refresh Data"
+          >
+            <RefreshCw className="w-5 h-5 text-success" />
+          </button>
+        </div>
       </div>
 
       {/* Financial Overview */}

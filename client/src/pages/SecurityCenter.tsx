@@ -1,10 +1,13 @@
 /**
  * 🛡️ Security Center - Cipher Command
  * مركز الأمن والمراقبة
+ * ✅ متصل بـ Backend API
  */
 
-import { useState, useEffect } from 'react';
-import { Shield, Lock, AlertTriangle, Eye, Activity, CheckCircle, XCircle } from 'lucide-react';
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Shield, Lock, AlertTriangle, Eye, Activity, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
+import { apiRequest } from '@/lib/queryClient';
 
 interface SecurityAgent {
   id: string;
@@ -24,30 +27,56 @@ interface SecurityEvent {
   agent: string;
   timestamp: Date;
   severity: 'critical' | 'high' | 'medium' | 'low';
+  details?: string;
 }
 
 export default function SecurityCenter() {
-  const [agents] = useState<SecurityAgent[]>([
-    { id: 'aegis', name: 'Aegis', nameAr: 'إيجيس', role: 'Firewall & Protection', status: 'active', tasksToday: 89, icon: '🔥', color: 'hsl(var(--destructive))' },
-    { id: 'phantom', name: 'Phantom', nameAr: 'فانتوم', role: 'Encryption & Keys', status: 'active', tasksToday: 45, icon: '🔐', color: 'hsl(var(--muted-foreground))' },
-    { id: 'watchtower', name: 'Watchtower', nameAr: 'برج المراقبة', role: '24/7 Monitoring', status: 'alert', tasksToday: 156, icon: '🗼', color: 'hsl(var(--warning))' },
-    { id: 'ghost', name: 'Ghost', nameAr: 'الشبح', role: 'Intrusion Detection', status: 'active', tasksToday: 23, icon: '👻', color: 'hsl(var(--muted))' }
-  ]);
-
-  const [events, setEvents] = useState<SecurityEvent[]>([
-    { id: '1', type: 'threat', message: 'Blocked suspicious IP: 192.168.1.100', agent: 'Aegis', timestamp: new Date(Date.now() - 120000), severity: 'high' },
-    { id: '2', type: 'success', message: 'Encrypted 145 sensitive files', agent: 'Phantom', timestamp: new Date(Date.now() - 300000), severity: 'low' },
-    { id: '3', type: 'alert', message: 'Unusual access pattern detected', agent: 'Watchtower', timestamp: new Date(Date.now() - 420000), severity: 'medium' },
-    { id: '4', type: 'success', message: 'Security audit completed', agent: 'Ghost', timestamp: new Date(Date.now() - 600000), severity: 'low' },
-    { id: '5', type: 'threat', message: 'DDoS attempt blocked', agent: 'Aegis', timestamp: new Date(Date.now() - 900000), severity: 'critical' }
-  ]);
-
-  const [stats] = useState({
-    threatsBlocked: 23,
-    filesEncrypted: 1456,
-    activeMonitoring: 24,
-    securityScore: 98
+  // Fetch security overview from Backend
+  const { data: overviewData, isLoading: overviewLoading, refetch: refetchOverview } = useQuery({
+    queryKey: ['security-overview'],
+    queryFn: () => apiRequest('GET', '/api/security/overview'),
+    refetchInterval: 15000, // More frequent for security
   });
+
+  // Fetch security events from Backend
+  const { data: eventsData, isLoading: eventsLoading, refetch: refetchEvents } = useQuery({
+    queryKey: ['security-events'],
+    queryFn: () => apiRequest('GET', '/api/security/events?limit=10'),
+    refetchInterval: 15000,
+  });
+
+  // Fetch security team from Backend
+  const { data: teamData, isLoading: teamLoading, refetch: refetchTeam } = useQuery({
+    queryKey: ['security-team'],
+    queryFn: () => apiRequest('GET', '/api/security/team'),
+    refetchInterval: 30000,
+  });
+
+  const agents: SecurityAgent[] = teamData?.data || [];
+  const events: SecurityEvent[] = eventsData?.data || [];
+  const stats = overviewData?.data || {
+    threatsBlocked: 0,
+    filesEncrypted: 0,
+    activeMonitoring: 0,
+    securityScore: 0
+  };
+
+  const handleRefresh = () => {
+    refetchOverview();
+    refetchEvents();
+    refetchTeam();
+  };
+
+  if (overviewLoading || eventsLoading || teamLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-background text-white p-8 flex items-center justify-center">
+        <div className="text-center">
+          <RefreshCw className="w-12 h-12 animate-spin text-destructive mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading Security Center...</p>
+        </div>
+      </div>
+    );
+  }
 
   const getEventIcon = (type: SecurityEvent['type']) => {
     switch (type) {
@@ -71,11 +100,22 @@ export default function SecurityCenter() {
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-background text-white p-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-2 flex items-center gap-3">
-          <span className="text-5xl">🛡️</span>
-          Security Center
-        </h1>
-        <p className="text-muted-foreground text-lg">Maestro Cipher - شيفر | مركز الأمن والمراقبة</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl font-bold mb-2 flex items-center gap-3">
+              <span className="text-5xl">🛡️</span>
+              Security Center
+            </h1>
+            <p className="text-muted-foreground text-lg">Maestro Cipher - شيفر | مركز الأمن والمراقبة</p>
+          </div>
+          <button 
+            onClick={handleRefresh}
+            className="p-2 rounded-lg bg-destructive/20 hover:bg-destructive/30 transition-colors"
+            title="Refresh Data"
+          >
+            <RefreshCw className="w-5 h-5 text-destructive" />
+          </button>
+        </div>
       </div>
 
       {/* Security Stats */}

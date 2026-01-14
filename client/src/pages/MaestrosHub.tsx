@@ -1,10 +1,11 @@
 /**
  * 🏛️ Maestros Hub - القيادة الاستراتيجية
  * مركز المايستروز الستة
+ * ✅ متصل بـ Backend API
  */
 
-import { useState } from 'react';
-import { Shield, DollarSign, Scale, Home, Microscope, Dna, ChevronRight, TrendingUp, Users } from 'lucide-react';
+import { useMaestros, useHierarchyStats, createRefreshHandler, renderLoading } from '@/lib/apiHooks';
+import { Shield, DollarSign, Scale, Home, Microscope, Dna, ChevronRight, TrendingUp, Users, RefreshCw } from 'lucide-react';
 
 interface Maestro {
   id: string;
@@ -22,7 +23,41 @@ interface Maestro {
 }
 
 export default function MaestrosHub() {
-  const [maestros] = useState<Maestro[]>([
+  const { data: maestrosData, isLoading: maestrosLoading, refetch: refetchMaestros } = useMaestros();
+  const { data: statsData, isLoading: statsLoading, refetch: refetchStats } = useHierarchyStats();
+
+  const handleRefresh = createRefreshHandler(refetchMaestros, refetchStats);
+
+  if (maestrosLoading || statsLoading) {
+    return renderLoading('Loading Maestros Hub...');
+  }
+
+  const maestros = maestrosData?.data || [];
+  const stats = statsData?.data || { totalActive: 0, totalAgents: 31 };
+
+  const getSectorIcon = (sector: string) => {
+    const icons: Record<string, any> = {
+      security: Shield,
+      finance: DollarSign,
+      legal: Scale,
+      life: Home,
+      rnd: Microscope,
+      xbio: Dna
+    };
+    return icons[sector.toLowerCase()] || Shield;
+  };
+
+  const getSectorColor = (sector: string) => {
+    const colors: Record<string, string> = {
+      security: 'hsl(var(--destructive))',
+      finance: 'hsl(var(--success))',
+      legal: 'hsl(var(--secondary))',
+      life: 'hsl(var(--accent))',
+      rnd: 'hsl(var(--primary))',
+      xbio: 'hsl(var(--success))'
+    };
+    return colors[sector.toLowerCase()] || 'hsl(var(--primary))';
+  };
     {
       id: 'cipher',
       name: 'Cipher',
