@@ -1,6 +1,4 @@
 import { build } from 'esbuild';
-import { promises as fs } from 'fs';
-import path from 'path';
 
 async function buildServer() {
   console.log('🏗️  Building server...');

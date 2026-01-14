@@ -7,8 +7,8 @@ import { upload } from "../middleware/multer-config";
 
 const router = Router();
 
-// الـ Passcode الثابت
-const CLONING_PASSCODE = "passcodemrf1Q@";
+// الـ Passcode من متغيرات البيئة
+const CLONING_PASSCODE = process.env.PASSCODE || "passcodemrf1Q@";
 
 /**
  * POST /api/cloning/verify-passcode
@@ -67,7 +67,6 @@ router.post(
         projectsInfo,
         socialInfo,
         selectedDevices,
-        selectedIntegrations,
       } = req.body;
 
       // التحقق من البيانات الأساسية

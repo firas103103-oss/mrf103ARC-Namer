@@ -7,3 +7,4 @@ uploads/**/*
 !uploads/cloning/.gitkeep
 *.log
 .DS_Store
+tsconfig.tsbuildinfo
