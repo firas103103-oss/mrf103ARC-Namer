@@ -276,7 +276,7 @@ railway variables set ARC_OPERATOR_PASSWORD
 railway variables set SESSION_SECRET=$(openssl rand -hex 32)
 railway up
 railway run npm run db:migrate
-```
+```"dev": "tsx -r dotenv/config server/index.ts"
 
 ---
 
