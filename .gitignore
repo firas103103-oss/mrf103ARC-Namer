@@ -43,3 +43,4 @@ EXTRACTED_REPOS/
 deployment_log_*.txt
 RAILWAY_ENV_SETUP.md
 repos.json*
+.env.development

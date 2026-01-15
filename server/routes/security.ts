@@ -90,39 +90,8 @@ securityRouter.get('/events', async (req, res) => {
     res.status(500).json({ success: false, error: 'Failed to fetch security events' });
   }
 });
-
-// Get security team status 
-        severity: 'low',
-        details: 'All systems passed security audit'
-      },
-      { 
-        id: '5', 
-        type: 'threat', 
-        message: 'DDoS attempt blocked', 
-        agent: 'Aegis', 
-        timestamp: new Date(Date.now() - 900000), 
-        severity: 'critical',
-        details: 'Incoming traffic spike detected and mitigated'
-      }
-    ];
-
-    let filtered = events;
-    if (severity) filtered = filtered.filter(e => e.severity === severity);
-    if (type) filtered = filtered.filter(e => e.type === type);
-    
-    const paginated = filtered.slice(0, Number(limit));
-
-    res.json({ 
-      success: true, 
-      data: paginated,
-      total: filtered.length,
-      limit: Number(limit)
-    });
-  } catch (error) {
-    logger.error('Error fetching security events:', error);
-    res.status(500).json({ success: false, error: 'Failed to fetch security events' });
-  }
-});
+ 
+// (events endpoint completed above)
 
 // Get security team status
 securityRouter.get('/team', async (req, res) => {

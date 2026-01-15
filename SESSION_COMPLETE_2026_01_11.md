@@ -272,7 +272,7 @@ railway init
 railway variables set DATABASE_URL=postgresql://xxx
 railway variables set SUPABASE_URL=https://xxx.supabase.co
 railway variables set SUPABASE_KEY=eyJxxx
-railway variables set ARC_OPERATOR_PASSWORD=secure-pass
+railway variables set ARC_OPERATOR_PASSWORD
 railway variables set SESSION_SECRET=$(openssl rand -hex 32)
 railway up
 railway run npm run db:migrate
