@@ -3,7 +3,7 @@ import { Router, Request, Response } from "express";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import logger from "../utils/logger";
 import { db } from "../db";
 import { userProfiles, userFiles, userIotDevices } from "../../shared/schema";
