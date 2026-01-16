@@ -27,7 +27,7 @@ const mockUsers: User[] = [
   {
     id: 'admin-001',
     email: 'admin@stellar-command.com',
-    password: '$2a$12$placeholder', // Will be properly hashed
+    password: '$2b$10$tVm73ydlcF0VN8F6QroDeuL.u3lEF2y2Qy.YjAWo/vmHevtQ3gTyu',
     role: auth.ROLES.ADMIN,
     permissions: [auth.PERMISSIONS.ALL],
     createdAt: new Date(),
@@ -36,7 +36,7 @@ const mockUsers: User[] = [
   {
     id: 'operator-001',
     email: 'operator@stellar-command.com',
-    password: '$2a$12$placeholder',
+    password: '$2b$10$tVm73ydlcF0VN8F6QroDeuL.u3lEF2y2Qy.YjAWo/vmHevtQ3gTyu',
     role: auth.ROLES.OPERATOR,
     permissions: [auth.PERMISSIONS.READ_SYSTEM, auth.PERMISSIONS.EXECUTE_COMMANDS],
     createdAt: new Date(),
