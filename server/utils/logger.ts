@@ -92,19 +92,12 @@ const logger = winston.createLogger({
       format: winston.format.combine(
         winston.format.timestamp(),
         winston.format.json(),
-        winston.format.printf((info) => {
+        winston.format((info) => {
           if (info.security || info.suspicious) {
-            return JSON.stringify({
-              timestamp: info.timestamp,
-              level: info.level,
-              message: info.message,
-              type: 'SECURITY_EVENT',
-              ...info
-            });
+            return Object.assign({}, info, { type: 'SECURITY_EVENT' });
           }
-          return null;
-        }),
-        winston.format((info) => info !== null ? info : false)()
+          return false;
+        })()
       ),
       maxsize: 5242880,
       maxFiles: 20,

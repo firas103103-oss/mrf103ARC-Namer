@@ -150,8 +150,8 @@ export default function MaestrosHub() {
     }
   ];
 
-  const maestros = maestrosData?.data || defaultMaestros;
-  const stats = statsData?.data || { totalActive: 0, totalAgents: 31 };
+  const maestros = (maestrosData as any)?.data || maestrosData || defaultMaestros;
+  const stats = (statsData as any)?.data || statsData || { totalActive: 0, totalAgents: 31 };
 
   const getSectorIcon = (sector: string) => {
     const icons: Record<string, any> = {
@@ -211,7 +211,7 @@ export default function MaestrosHub() {
 
       {/* Maestros Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {maestros.map((maestro) => {
+        {maestros.map((maestro: any) => {
           const Icon = maestro.icon;
           return (
             <div
@@ -285,7 +285,7 @@ export default function MaestrosHub() {
               <div>
                 <div className="text-sm font-semibold mb-2 text-muted-foreground">Recent Actions:</div>
                 <div className="space-y-1">
-                  {maestro.recentActions.slice(0, 3).map((action, idx) => (
+                  {maestro.recentActions.slice(0, 3).map((action: string, idx: number) => (
                     <div key={idx} className="text-sm flex items-center gap-2">
                       <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: maestro.color }} />
                       <span className="text-gray-300">{action}</span>

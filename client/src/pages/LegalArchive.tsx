@@ -72,7 +72,7 @@ export default function LegalArchive() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {agents.map((agent) => (
+        {agents.map((agent: any) => (
           <div 
             key={agent.id}
             className="bg-card/50 rounded-lg p-4 border border-border"

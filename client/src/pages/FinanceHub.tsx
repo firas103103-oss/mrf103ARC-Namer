@@ -49,12 +49,15 @@ export default function FinanceHub() {
   // Fetch finance team from Backend
   const { data: teamData, isLoading: teamLoading, refetch: refetchTeam } = useQuery({
     queryKey: ['finance-team'],
-    queryFn: () => apiRequest('GET', '/api/finance/team'),
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/finance/team');
+      return (response as any).data || response;
+    },
     refetchInterval: 30000,
   });
 
-  const agents: FinanceAgent[] = teamData?.data || [];
-  const financialData = overviewData?.data || {
+  const agents: FinanceAgent[] = (teamData as any)?.data || teamData || [];
+  const financialData = (overviewData as any)?.data || overviewData || {
     totalRevenue: 0,
     totalExpenses: 0,
     netProfit: 0,
@@ -64,7 +67,7 @@ export default function FinanceHub() {
     investments: 0,
     investmentGrowth: 0
   };
-  const recentTransactions: Transaction[] = transactionsData?.data || [];
+  const recentTransactions: Transaction[] = (transactionsData as any)?.data || transactionsData || [];
 
   const handleRefresh = () => {
     refetchOverview();

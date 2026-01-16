@@ -7,6 +7,20 @@ import { Request, Response, NextFunction, ErrorRequestHandler } from 'express';
 import logger, { logStructuredError, ErrorCategory } from '../utils/logger';
 import { v4 as uuidv4 } from 'uuid';
 
+// Error response interface
+interface ErrorResponse {
+  success?: false;
+  error: {
+    code: string;
+    message: string;
+    stack?: string;
+    details?: string;
+    category?: string;
+    timestamp?: string;
+    requestId?: string;
+  };
+}
+
 // Custom error types
 export class AppError extends Error {
   public statusCode: number;
@@ -132,7 +146,7 @@ export function errorHandler(
 
 // Request ID middleware
 export const requestIdMiddleware = (req: Request, res: Response, next: NextFunction) => {
-  const requestId = require('uuid').v4();
+  const requestId = uuidv4();
   (req as any).requestId = requestId;
   res.setHeader('X-Request-ID', requestId);
   next();

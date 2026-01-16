@@ -263,11 +263,14 @@ export const AgentDashboard: React.FC = () => {
   // Fetch all agents from backend
   const { data: agentsData, isLoading, refetch } = useQuery({
     queryKey: ['all-agents'],
-    queryFn: () => apiRequest('GET', '/api/arc/agents/all'),
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/arc/agents/all');
+      return (response as any).data || response;
+    },
     refetchInterval: 30000
   });
 
-  const agents = agentsData?.data || [];
+  const agents = Array.isArray(agentsData) ? agentsData : (agentsData?.data || []);
   
   if (isLoading) {
     return renderLoading('Loading Agent Dashboard...');

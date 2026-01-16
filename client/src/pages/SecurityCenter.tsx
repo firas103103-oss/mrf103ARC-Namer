@@ -48,13 +48,16 @@ export default function SecurityCenter() {
   // Fetch security team from Backend
   const { data: teamData, isLoading: teamLoading, refetch: refetchTeam } = useQuery({
     queryKey: ['security-team'],
-    queryFn: () => apiRequest('GET', '/api/security/team'),
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/security/team');
+      return (response as any).data || response;
+    },
     refetchInterval: 30000,
   });
 
-  const agents: SecurityAgent[] = teamData?.data || [];
-  const events: SecurityEvent[] = eventsData?.data || [];
-  const stats = overviewData?.data || {
+  const agents: SecurityAgent[] = (teamData as any)?.data || teamData || [];
+  const events: SecurityEvent[] = (eventsData as any)?.data || eventsData || [];
+  const stats = (overviewData as any)?.data || overviewData || {
     threatsBlocked: 0,
     filesEncrypted: 0,
     activeMonitoring: 0,

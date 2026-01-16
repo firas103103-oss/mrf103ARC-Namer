@@ -122,7 +122,7 @@ bioSentinelRouter.post("/analyze", async (req, res) => {
     };
 
     // Use AI for advanced analysis
-    const completion = await openai.chat.completions.create({
+    const completion = await new OpenAI({ apiKey: process.env.OPENAI_API_KEY }).chat.completions.create({
       model: "gpt-4",
       temperature: 0.3,
       messages: [
@@ -196,7 +196,7 @@ bioSentinelRouter.post("/profiles", async (req, res) => {
     // Generate embedding for the smell profile using AI
     const embeddingText = `${name} ${category} ${subcategory} ${description} ${tags?.join(" ") || ""}`;
 
-    const embedding = await openai.embeddings.create({
+    const embedding = await new OpenAI({ apiKey: process.env.OPENAI_API_KEY }).embeddings.create({
       model: "text-embedding-3-small",
       input: embeddingText,
     });
@@ -391,7 +391,7 @@ bioSentinelRouter.get("/analytics", async (req, res) => {
 });
 
 // Local error handler to provide consistent JSON responses in isolated routers/tests
-bioSentinelRouter.use((err: any, _req, res, _next) => {
+bioSentinelRouter.use((err: any, _req: any, res: any, _next: any) => {
   const status = err instanceof AppError
     ? err.statusCode
     : err instanceof ZodError || err instanceof ValidationError

@@ -13,9 +13,12 @@ export function useSectorData<T = any>(
   endpoint: string,
   options?: Omit<UseQueryOptions<T>, 'queryKey' | 'queryFn'>
 ) {
-  return useQuery({
+  return useQuery<T>({
     queryKey: [`${sector}-${endpoint}`],
-    queryFn: () => apiRequest('GET', `/api/${sector}/${endpoint}`),
+    queryFn: async () => {
+      const response = await apiRequest('GET', `/api/${sector}/${endpoint}`);
+      return (response as any).data || response;
+    },
     refetchInterval: 30000,
     ...options,
   });
@@ -39,7 +42,10 @@ export function useSectorTeam(sector: string) {
 export function useHierarchyStats() {
   return useQuery({
     queryKey: ['hierarchy-stats'],
-    queryFn: () => apiRequest('GET', '/api/arc/hierarchy/stats'),
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/arc/hierarchy/stats');
+      return (response as any).data || response;
+    },
     refetchInterval: 30000,
   });
 }

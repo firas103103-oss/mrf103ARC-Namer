@@ -15,11 +15,14 @@ export default function ReportsCenter() {
 
   const { data: reportsData, isLoading, refetch } = useQuery({
     queryKey: ['reports', reportType],
-    queryFn: () => apiRequest('GET', `/api/reports/${reportType}`),
+    queryFn: async () => {
+      const response = await apiRequest('GET', `/api/reports/${reportType}`);
+      return (response as any).data || response;
+    },
     refetchInterval: 60000 // Refresh every minute
   });
 
-  const reports = reportsData?.data || [];
+  const reports = (reportsData as any)?.data || reportsData || [];
 
   const reportTypes = [
     { id: 'daily', name: 'Daily', nameAr: 'يومي', icon: '📅', color: 'hsl(var(--primary))' },

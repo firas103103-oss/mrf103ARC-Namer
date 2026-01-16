@@ -13,11 +13,14 @@ import { Settings as SettingsIcon, User, Bell, Shield, Database, Cpu, RefreshCw 
 export default function Settings() {
   const { data: settingsData, isLoading, refetch } = useQuery({
     queryKey: ['settings'],
-    queryFn: () => apiRequest('GET', '/api/settings'),
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/settings');
+      return (response as any).data || response;
+    },
     refetchInterval: 30000
   });
 
-  const settings = settingsData?.data || {
+  const settings = (settingsData as any)?.data || settingsData || {
     general: { darkMode: true, language: 'en' },
     notifications: { enabled: true, emailNotifications: true },
     system: { autoReports: true, learningEnabled: true }

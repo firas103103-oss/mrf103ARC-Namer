@@ -22,6 +22,9 @@ import type {
   AsyncOperationResult
 } from '../types';
 
+type ReportType = 'daily' | 'weekly' | 'monthly' | 'custom';
+type Sector = SectorType;
+
 export const arcRouter = Router();
 
 // ===============================
@@ -66,14 +69,19 @@ arcRouter.get('/hierarchy/stats', (req: Request, res: Response) => {
 
 // Get specialists by sector
 arcRouter.get('/sector/:sector/specialists', (req: Request, res: Response) => {
-  const specialists = arcHierarchy.getSpecialists(req.params.sector as SectorType);
+  const sector = req.params.sector as string;
+  const specialists = arcHierarchy.getSpecialists(sector as any);
   res.json({ success: true, data: specialists } as ApiResponse<Agent[]>);
 });
 
 // Get reporting chain for agent
 arcRouter.get('/agents/:id/reporting-chain', (req: Request, res: Response) => {
   const chain = arcHierarchy.getReportingChain(req.params.id);
-  res.json({ success: true, data: chain } as ApiResponse<ReportingChain>);
+  if (Array.isArray(chain)) {
+    res.json({ success: true, data: chain });
+  } else {
+    res.json({ success: true, data: chain } as ApiResponse<ReportingChain>);
+  }
 });
 
 // Update agent status
@@ -140,7 +148,7 @@ arcRouter.post('/reports/sector/:sector', async (req, res) => {
     }
     const report = await arcReporting.generateSectorReport(
       req.params.sector as any,
-      type as ReportType
+      type as any
     );
     res.json({ success: true, data: report });
   } catch (error) {
@@ -155,7 +163,7 @@ arcRouter.post('/reports/executive', async (req, res) => {
     if (!['daily', 'weekly', 'monthly', 'semi_annual'].includes(type)) {
       return res.status(400).json({ success: false, error: 'Invalid report type' });
     }
-    const report = await arcReporting.generateExecutiveReport(type as ReportType);
+    const report = await arcReporting.generateExecutiveReport(type as any);
     res.json({ success: true, data: report });
   } catch (error) {
     res.status(500).json({ success: false, error: (error instanceof Error ? error.message : 'Unknown error') });
@@ -176,7 +184,7 @@ arcRouter.get('/reports', (req, res) => {
   const { type } = req.query;
   let reports;
   if (type) {
-    reports = arcReporting.getReportsByType(type as ReportType);
+    reports = arcReporting.getReportsByType(type as any);
   } else {
     reports = arcReporting.getAllReports();
   }

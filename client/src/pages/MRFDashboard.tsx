@@ -39,12 +39,16 @@ export default function MRFDashboard() {
   // Fetch maestros from Backend
   const { data: maestrosData, isLoading: maestrosLoading, refetch: refetchMaestros } = useQuery({
     queryKey: ['maestros'],
-    queryFn: () => apiRequest('GET', '/api/arc/maestros'),
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/arc/maestros');
+      return (response as any).data || response;
+    },
     refetchInterval: 30000,
   });
 
   // Calculate sectors from real Backend data
-  const sectors: SectorStatus[] = maestrosData?.data ? maestrosData.data.map((maestro: any) => ({
+  const maestrosArray = (maestrosData as any)?.data || maestrosData || [];
+  const sectors: SectorStatus[] = maestrosArray.length > 0 ? maestrosArray.map((maestro: any) => ({
     sector: maestro.sector,
     maestro: maestro.nameEn,
     status: maestro.status === 'active' ? 'excellent' : maestro.status === 'busy' ? 'good' : 'warning',
@@ -56,10 +60,11 @@ export default function MRFDashboard() {
   })) : [];
 
   // Calculate system health from real data
-  const systemHealth: SystemHealth = hierarchyStats?.data ? {
-    overall: Math.round((hierarchyStats.data.totalActive / hierarchyStats.data.totalAgents) * 100),
-    activeAgents: hierarchyStats.data.totalActive || 0,
-    totalAgents: hierarchyStats.data.totalAgents || 31,
+  const hierarchyData = (hierarchyStats as any)?.data || hierarchyStats || {};
+  const systemHealth: SystemHealth = hierarchyData.totalAgents ? {
+    overall: Math.round((hierarchyData.totalActive / hierarchyData.totalAgents) * 100),
+    activeAgents: hierarchyData.totalActive || 0,
+    totalAgents: hierarchyData.totalAgents || 31,
     tasksToday: 1247, // TODO: Get from backend
     successRate: 96.5, // TODO: Get from backend
   } : {
