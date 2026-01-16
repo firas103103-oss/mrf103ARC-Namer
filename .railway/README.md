@@ -21,7 +21,7 @@ railway up
 ### 1. Main Application
 - **Name:** mrf103-arc-platform
 - **Type:** Web Service
-- **Port:** 5000
+- **Port:** 8085
 
 ### 2. PostgreSQL Database
 ```bash

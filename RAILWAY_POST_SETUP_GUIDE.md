@@ -94,7 +94,7 @@ npm run start
 ```bash
 # Copy from ENVIRONMENT_VARIABLES_GUIDE.md
 NODE_ENV=production
-PORT=5000
+PORT=8085
 
 # OpenAI
 OPENAI_API_KEY=sk-proj-xxx

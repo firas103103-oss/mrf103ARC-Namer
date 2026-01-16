@@ -302,8 +302,8 @@ app.use("/api/arc", arcRouter);
   app.use(globalErrorHandler);
 
   // Use the PORT environment variable (Railway provides this automatically)
-  // Default to 5001 for local development (9002 was old port)
-  const port = process.env.PORT ? Number(process.env.PORT) : 5001;
+  // Default to 8085 for Railway deployment
+  const port = process.env.PORT ? Number(process.env.PORT) : 8085;
   const host = "0.0.0.0"; // Allow external access
   
   httpServer.listen(port, host, () => {

@@ -39,7 +39,7 @@ echo "DATABASE_URL=postgresql://postgres:PASSWORD@db.PROJECT_ID.supabase.co:5432
 echo ""
 echo "# Application Settings"
 echo "NODE_ENV=production"
-echo "PORT=5000"
+echo "PORT=8085"
 echo "FRONTEND_URL=https://your-domain.railway.app"
 echo ""
 echo "# Optional AI Services"
