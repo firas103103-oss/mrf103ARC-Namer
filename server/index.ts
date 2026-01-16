@@ -289,7 +289,7 @@ app.use("/api/arc", arcRouter);
   });
 
   // Environment settings (Vite for preview)
-  if (app.get("env") === "development") {
+  if (process.env.NODE_ENV === "development"){
     const { setupVite } = await import("./vite");
     await setupVite(httpServer, app);
   } else {
