@@ -59,7 +59,9 @@ export function log(message: unknown, scope?: string) {
 
 // This function will serve static files in a production environment
 function serveStatic(app: Express) {
-  const buildDir = path.resolve(import.meta.dirname, "..", "dist", "public");
+  const buildDir = path.resolve(process.cwd(), "dist", "public");
+  
+  console.log(`📁 Serving static files from: ${buildDir}`);
   
   // Serve static files (CSS, JS, images, etc)
   app.use(express.static(buildDir));
