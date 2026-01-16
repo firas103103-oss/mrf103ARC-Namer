@@ -1,8 +1,8 @@
 import { EventEmitter } from 'events';
 
-interface EventLog {
+interface EventLog<T = unknown> {
   event: string;
-  data: any;
+  data: T;
   timestamp: Date;
   id: string;
 }
@@ -16,10 +16,10 @@ export class EventBus extends EventEmitter {
     this.setMaxListeners(100);
   }
 
-  subscribeWithRetry(event: string, handler: (data: any) => Promise<void>, maxRetries = 3): string {
+  subscribeWithRetry<T = unknown>(event: string, handler: (data: T) => Promise<void>, maxRetries = 3): string {
     const id = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     
-    const wrappedHandler = async (data: any) => {
+    const wrappedHandler = async (data: T) => {
       let attempts = 0;
       while (attempts < maxRetries) {
         try {
@@ -28,7 +28,7 @@ export class EventBus extends EventEmitter {
         } catch (error) {
           attempts++;
           if (attempts >= maxRetries) {
-            console.error(`❌ Max retries for ${event}:`, error);
+            // Max retries reached - emit retry_failed event
             this.emit('retry_failed', { event, error });
           } else {
             await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, attempts)));
@@ -38,21 +38,21 @@ export class EventBus extends EventEmitter {
     };
 
     this.on(event, wrappedHandler);
-    console.log(`📡 Subscribed: ${event} (ID: ${id})`);
+    // Subscribed to event
     return id;
   }
 
-  async publishWithLog(event: string, data: any): Promise<void> {
-    const eventLog: EventLog = {
+  async publishWithLog<T = unknown>(event: string, data: T): Promise<void> {
+    const eventLog: EventLog<T> = {
       event,
       data,
       timestamp: new Date(),
       id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
     };
     
-    this.eventLog.push(eventLog);
+    this.eventLog.push(eventLog as EventLog<unknown>);
     this.emit(event, data);
-    console.log(`📤 Published: ${event}`);
+    // Event published
   }
 
   getStats() {
@@ -74,7 +74,7 @@ export class EventBus extends EventEmitter {
 
   clearHistory(): void {
     this.eventLog = [];
-    console.log('🗑️ Event history cleared');
+    // Event history cleared
   }
 }
 

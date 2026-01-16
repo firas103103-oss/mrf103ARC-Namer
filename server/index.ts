@@ -174,7 +174,8 @@ if (process.env.NODE_ENV === 'production' && process.env.SENTRY_DSN) {
 }
 
 // Database and Session Configuration
-let sessionMiddleware: any;
+import type { RequestHandler } from 'express';
+let sessionMiddleware: RequestHandler;
 
 if (process.env.NODE_ENV === 'development') {
   // Development: Use simple in-memory sessions

@@ -6,7 +6,7 @@ interface Notification {
   type: NotificationType;
   title: string;
   message: string;
-  data?: any;
+  data?: Record<string, unknown>;
   timestamp?: Date;
 }
 
@@ -26,7 +26,7 @@ export class NotificationService {
     await this.process(fullNotification);
   }
 
-  async alert(title: string, message: string, data?: any): Promise<void> {
+  async alert(title: string, message: string, data?: Record<string, unknown>): Promise<void> {
     await this.notify({
       type: 'critical',
       title: `🚨 ${title}`,
@@ -59,20 +59,23 @@ export class NotificationService {
   }
 
   private sendConsole(notification: Notification): void {
-    const icons = {
-      info: 'ℹ️',
-      success: '✅',
-      warning: '⚠️',
-      error: '❌',
-      critical: '🚨'
-    };
-    
-    console.log(`\n${icons[notification.type]} ${notification.title}`);
-    console.log(`   ${notification.message}`);
-    if (notification.data) {
-      console.log(`   Data:`, notification.data);
+    // Only log in development or when explicitly enabled
+    if (process.env.NODE_ENV === 'development' || process.env.LOG_NOTIFICATIONS === 'true') {
+      const icons = {
+        info: 'ℹ️',
+        success: '✅',
+        warning: '⚠️',
+        error: '❌',
+        critical: '🚨'
+      };
+      
+      console.log(`\n${icons[notification.type]} ${notification.title}`);
+      console.log(`   ${notification.message}`);
+      if (notification.data) {
+        console.log(`   Data:`, notification.data);
+      }
+      console.log();
     }
-    console.log();
   }
 
   private async sendSlack(notification: Notification): Promise<void> {

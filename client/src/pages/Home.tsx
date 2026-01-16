@@ -21,9 +21,9 @@ export default function Home() {
   ];
 
   return (
-    <div className="min-h-screen p-6 md:p-12 relative z-10 flex flex-col items-center">
+    <div className="min-h-screen p-6 md:p-12 relative z-10 flex flex-col items-center" role="main" aria-label="System Overview Dashboard">
       {/* HUD Header */}
-      <header className="w-full max-w-7xl mb-12 flex justify-between items-end border-b border-white/10 pb-6">
+      <header className="w-full max-w-7xl mb-12 flex justify-between items-end border-b border-white/10 pb-6" role="banner">
         <div>
           <h1 className="text-5xl md:text-7xl font-bold font-sans tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-white to-white/50 mb-2">
             SYSTEM <span className="text-primary text-glow">OVERVIEW</span>
@@ -38,9 +38,9 @@ export default function Home() {
       </header>
 
       {/* Grid System */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 w-full max-w-7xl">
+      <nav className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 w-full max-w-7xl" aria-label="Domain navigation grid">
         {domains.map((domain) => (
-          <Link key={domain.name} href={domain.path}>
+          <Link key={domain.name} href={domain.path} aria-label={`Navigate to ${domain.name} - ${domain.desc}`}>
             <div className="group relative h-48 cursor-pointer overflow-hidden">
               {/* Card Container */}
               <div className="absolute inset-0 glass hover:bg-white/5 transition-all duration-300 hud-border flex flex-col justify-between p-6">
@@ -69,10 +69,10 @@ export default function Home() {
             </div>
           </Link>
         ))}
-      </div>
+      </nav>
 
       {/* Status Footer */}
-      <footer className="mt-20 w-full max-w-7xl border-t border-white/5 pt-6 flex justify-between items-center text-xs font-mono text-white/30">
+      <footer className="mt-20 w-full max-w-7xl border-t border-white/5 pt-6 flex justify-between items-center text-xs font-mono text-white/30" role="contentinfo">
         <div className="flex gap-6">
           <span className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-success animate-pulse" /> NET: SECURE
