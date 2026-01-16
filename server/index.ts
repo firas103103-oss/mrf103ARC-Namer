@@ -54,7 +54,7 @@ export function log(message: unknown, scope?: string) {
     logger.info(`[${scope}] ${message}`);
     return;
   }
-  console.log(message);
+  logger.info(String(message));
 }
 
 // This function will serve static files in a production environment
@@ -63,9 +63,9 @@ function serveStatic(app: Express) {
   // and static files are at dist/public (same directory)
   const buildDir = path.join(__dirname, 'public');
   
-  console.log(`📁 Serving static files from: ${buildDir}`);
-  console.log(`📁 __dirname: ${__dirname}`);
-  console.log(`📁 process.cwd(): ${process.cwd()}`);
+  logger.info(`📁 Serving static files from: ${buildDir}`);
+  logger.debug(`📁 __dirname: ${__dirname}`);
+  logger.debug(`📁 process.cwd(): ${process.cwd()}`);
   
   // Serve static files (CSS, JS, images, etc)
   app.use(express.static(buildDir, {
@@ -317,7 +317,7 @@ app.use("/api/arc", arcRouter);
   const host = "0.0.0.0"; // Allow external access
   
   httpServer.listen(port, host, () => {
-    console.log(`✅ Server is live and listening on ${host}:${port}`);
-    console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+    logger.info(`✅ Server is live and listening on ${host}:${port}`);
+    logger.info(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
   });
 })();
