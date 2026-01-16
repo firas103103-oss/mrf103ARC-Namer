@@ -59,12 +59,19 @@ export function log(message: unknown, scope?: string) {
 
 // This function will serve static files in a production environment
 function serveStatic(app: Express) {
-  const buildDir = path.resolve(process.cwd(), "dist", "public");
+  // In production, the built file is at dist/index.cjs
+  // and static files are at dist/public (same directory)
+  const buildDir = path.join(__dirname, 'public');
   
   console.log(`📁 Serving static files from: ${buildDir}`);
+  console.log(`📁 __dirname: ${__dirname}`);
+  console.log(`📁 process.cwd(): ${process.cwd()}`);
   
   // Serve static files (CSS, JS, images, etc)
-  app.use(express.static(buildDir));
+  app.use(express.static(buildDir, {
+    maxAge: '1d',
+    etag: true
+  }));
   
   // IMPORTANT: This catch-all route should be LAST
   // It will serve index.html for all non-API routes (for React Router)
