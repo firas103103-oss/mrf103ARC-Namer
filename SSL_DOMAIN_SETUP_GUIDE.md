@@ -227,10 +227,11 @@ PORT=9002
 DATABASE_URL=postgresql://...
 
 # Supabase
-SUPABASE_URL=https://rffpacsvwxfjhxgtsbzf.supabase.co
-SUPABASE_KEY=eyJhbGc...
-VITE_SUPABASE_URL=https://rffpacsvwxfjhxgtsbzf.supabase.co
-VITE_SUPABASE_KEY=eyJhbGc...
+SUPABASE_URL=https://<YOUR-PROJECT>.supabase.co
+SUPABASE_KEY=<YOUR-ANON-KEY>
+SUPABASE_SERVICE_ROLE_KEY=<YOUR-SERVICE-ROLE-KEY>
+VITE_SUPABASE_URL=https://<YOUR-PROJECT>.supabase.co
+VITE_SUPABASE_KEY=<YOUR-ANON-KEY>
 
 # Authentication
 ARC_OPERATOR_PASSWORD=your-strong-password-here

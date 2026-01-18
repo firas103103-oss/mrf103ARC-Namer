@@ -432,15 +432,15 @@ ws.send(JSON.stringify({
 
 **Environment Variables**:
 ```env
-✅ ARC_OPERATOR_PASSWORD=arc-dev-password-123
-✅ DATABASE_URL=postgresql://...
-✅ SUPABASE_URL=https://rffpacsvwxfjhxgtsbzf.supabase.co
-✅ SUPABASE_KEY=eyJhbGci...
-✅ OPENAI_API_KEY=sk-proj-...
-✅ ANTHROPIC_API_KEY=sk-ant-api03-...
-✅ GEMINI_API_KEY=AIzaSyBP-...
-✅ ELEVENLABS_API_KEY=a55ff663...
-✅ SESSION_SECRET=LoUnfbH6...
+✅ ARC_OPERATOR_PASSWORD=<REDACTED>
+✅ DATABASE_URL=postgresql://<REDACTED>
+✅ SUPABASE_URL=https://<REDACTED>.supabase.co
+✅ SUPABASE_KEY=<REDACTED>
+✅ OPENAI_API_KEY=<REDACTED>
+✅ ANTHROPIC_API_KEY=<REDACTED>
+✅ GEMINI_API_KEY=<REDACTED>
+✅ ELEVENLABS_API_KEY=<REDACTED>
+✅ SESSION_SECRET=<REDACTED>
 ```
 
 ---
