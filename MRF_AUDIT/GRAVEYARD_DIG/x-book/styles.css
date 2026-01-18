@@ -1,0 +1,202 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Global Styles for X-Book - MrF X OS Organization */
+
+@layer base {
+  * {
+    @apply box-border;
+  }
+
+  body {
+    @apply m-0 p-0 bg-slate-950 text-gray-100 font-arabic;
+    font-feature-settings: 'ss01' on, 'ss02' on;
+  }
+
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-slate-900;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-slate-700 rounded;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-gold-600;
+  }
+}
+
+@layer components {
+  /* Terminal-style animations */
+  .terminal-glow {
+    box-shadow: 0 0 20px rgba(234, 179, 8, 0.3);
+  }
+
+  .terminal-border {
+    @apply border border-gold-600/30;
+  }
+
+  /* Gradient backgrounds */
+  .gradient-gold {
+    @apply bg-gradient-to-br from-gold-500 to-gold-600;
+  }
+
+  .gradient-slate {
+    @apply bg-gradient-to-br from-slate-700 to-slate-800;
+  }
+
+  /* Button styles */
+  .btn-primary {
+    @apply px-6 py-3 bg-gradient-to-br from-gold-500 to-gold-600 text-slate-950 font-semibold rounded-xl hover:from-gold-600 hover:to-gold-700 hover:scale-105 transition-all shadow-lg shadow-gold-600/30;
+  }
+
+  .btn-secondary {
+    @apply px-6 py-3 bg-slate-800 text-gold-400 border border-gold-600/30 rounded-xl hover:bg-slate-700 hover:border-gold-600/50 transition-all;
+  }
+}
+
+@layer utilities {
+  /* Text glow effect */
+  .text-glow {
+    text-shadow: 0 0 10px currentColor;
+  }
+
+  /* RTL support */
+  .rtl {
+    direction: rtl;
+  }
+
+  .ltr {
+    direction: ltr;
+  }
+
+  /* Animation delays */
+  .animation-delay-150 {
+    animation-delay: 150ms;
+  }
+
+  .animation-delay-300 {
+    animation-delay: 300ms;
+  }
+}
+
+/* Dark Terminal Theme Overrides */
+.dark-terminal {
+  @apply bg-slate-950;
+}
+
+.dark-terminal .chat-container {
+  @apply bg-slate-900/50;
+}
+
+.dark-terminal .message-bubble {
+  @apply backdrop-blur-sm;
+}
+
+/* Smooth transitions for all interactive elements */
+button, a, input, textarea {
+  @apply transition-all duration-200;
+}
+
+/* Focus styles */
+button:focus-visible, 
+input:focus-visible, 
+textarea:focus-visible {
+  @apply outline-none ring-2 ring-gold-600/50 ring-offset-2 ring-offset-slate-950;
+}
+
+/* ===== RESPONSIVE DESIGN ENHANCEMENTS ===== */
+
+@layer utilities {
+  /* Touch-friendly minimum sizes (44x44px per Apple HIG) */
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px];
+  }
+  
+  /* Safe area padding for notched devices */
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
+  }
+  
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  
+  .safe-area-x {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+}
+
+/* Mobile Input Zoom Prevention */
+@media (max-width: 640px) {
+  input, textarea, select {
+    font-size: 16px !important; /* Prevents zoom on iOS */
+  }
+  
+  /* Larger touch targets on mobile */
+  button {
+    @apply min-h-[44px];
+  }
+  
+  /* Full-width buttons on mobile */
+  .btn-primary, .btn-secondary {
+    @apply w-full justify-center;
+  }
+}
+
+/* Small Mobile (< 375px) */
+@media (max-width: 374px) {
+  .chat-container {
+    @apply px-2;
+  }
+  
+  .message-bubble {
+    @apply max-w-[95%] text-sm;
+  }
+}
+
+/* Tablet Portrait */
+@media (min-width: 640px) and (max-width: 1023px) {
+  .chat-container {
+    @apply max-w-2xl mx-auto;
+  }
+}
+
+/* Landscape Mobile */
+@media (max-height: 500px) and (orientation: landscape) {
+  .header-bar {
+    @apply py-2;
+  }
+  
+  .chat-container {
+    @apply pb-16;
+  }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+  .terminal-border {
+    @apply border-2 border-gold-500;
+  }
+  
+  .btn-primary {
+    @apply border-2 border-slate-950;
+  }
+}

@@ -1,0 +1,304 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body, html {
+    font-family: 'Arial', sans-serif;
+    background: #000;
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+}
+
+#ar-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: #000;
+}
+
+/* Loading Screen */
+#loading-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    transition: opacity 0.5s ease-out;
+}
+
+#loading-screen.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.loading-content {
+    text-align: center;
+    color: white;
+}
+
+.loading-content h2 {
+    margin: 20px 0 10px 0;
+    font-size: 24px;
+    font-weight: 300;
+}
+
+.loading-content p {
+    font-size: 16px;
+    opacity: 0.8;
+}
+
+/* Spinner Animation */
+.spinner {
+    width: 60px;
+    height: 60px;
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    border-top: 4px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* AR Scene */
+#ar-scene {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* AR UI Controls */
+#ar-ui {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 100;
+}
+
+.control-panel {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 15px;
+    pointer-events: auto;
+}
+
+.ar-button {
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50px;
+    padding: 12px 20px;
+    color: white;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ar-button:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+.ar-button:active {
+    transform: translateY(0);
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.info-panel {
+    position: absolute;
+    top: 30px;
+    right: 30px;
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: 12px;
+    padding: 15px;
+    backdrop-filter: blur(10px);
+    pointer-events: auto;
+    min-width: 150px;
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    color: white;
+    font-size: 13px;
+}
+
+.info-item:last-child {
+    margin-bottom: 0;
+}
+
+.info-label {
+    opacity: 0.7;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    .control-panel {
+        bottom: 20px;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        max-width: 90%;
+    }
+    
+    .ar-button {
+        padding: 10px 16px;
+        font-size: 12px;
+        min-width: 120px;
+        justify-content: center;
+    }
+    
+    .info-panel {
+        top: 20px;
+        right: 20px;
+        left: 20px;
+        right: auto;
+        max-width: none;
+    }
+}
+
+/* Interaction Effects */
+.interactive-object {
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.interactive-object:hover {
+    transform: scale(1.1);
+    filter: brightness(1.2);
+}
+
+/* Status Indicators */
+#ar-status {
+    color: #4ECDC4;
+    font-weight: 500;
+}
+
+#ar-status.error {
+    color: #FF6B6B;
+}
+
+#ar-status.active {
+    color: #95E1D3;
+}
+
+/* Fade in animation for AR elements */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.ar-element {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+/* Pulse effect for active objects */
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 20px rgba(255, 255, 255, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+    }
+}
+
+.active-object {
+    animation: pulse 2s infinite;
+}
+
+/* Gesture indicators */
+.gesture-hint {
+    position: absolute;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 14px;
+    text-align: center;
+    pointer-events: none;
+    animation: fadeInUp 1s ease-out 2s both;
+}
+
+/* Camera permissions modal */
+.camera-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+
+.camera-modal-content {
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    text-align: center;
+    max-width: 400px;
+    margin: 20px;
+}
+
+.camera-modal h3 {
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.camera-modal p {
+    margin-bottom: 20px;
+    color: #666;
+    line-height: 1.5;
+}
+
+.camera-modal button {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background 0.3s ease;
+}
+
+.camera-modal button:hover {
+    background: #764ba2;
+}

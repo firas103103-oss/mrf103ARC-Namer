@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARC Enterprise Orchestration System - الوثيقة التقنية</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Tajawal', 'Traditional Arabic', serif;
+            background: #ffffff;
+            color: #1a1a1a;
+            line-height: 1.8;
+            font-size: 14px;
+        }
+        
+        .container {
+            max-width: 210mm;
+            margin: 0 auto;
+            padding: 20mm;
+            background: white;
+        }
+        
+        /* Header */
+        .header {
+            border-bottom: 3px solid #1a1a1a;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+        
+        .logo-section h1 {
+            font-size: 28px;
+            font-weight: 900;
+            color: #1a1a1a;
+            letter-spacing: -1px;
+            margin-bottom: 5px;
+        }
+        
+        .logo-section .subtitle {
+            font-size: 13px;
+            color: #666;
+            font-weight: 400;
+            letter-spacing: 0.5px;
+        }
+        
+        .ref-section {
+            text-align: left;
+            font-size: 11px;
+            color: #666;
+            line-height: 1.6;
+        }
+        
+        .ref-section .ref-number {
+            font-weight: 700;
+            color: #1a1a1a;
+            font-size: 13px;
+            margin-bottom: 5px;
+        }
+        
+        /* Sections */
+        .section {
+            margin-bottom: 35px;
+            page-break-inside: avoid;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1a1a1a;
+            border-bottom: 2px solid #1a1a1a;
+            padding-bottom: 8px;
+            margin-bottom: 20px;
+            letter-spacing: -0.5px;
+        }
+        
+        .section-subtitle {
+            font-size: 14px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-top: 20px;
+            margin-bottom: 12px;
+        }
+        
+        .text-block {
+            margin-bottom: 15px;
+            line-height: 2;
+            text-align: justify;
+        }
+        
+        .text-block strong {
+            color: #1a1a1a;
+            font-weight: 600;
+        }
+        
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 13px;
+        }
+        
+        th {
+            background: #1a1a1a;
+            color: white;
+            padding: 12px;
+            text-align: right;
+            font-weight: 600;
+            border: 1px solid #1a1a1a;
+        }
+        
+        td {
+            padding: 10px 12px;
+            border: 1px solid #e0e0e0;
+            text-align: right;
+        }
+        
+        tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+        
+        /* Info Boxes */
+        .info-box {
+            background: #f5f5f5;
+            border-right: 4px solid #1a1a1a;
+            padding: 15px 20px;
+            margin-bottom: 15px;
+        }
+        
+        .info-box-title {
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        /* Code Blocks */
+        .code-block {
+            background: #f8f8f8;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            margin: 15px 0;
+            overflow-x: auto;
+        }
+        
+        /* Grid */
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .card {
+            background: white;
+            border: 2px solid #1a1a1a;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .card-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 10px;
+        }
+        
+        .card-content {
+            font-size: 13px;
+            color: #555;
+            line-height: 1.7;
+        }
+        
+        /* Footer */
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 2px solid #e0e0e0;
+            text-align: center;
+            font-size: 11px;
+            color: #999;
+        }
+        
+        .confidential {
+            margin-top: 20px;
+            font-weight: 600;
+            color: #1a1a1a;
+            font-size: 12px;
+        }
+        
+        /* Print Styles */
+        @media print {
+            body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .section { page-break-inside: avoid; }
+            @page { size: A4; margin: 15mm; }
+        }
+        
+        .accent { color: #1e3a8a; font-weight: 600; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-top">
+                <div class="logo-section">
+                    <h1>ARC Enterprise Orchestration System</h1>
+                    <div class="subtitle">نظام التنسيق المؤسسي المتقدم</div>
+                </div>
+                <div class="ref-section">
+                    <div class="ref-number">ARC-IP-DOC-001</div>
+                    <div>الوثيقة التقنية</div>
+                    <div>يناير 2026</div>
+                    <div>الحالة: نشط في الإنتاج</div>
+                    <div>app.mrf103.com</div>
+                </div>
+            </div>
+        </header>
+
+        <!-- System Overview -->
+        <section class="section">
+            <h2 class="section-title">نظرة عامة على النظام</h2>
+            <div class="text-block">
+                <strong>ARC Enterprise Orchestration System</strong> هو نظام ذكاء اصطناعي متعدد الوكلاء مصمم لأتمتة وتنسيق العمليات المؤسسية المعقدة. يدير النظام <span class="accent">31 وكيل ذكي</span> موزعين على <span class="accent">6 قطاعات متخصصة</span> في هيكل هرمي محكم.
+            </div>
+            <div class="text-block">
+                يعمل النظام كـ "نظام تشغيل افتراضي" للمؤسسات، حيث يوفر طبقة ذكية من التنسيق والأتمتة فوق الأنظمة التقليدية، مما يمكّن المؤسسات من العمل بكفاءة أعلى وتكلفة أقل.
+            </div>
+        </section>
+
+        <!-- 31-Agent Hierarchy -->
+        <section class="section">
+            <h2 class="section-title">الهيكل الهرمي للوكلاء الـ 31</h2>
+
+            <h3 class="section-subtitle">البنية الهرمية الثلاثية</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>المستوى</th>
+                        <th>العدد</th>
+                        <th>الدور</th>
+                        <th>الصلاحيات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>المستوى 1: الرئيس التنفيذي (CEO)</strong></td>
+                        <td>1</td>
+                        <td>التنسيق الاستراتيجي الشامل</td>
+                        <td>صلاحية مطلقة (Level 10)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>المستوى 2: المايستروز (Maestros)</strong></td>
+                        <td>6</td>
+                        <td>إدارة القطاعات المتخصصة</td>
+                        <td>صلاحية الموافقة (Level 4)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>المستوى 3: المتخصصون (Specialists)</strong></td>
+                        <td>24</td>
+                        <td>التنفيذ والمهام التقنية</td>
+                        <td>صلاحية التنفيذ (Level 3)</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3 class="section-subtitle">القطاعات الستة المتخصصة</h3>
+            <div class="grid-3">
+                <div class="card">
+                    <div class="card-title">Security (Cipher)</div>
+                    <div class="card-content">الأمن والمراقبة<br>حماية البيانات<br>كشف التهديدات<br>إدارة المخاطر</div>
+                </div>
+                <div class="card">
+                    <div class="card-title">Finance (Vault)</div>
+                    <div class="card-content">المالية والأعمال<br>إدارة الميزانيات<br>التحليل المالي<br>تحسين العائد</div>
+                </div>
+                <div class="card">
+                    <div class="card-title">Legal (Lexis)</div>
+                    <div class="card-content">القانون والوثائق<br>إدارة العقود<br>الامتثال<br>الملكية الفكرية</div>
+                </div>
+                <div class="card">
+                    <div class="card-title">Life (Harmony)</div>
+                    <div class="card-content">الحياة الشخصية<br>إدارة الوقت<br>التوازن الصحي<br>الجدولة الذكية</div>
+                </div>
+                <div class="card">
+                    <div class="card-title">R&D (Nova)</div>
+                    <div class="card-content">البحث والتطوير<br>الابتكار<br>تحليل السوق<br>الذكاء التنافسي</div>
+                </div>
+                <div class="card">
+                    <div class="card-title">XBio (Scent)</div>
+                    <div class="card-content">البيئة والاستشعار<br>تحليل البيانات<br>مراقبة الجودة<br>التصنيف الذكي</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sector Management -->
+        <section class="section">
+            <h2 class="section-title">نظام إدارة القطاعات</h2>
+
+            <h3 class="section-subtitle">آلية التنسيق والتواصل</h3>
+            <div class="text-block">
+                يعتمد النظام على بروتوكول تواصل محكم بين الوكلاء، حيث يتم توجيه المهام من المستوى الأعلى إلى الأسفل، وترفع التقارير من المستوى الأسفل إلى الأعلى.
+            </div>
+
+            <div class="info-box">
+                <div class="info-box-title">مثال عملي: معالجة طلب قانوني</div>
+                <div>1. المستخدم يرسل طلب مراجعة عقد إلى النظام</div>
+                <div>2. CEO Agent (MRF) يحلل الطلب ويوجهه إلى Lexis (Legal Maestro)</div>
+                <div>3. Lexis يوزع المهمة على الفريق القانوني (4 متخصصين)</div>
+                <div>4. Contract Specialist يراجع العقد، Archive Specialist يبحث في السوابق</div>
+                <div>5. Lexis يجمع النتائج ويرفع التوصية النهائية إلى MRF</div>
+                <div>6. MRF يقدم الرد الموحد للمستخدم مع توقيعه التنفيذي</div>
+            </div>
+
+            <h3 class="section-subtitle">مستويات الصلاحيات والأمان</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>مستوى الصلاحية</th>
+                        <th>الوصف</th>
+                        <th>الوكلاء المخولون</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>مطلقة (Level 10)</td>
+                        <td>تعديل كامل على النظام</td>
+                        <td>MRF فقط</td>
+                    </tr>
+                    <tr>
+                        <td>موافقة (Level 4)</td>
+                        <td>اتخاذ قرارات قطاعية</td>
+                        <td>المايستروز الستة</td>
+                    </tr>
+                    <tr>
+                        <td>تنفيذ (Level 3)</td>
+                        <td>تنفيذ المهام المحددة</td>
+                        <td>المتخصصون الـ 24</td>
+                    </tr>
+                    <tr>
+                        <td>قراءة (Level 1)</td>
+                        <td>الوصول للمعلومات فقط</td>
+                        <td>وكلاء المراقبة</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Technical Implementation -->
+        <section class="section">
+            <h2 class="section-title">التنفيذ التقني</h2>
+
+            <h3 class="section-subtitle">البنية التحتية للبرمجيات</h3>
+            <div class="code-block">
+Frontend: React 18.3 + TypeScript 5.6 + TailwindCSS 3.4
+Backend: Node.js 20 LTS + Express 4.21 + PostgreSQL 16
+AI Models: OpenAI GPT-4o + Anthropic Claude Sonnet 4.5
+Real-time: WebSockets + Server-Sent Events
+Authentication: JWT + Passport.js + Multi-factor
+Database ORM: Drizzle ORM + Zod Validation
+Hosting: Cloud Infrastructure (Railway/AWS)
+            </div>
+
+            <h3 class="section-subtitle">قاعدة البيانات والتخزين</h3>
+            <div class="text-block">
+                يستخدم النظام قاعدة بيانات PostgreSQL مع 48 جدول لإدارة البيانات المختلفة، بما في ذلك ملفات الوكلاء، المحادثات، سجلات الأحداث، والمقاييس التشغيلية.
+            </div>
+
+            <h3 class="section-subtitle">الأمان وحماية البيانات</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>جانب الأمان</th>
+                        <th>التقنية المستخدمة</th>
+                        <th>الوصف</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>تشفير البيانات</td>
+                        <td>AES-256-GCM</td>
+                        <td>تشفير جميع البيانات المخزنة والمنقولة</td>
+                    </tr>
+                    <tr>
+                        <td>المصادقة</td>
+                        <td>JWT + bcrypt</td>
+                        <td>آلية دخول آمنة مع تشفير كلمات المرور</td>
+                    </tr>
+                    <tr>
+                        <td>مراقبة الوصول</td>
+                        <td>RBAC</td>
+                        <td>نظام صلاحيات قائم على الأدوار</td>
+                    </tr>
+                    <tr>
+                        <td>سجل الأحداث</td>
+                        <td>Event Ledger</td>
+                        <td>تسجيل جميع العمليات للمراجعة</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Performance Metrics -->
+        <section class="section">
+            <h2 class="section-title">المقاييس التشغيلية</h2>
+
+            <div class="info-box">
+                <div class="info-box-title">الإحصائيات الحالية (app.mrf103.com)</div>
+                <div><strong>عدد المستخدمين النشطين:</strong> 50+ مستخدم تجريبي</div>
+                <div><strong>المحادثات المكتملة:</strong> 500+ جلسة</div>
+                <div><strong>وقت الاستجابة:</strong> أقل من 2 ثانية</div>
+                <div><strong>معدل التوفر:</strong> 99.5% خلال آخر 30 يوم</div>
+                <div><strong>المهام المنفذة:</strong> 1,200+ مهمة مؤتمتة</div>
+            </div>
+
+            <h3 class="section-subtitle">KPIs رئيسية</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>المؤشر</th>
+                        <th>القيمة الحالية</th>
+                        <th>الهدف المرحلي</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>تقليل وقت العمليات</td>
+                        <td>60%</td>
+                        <td>75%</td>
+                    </tr>
+                    <tr>
+                        <td>دقة القرارات الآلية</td>
+                        <td>92%</td>
+                        <td>96%</td>
+                    </tr>
+                    <tr>
+                        <td>رضا المستخدمين</td>
+                        <td>4.2/5</td>
+                        <td>4.5/5</td>
+                    </tr>
+                    <tr>
+                        <td>توفير التكاليف التشغيلية</td>
+                        <td>40%</td>
+                        <td>55%</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Future Roadmap -->
+        <section class="section">
+            <h2 class="section-title">خارطة الطريق المستقبلية</h2>
+
+            <h3 class="section-subtitle">التطويرات المرحلية (2026-2028)</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>المرحلة</th>
+                        <th>الفترة الزمنية</th>
+                        <th>التطويرات الرئيسية</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>الإصدار 2.1</td>
+                        <td>Q2 2026</td>
+                        <td>تكامل Voice AI، تحسين واجهة المستخدم، دعم الهاتف المحمول</td>
+                    </tr>
+                    <tr>
+                        <td>الإصدار 2.5</td>
+                        <td>Q4 2026</td>
+                        <td>التكامل مع أنظمة ERP، API للأطراف الثالثة، لوحة تحكم متقدمة</td>
+                    </tr>
+                    <tr>
+                        <td>الإصدار 3.0</td>
+                        <td>Q2 2027</td>
+                        <td>وكلاء ذكية قابلة للتخصيص، تعلم آلي متقدم، دعم multi-tenant</td>
+                    </tr>
+                    <tr>
+                        <td>الإصدار 3.5</td>
+                        <td>Q4 2027</td>
+                        <td>الذكاء الاصطناعي التنبؤي، التكامل مع IoT، البلوك تشين</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3 class="section-subtitle">الأهداف الاستراتيجية</h3>
+            <div class="text-block">
+                يهدف النظام إلى أن يصبح "المعيار الذهبي" لأتمتة العمليات المؤسسية في المنطقة، مع التركيز على خدمة الشركات الصغيرة والمتوسطة والقطاع الحكومي.
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div>
+                <strong>للتواصل:</strong> MR.F@MRF103.COM | app.mrf103.com
+            </div>
+            <div>
+                <strong>المطور:</strong> م. فراس أيهم عساف | الرياض، المملكة العربية السعودية
+            </div>
+            <div class="confidential">
+                هذا المستند تقني ومُعد لأغراض الملكية الفكرية والتوثيق.<br>
+                يُحظر إعادة التوزيع أو الاستخدام التجاري بدون إذن خطي مسبق.
+            </div>
+            <div style="margin-top: 20px; font-size: 10px;">
+                © 2026 MRF103 ARC Advanced Environmental Technologies. جميع الحقوق محفوظة.
+            </div>
+        </footer>
+    </div>
+</body>
+</html>

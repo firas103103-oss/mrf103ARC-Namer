@@ -1,0 +1,113 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Circle with Gradient -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0A0E27;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1a1f3a;stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="primaryGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00D4FF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0080FF;stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="secondaryGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#7C3AED;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#A855F7;stop-opacity:1" />
+    </linearGradient>
+    
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="8" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <circle cx="256" cy="256" r="256" fill="url(#bgGradient)"/>
+  
+  <!-- Outer Hexagon -->
+  <path d="M 256 80 L 380 155 L 380 305 L 256 380 L 132 305 L 132 155 Z" 
+        fill="none" stroke="url(#primaryGradient)" stroke-width="4" 
+        opacity="0.4" filter="url(#glow)"/>
+  
+  <!-- Middle Hexagon -->
+  <path d="M 256 120 L 340 175 L 340 285 L 256 340 L 172 285 L 172 175 Z" 
+        fill="none" stroke="url(#secondaryGradient)" stroke-width="3" 
+        opacity="0.6" filter="url(#glow)"/>
+  
+  <!-- Inner Circle (Core) -->
+  <circle cx="256" cy="256" r="80" fill="url(#primaryGradient)" 
+          opacity="0.2" filter="url(#glow)"/>
+  
+  <!-- Central "A" for ARC -->
+  <path d="M 220 290 L 256 200 L 292 290 M 235 265 L 277 265" 
+        stroke="url(#primaryGradient)" stroke-width="12" 
+        stroke-linecap="round" stroke-linejoin="round" 
+        fill="none" filter="url(#glow)"/>
+  
+  <!-- Neural Network Connections (Left) -->
+  <line x1="180" y1="230" x2="220" y2="240" 
+        stroke="url(#secondaryGradient)" stroke-width="2" 
+        opacity="0.6" stroke-dasharray="5,5"/>
+  <circle cx="180" cy="230" r="6" fill="url(#secondaryGradient)" opacity="0.8"/>
+  
+  <line x1="160" y1="256" x2="200" y2="256" 
+        stroke="url(#primaryGradient)" stroke-width="2" 
+        opacity="0.6" stroke-dasharray="5,5"/>
+  <circle cx="160" cy="256" r="6" fill="url(#primaryGradient)" opacity="0.8"/>
+  
+  <line x1="180" y1="282" x2="220" y2="272" 
+        stroke="url(#secondaryGradient)" stroke-width="2" 
+        opacity="0.6" stroke-dasharray="5,5"/>
+  <circle cx="180" cy="282" r="6" fill="url(#secondaryGradient)" opacity="0.8"/>
+  
+  <!-- Neural Network Connections (Right) -->
+  <line x1="332" y1="230" x2="292" y2="240" 
+        stroke="url(#primaryGradient)" stroke-width="2" 
+        opacity="0.6" stroke-dasharray="5,5"/>
+  <circle cx="332" cy="230" r="6" fill="url(#primaryGradient)" opacity="0.8"/>
+  
+  <line x1="352" y1="256" x2="312" y2="256" 
+        stroke="url(#secondaryGradient)" stroke-width="2" 
+        opacity="0.6" stroke-dasharray="5,5"/>
+  <circle cx="352" cy="256" r="6" fill="url(#secondaryGradient)" opacity="0.8"/>
+  
+  <line x1="332" y1="282" x2="292" y2="272" 
+        stroke="url(#primaryGradient)" stroke-width="2" 
+        opacity="0.6" stroke-dasharray="5,5"/>
+  <circle cx="332" cy="282" r="6" fill="url(#primaryGradient)" opacity="0.8"/>
+  
+  <!-- Top Neural Connections -->
+  <line x1="256" y1="180" x2="256" y2="220" 
+        stroke="url(#primaryGradient)" stroke-width="2" 
+        opacity="0.6" stroke-dasharray="5,5"/>
+  <circle cx="256" cy="180" r="8" fill="url(#primaryGradient)" opacity="0.9"/>
+  
+  <!-- Bottom Neural Connections -->
+  <line x1="256" y1="332" x2="256" y2="292" 
+        stroke="url(#secondaryGradient)" stroke-width="2" 
+        opacity="0.6" stroke-dasharray="5,5"/>
+  <circle cx="256" cy="332" r="8" fill="url(#secondaryGradient)" opacity="0.9"/>
+  
+  <!-- Accent Particles -->
+  <circle cx="200" cy="200" r="3" fill="#F59E0B" opacity="0.8">
+    <animate attributeName="opacity" values="0.3;0.8;0.3" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="312" cy="200" r="3" fill="#F59E0B" opacity="0.8">
+    <animate attributeName="opacity" values="0.8;0.3;0.8" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="200" cy="312" r="3" fill="#F59E0B" opacity="0.8">
+    <animate attributeName="opacity" values="0.5;1;0.5" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="312" cy="312" r="3" fill="#F59E0B" opacity="0.8">
+    <animate attributeName="opacity" values="1;0.5;1" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  
+  <!-- Subtitle Text (small, at bottom) -->
+  <text x="256" y="420" font-family="Arial, sans-serif" font-size="28" 
+        font-weight="bold" fill="url(#primaryGradient)" text-anchor="middle" 
+        opacity="0.9">OPERATOR</text>
+</svg>

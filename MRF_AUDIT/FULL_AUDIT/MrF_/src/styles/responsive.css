@@ -1,0 +1,33 @@
+/* Mobile Responsive */
+@media (max-width: 1024px) {
+    .products-grid {
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 30px;
+    }
+}
+
+@media (max-width: 768px) {
+    .floating-header {
+        flex-direction: column;
+        gap: 20px;
+        padding: 25px;
+    }
+
+    .header-vision {
+        display: none;
+    }
+
+    .hero-core {
+        width: 300px;
+        height: 300px;
+    }
+
+    .products-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .footer-contact {
+        flex-direction: column;
+        gap: 25px;
+    }
+}

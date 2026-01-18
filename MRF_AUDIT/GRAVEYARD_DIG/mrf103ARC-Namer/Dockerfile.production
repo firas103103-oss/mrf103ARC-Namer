@@ -1,0 +1,90 @@
+# 🐳 Multi-stage Docker Build for Stellar Command OS
+# Optimized for production deployment
+
+# Stage 1: Build client
+FROM node:20-alpine AS client-builder
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+COPY client/package*.json ./client/
+
+# Install dependencies
+RUN npm ci --only=production && npm cache clean --force
+
+# Copy client source
+COPY client ./client
+COPY shared ./shared
+COPY vite.config.ts tsconfig.json ./
+
+# Build client
+RUN npm run build
+
+# Stage 2: Build server
+FROM node:20-alpine AS server-builder
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+COPY server/package*.json ./server/
+
+# Install dependencies
+RUN npm ci --only=production && npm cache clean --force
+
+# Copy server source
+COPY server ./server
+COPY shared ./shared
+COPY tsconfig.json ./
+
+# Build server
+RUN npm run build:server
+
+# Stage 3: Production image
+FROM node:20-alpine AS production
+WORKDIR /app
+
+# Install dumb-init for proper signal handling
+RUN apk add --no-cache dumb-init
+
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
+
+# Copy built client
+COPY --from=client-builder --chown=nodejs:nodejs /app/dist ./dist
+
+# Copy built server
+COPY --from=server-builder --chown=nodejs:nodejs /app/server ./server
+
+# Copy package files and install production dependencies only
+COPY --chown=nodejs:nodejs package*.json ./
+RUN npm ci --only=production && npm cache clean --force
+
+# Copy other necessary files
+COPY --chown=nodejs:nodejs shared ./shared
+
+# Create logs directory
+RUN mkdir -p /app/logs && chown -R nodejs:nodejs /app/logs
+
+# Switch to non-root user
+USER nodejs
+
+# Expose port
+EXPOSE 5001
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:5001/api/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
+
+# Use dumb-init to handle signals properly
+ENTRYPOINT ["dumb-init", "--"]
+
+# Start server
+CMD ["node", "server/index.js"]
+
+# Labels
+LABEL org.opencontainers.image.title="Stellar Command OS"
+LABEL org.opencontainers.image.description="Enterprise-grade AI Command & Control System"
+LABEL org.opencontainers.image.version="2.1.0"
+LABEL org.opencontainers.image.authors="MRF103"
+LABEL org.opencontainers.image.source="https://github.com/mrf103/stellar-command"
+LABEL org.opencontainers.image.vendor="MRF103"

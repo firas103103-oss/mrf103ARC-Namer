@@ -1,0 +1,110 @@
+name: ARC Android Builder
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+      
+      - name: Build web app
+        run: npm run build
+      
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+      
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+      
+      - name: Grant execute permission for gradlew
+        run: chmod +x android/gradlew
+      
+      - name: Sync Capacitor
+        run: npx cap sync android
+              
+      - name: Clean Gradle cache
+        run: rm -rf $HOME/.gradle/caches/*
+      
+      - name: Configure Gradle for CI
+        run: |
+          mkdir -p ~/.gradle
+          echo "org.gradle.daemon=false" >> ~/.gradle/gradle.properties
+          echo "org.gradle.parallel=false" >> ~/.gradle/gradle.properties
+          # Use offline mode to avoid Maven Central rate limiting
+          echo "org.gradle.offline=false" >> ~/.gradle/gradle.properties
+      
+      - name: Build Debug APK (with retry logic)
+        run: |
+          cd android
+          for i in {1..3}; do
+            echo "Attempt $i of 3..."
+            if ./gradlew assembleDebug --no-daemon --stacktrace -x lint; then
+              echo "✅ Build succeeded"
+              exit 0
+            fi
+            echo "⚠️  Attempt $i failed, retrying..."
+            sleep 10
+          done
+          echo "❌ Build failed after 3 attempts"
+          exit 1
+      
+      - name: Check APK output
+        run: |
+          if [ -f "android/app/build/outputs/apk/debug/app-debug.apk" ]; then
+            echo "✅ APK found"
+            ls -lh android/app/build/outputs/apk/debug/app-debug.apk
+          else
+            echo "⚠️  APK not found at standard location, searching..."
+            find android -name "*.apk" -type f
+          fi
+      
+      - name: Upload APK
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 30
+          if-no-files-found: ignore
+      
+      - name: Create build summary
+        if: always()
+        run: |
+          cat > build-summary.txt << EOF
+          ARC Namer v2.1.0 - Android Build Report
+          Build Date: $(date)
+          Commit: ${{ github.sha }}
+          Branch: ${{ github.ref }}
+          Status: ${{ job.status }}
+          
+          Note: If build failed, it may be due to Maven Central rate limiting in CI.
+          You can build locally using: ./build-apk-local.sh
+          EOF
+          cat build-summary.txt
+      
+      - name: Upload build summary
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-summary
+          path: build-summary.txt
+          retention-days: 7
+

@@ -1,0 +1,8 @@
+{
+  "id": "wf_final",
+  "steps": [
+    { "action": "log", "payload": { "msg": "start" } },
+    { "action": "wait", "payload": { "ms": 500 } },
+    { "action": "log", "payload": { "msg": "end" } }
+  ]
+}

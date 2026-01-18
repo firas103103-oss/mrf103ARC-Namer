@@ -1,0 +1,58 @@
+#!/bin/bash
+# Generate secure environment variables
+
+echo "🔐 Generating Secure Environment Variables..."
+echo ""
+
+# Generate random secrets
+SESSION_SECRET=$(node -e "console.log(require('crypto').randomBytes(32).toString('hex'))")
+ARC_BACKEND_SECRET=$(node -e "console.log(require('crypto').randomBytes(32).toString('hex'))")
+X_ARC_SECRET=$(node -e "console.log(require('crypto').randomBytes(32).toString('hex'))")
+ARC_OPERATOR_PASSWORD=$(node -e "console.log(require('crypto').randomBytes(16).toString('hex'))")
+
+echo "✅ Generated Secrets:"
+echo ""
+echo "# Copy these to your .env file or Railway dashboard:"
+echo ""
+echo "# ============================================"
+echo "# GENERATED SECRETS - KEEP SECURE!"
+echo "# Generated: $(date)"
+echo "# ============================================"
+echo ""
+echo "SESSION_SECRET=$SESSION_SECRET"
+echo "ARC_BACKEND_SECRET=$ARC_BACKEND_SECRET"
+echo "X_ARC_SECRET=$X_ARC_SECRET"
+echo "ARC_OPERATOR_PASSWORD=$ARC_OPERATOR_PASSWORD"
+echo ""
+echo "# ============================================"
+echo "# MANUAL INPUT REQUIRED:"
+echo "# ============================================"
+echo ""
+echo "# OpenAI (Required)"
+echo "OPENAI_API_KEY=sk-proj-PASTE_YOUR_KEY_HERE"
+echo ""
+echo "# Supabase (Required)"
+echo "SUPABASE_URL=https://PASTE_YOUR_PROJECT_ID.supabase.co"
+echo "SUPABASE_ANON_KEY=PASTE_YOUR_ANON_KEY_HERE"
+echo "SUPABASE_SERVICE_ROLE_KEY=PASTE_YOUR_SERVICE_KEY_HERE"
+echo "DATABASE_URL=postgresql://postgres:PASSWORD@db.PROJECT_ID.supabase.co:5432/postgres"
+echo ""
+echo "# Application Settings"
+echo "NODE_ENV=production"
+echo "PORT=5000"
+echo "FRONTEND_URL=https://your-domain.railway.app"
+echo ""
+echo "# Optional AI Services"
+echo "ANTHROPIC_API_KEY=sk-ant-PASTE_IF_USING_CLAUDE"
+echo "GEMINI_API_KEY=AIzaSy-PASTE_IF_USING_GEMINI"
+echo "GROQ_API_KEY=gsk_PASTE_IF_USING_GROQ"
+echo "PERPLEXITY_API_KEY=pplx-PASTE_IF_USING_PERPLEXITY"
+echo ""
+echo "# ============================================"
+echo "# Next Steps:"
+echo "# ============================================"
+echo "# 1. Save this output to a secure location"
+echo "# 2. Copy to Railway: railway variables set KEY=value"
+echo "# 3. Or add manually in Railway dashboard"
+echo "# 4. Never commit these to Git!"
+echo ""

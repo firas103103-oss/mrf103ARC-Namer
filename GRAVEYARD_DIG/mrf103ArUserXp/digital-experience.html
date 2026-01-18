@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Reality Enhancement</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body, html {
+            font-family: 'Arial', sans-serif;
+            background: #000;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            cursor: none;
+        }
+
+        /* Main Container */
+        #reality-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% 50%, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            overflow: hidden;
+        }
+
+        /* Animated Background Particles */
+        .particle {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .particle:nth-child(odd) {
+            animation-delay: -2s;
+            animation-direction: alternate;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-30px) rotate(180deg); }
+        }
+
+        /* Interactive Digital Objects */
+        .digital-object {
+            position: absolute;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: pulse 4s ease-in-out infinite;
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
+        }
+
+        .digital-object:hover {
+            transform: scale(1.2) rotate(15deg);
+            box-shadow: 0 0 50px currentColor;
+            z-index: 10;
+        }
+
+        .digital-object.active {
+            animation: explode 0.8s ease-out;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            25% { transform: scale(1.05) rotate(90deg); }
+            50% { transform: scale(0.95) rotate(180deg); }
+            75% { transform: scale(1.02) rotate(270deg); }
+        }
+
+        @keyframes explode {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.5); filter: brightness(2); }
+            100% { transform: scale(1); filter: brightness(1); }
+        }
+
+        /* Digital Enhancement Overlays */
+        .enhancement-overlay {
+            position: absolute;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            padding: 10px;
+            color: white;
+            font-size: 12px;
+            pointer-events: none;
+            animation: slideIn 0.5s ease-out;
+            z-index: 20;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Interactive Trail Effect */
+        #mouse-trail {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #fff;
+            border-radius: 50%;
+            pointer-events: none;
+            transition: all 0.1s ease-out;
+            background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
+            z-index: 5;
+        }
+
+        /* Control Panel */
+        .control-panel {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            z-index: 100;
+        }
+
+        .control-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50px;
+            padding: 12px 20px;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 255, 255, 0.2);
+        }
+
+        /* Status Display */
+        .status-display {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 12px;
+            padding: 15px;
+            color: white;
+            font-size: 14px;
+            backdrop-filter: blur(10px);
+            z-index: 100;
+        }
+
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+
+        .status-item:last-child { margin-bottom: 0; }
+
+        /* Welcome Message */
+        .welcome-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: white;
+            z-index: 50;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .welcome-message h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .welcome-message p {
+            font-size: 1.2rem;
+            opacity: 0.8;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translate(-50%, -40%); }
+            to { opacity: 1; transform: translate(-50%, -50%); }
+        }
+
+        /* Ripple Effect */
+        .ripple {
+            position: absolute;
+            border: 2px solid rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+            transform: scale(0);
+            animation: ripple 1s linear;
+            pointer-events: none;
+        }
+
+        @keyframes ripple {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .welcome-message h1 { font-size: 2rem; }
+            .welcome-message p { font-size: 1rem; }
+            
+            .control-panel {
+                bottom: 20px;
+                flex-wrap: wrap;
+                justify-content: center;
+                max-width: 90%;
+            }
+            
+            .status-display {
+                top: 20px;
+                right: 20px;
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="reality-container">
+        <!-- Background Particles -->
+        <div class="particle" style="width: 4px; height: 4px; top: 20%; left: 10%;"></div>
+        <div class="particle" style="width: 6px; height: 6px; top: 40%; left: 80%;"></div>
+        <div class="particle" style="width: 3px; height: 3px; top: 60%; left: 30%;"></div>
+        <div class="particle" style="width: 5px; height: 5px; top: 80%; left: 70%;"></div>
+        <div class="particle" style="width: 4px; height: 4px; top: 15%; left: 60%;"></div>
+        <div class="particle" style="width: 7px; height: 7px; top: 70%; left: 15%;"></div>
+
+        <!-- Digital Objects -->
+        <div class="digital-object" id="obj1" style="width: 60px; height: 60px; top: 25%; left: 20%; background: linear-gradient(45deg, #FF6B6B, #FF8E53);"></div>
+        <div class="digital-object" id="obj2" style="width: 80px; height: 80px; top: 40%; left: 60%; background: linear-gradient(45deg, #4ECDC4, #44A08D);"></div>
+        <div class="digital-object" id="obj3" style="width: 50px; height: 50px; top: 65%; left: 35%; background: linear-gradient(45deg, #95E1D3, #F38181);"></div>
+        <div class="digital-object" id="obj4" style="width: 70px; height: 70px; top: 20%; left: 75%; background: linear-gradient(45deg, #FFE66D, #FF6B6B);"></div>
+
+        <!-- Mouse Trail -->
+        <div id="mouse-trail"></div>
+
+        <!-- Welcome Message -->
+        <div class="welcome-message" id="welcome">
+            <h1>Digital Reality Enhanced</h1>
+            <p>Interact with the digital objects around you</p>
+        </div>
+
+        <!-- Status Display -->
+        <div class="status-display">
+            <div class="status-item">
+                <span>Status:</span>
+                <span id="status-text">Active</span>
+            </div>
+            <div class="status-item">
+                <span>Objects:</span>
+                <span id="object-count">4</span>
+            </div>
+            <div class="status-item">
+                <span>Interactions:</span>
+                <span id="interaction-count">0</span>
+            </div>
+        </div>
+
+        <!-- Control Panel -->
+        <div class="control-panel">
+            <button class="control-btn" id="add-object">Add Object</button>
+            <button class="control-btn" id="change-mode">Change Mode</button>
+            <button class="control-btn" id="clear-objects">Clear All</button>
+        </div>
+    </div>
+
+    <script>
+        class DigitalRealityExperience {
+            constructor() {
+                this.objects = [];
+                this.interactionCount = 0;
+                this.objectCount = 4;
+                this.mouseTrail = document.getElementById('mouse-trail');
+                this.colors = [
+                    'linear-gradient(45deg, #FF6B6B, #FF8E53)',
+                    'linear-gradient(45deg, #4ECDC4, #44A08D)',
+                    'linear-gradient(45deg, #95E1D3, #F38181)',
+                    'linear-gradient(45deg, #FFE66D, #FF6B6B)',
+                    'linear-gradient(45deg, #A8E6CF, #DCEDC1)',
+                    'linear-gradient(45deg, #FF8B94, #FFD93D)'
+                ];
+                
+                this.init();
+            }
+
+            init() {
+                this.setupEventListeners();
+                this.setupMouseTracking();
+                this.collectExistingObjects();
+                this.hideWelcomeMessage();
+                this.startBackgroundAnimation();
+            }
+
+            collectExistingObjects() {
+                const existingObjects = document.querySelectorAll('.digital-object');
+                existingObjects.forEach(obj => {
+                    this.objects.push(obj);
+                    this.setupObjectInteraction(obj);
+                });
+            }
+
+            setupEventListeners() {
+                document.getElementById('add-object').addEventListener('click', () => this.addRandomObject());
+                document.getElementById('change-mode').addEventListener('click', () => this.changeModeEffect());
+                document.getElementById('clear-objects').addEventListener('click', () => this.clearAllObjects());
+
+                // Click anywhere to create ripple effect
+                document.addEventListener('click', (e) => this.createRippleEffect(e.clientX, e.clientY));
+            }
+
+            setupMouseTracking() {
+                document.addEventListener('mousemove', (e) => {
+                    this.mouseTrail.style.left = (e.clientX - 10) + 'px';
+                    this.mouseTrail.style.top = (e.clientY - 10) + 'px';
+                });
+            }
+
+            setupObjectInteraction(obj) {
+                obj.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.activateObject(obj);
+                    this.showEnhancementOverlay(e.clientX, e.clientY);
+                });
+
+                obj.addEventListener('mouseenter', () => {
+                    this.createHoverEffect(obj);
+                });
+            }
+
+            activateObject(obj) {
+                obj.classList.add('active');
+                this.interactionCount++;
+                document.getElementById('interaction-count').textContent = this.interactionCount;
+
+                setTimeout(() => {
+                    obj.classList.remove('active');
+                }, 800);
+
+                // Random movement after interaction
+                this.moveObjectRandomly(obj);
+            }
+
+            moveObjectRandomly(obj) {
+                const newX = Math.random() * (window.innerWidth - 100);
+                const newY = Math.random() * (window.innerHeight - 100);
+                
+                obj.style.transition = 'all 2s cubic-bezier(0.4, 0, 0.2, 1)';
+                obj.style.left = newX + 'px';
+                obj.style.top = newY + 'px';
+            }
+
+            addRandomObject() {
+                const size = 30 + Math.random() * 50;
+                const x = Math.random() * (window.innerWidth - size);
+                const y = Math.random() * (window.innerHeight - size);
+                const color = this.colors[Math.floor(Math.random() * this.colors.length)];
+
+                const obj = document.createElement('div');
+                obj.className = 'digital-object';
+                obj.style.width = size + 'px';
+                obj.style.height = size + 'px';
+                obj.style.left = x + 'px';
+                obj.style.top = y + 'px';
+                obj.style.background = color;
+
+                document.getElementById('reality-container').appendChild(obj);
+                this.objects.push(obj);
+                this.setupObjectInteraction(obj);
+
+                this.objectCount++;
+                document.getElementById('object-count').textContent = this.objectCount;
+
+                // Entrance animation
+                obj.style.transform = 'scale(0)';
+                setTimeout(() => {
+                    obj.style.transition = 'transform 0.5s ease-out';
+                    obj.style.transform = 'scale(1)';
+                }, 50);
+            }
+
+            createRippleEffect(x, y) {
+                const ripple = document.createElement('div');
+                ripple.className = 'ripple';
+                ripple.style.left = (x - 25) + 'px';
+                ripple.style.top = (y - 25) + 'px';
+                ripple.style.width = '50px';
+                ripple.style.height = '50px';
+
+                document.getElementById('reality-container').appendChild(ripple);
+
+                setTimeout(() => {
+                    ripple.remove();
+                }, 1000);
+            }
+
+            showEnhancementOverlay(x, y) {
+                const messages = [
+                    'Digital enhancement activated',
+                    'Reality augmented',
+                    'Interactive object engaged',
+                    'Digital layer enhanced',
+                    'Virtual interaction complete'
+                ];
+
+                const overlay = document.createElement('div');
+                overlay.className = 'enhancement-overlay';
+                overlay.textContent = messages[Math.floor(Math.random() * messages.length)];
+                overlay.style.left = (x + 20) + 'px';
+                overlay.style.top = (y - 30) + 'px';
+
+                document.getElementById('reality-container').appendChild(overlay);
+
+                setTimeout(() => {
+                    overlay.remove();
+                }, 2000);
+            }
+
+            createHoverEffect(obj) {
+                // Add temporary glow particles around the object
+                for (let i = 0; i < 5; i++) {
+                    setTimeout(() => {
+                        const particle = document.createElement('div');
+                        particle.style.position = 'absolute';
+                        particle.style.width = '3px';
+                        particle.style.height = '3px';
+                        particle.style.background = 'rgba(255, 255, 255, 0.8)';
+                        particle.style.borderRadius = '50%';
+                        particle.style.pointerEvents = 'none';
+                        particle.style.left = obj.offsetLeft + Math.random() * obj.offsetWidth + 'px';
+                        particle.style.top = obj.offsetTop + Math.random() * obj.offsetHeight + 'px';
+                        particle.style.animation = 'fadeOut 1s ease-out forwards';
+
+                        document.getElementById('reality-container').appendChild(particle);
+
+                        setTimeout(() => particle.remove(), 1000);
+                    }, i * 100);
+                }
+            }
+
+            changeModeEffect() {
+                // Change background and update all objects
+                const backgrounds = [
+                    'radial-gradient(circle at 50% 50%, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
+                    'radial-gradient(circle at 50% 50%, #2d1b69 0%, #11998e 100%)',
+                    'radial-gradient(circle at 50% 50%, #8360c3 0%, #2ebf91 100%)',
+                    'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+                ];
+
+                const newBg = backgrounds[Math.floor(Math.random() * backgrounds.length)];
+                document.getElementById('reality-container').style.background = newBg;
+
+                // Animate all objects
+                this.objects.forEach((obj, index) => {
+                    setTimeout(() => {
+                        obj.style.background = this.colors[Math.floor(Math.random() * this.colors.length)];
+                        obj.classList.add('active');
+                        setTimeout(() => obj.classList.remove('active'), 800);
+                    }, index * 200);
+                });
+            }
+
+            clearAllObjects() {
+                this.objects.forEach(obj => {
+                    obj.style.transform = 'scale(0)';
+                    setTimeout(() => obj.remove(), 300);
+                });
+
+                this.objects = [];
+                this.objectCount = 0;
+                document.getElementById('object-count').textContent = '0';
+
+                // Reset after animation
+                setTimeout(() => {
+                    this.addRandomObject();
+                    this.addRandomObject();
+                    this.addRandomObject();
+                }, 1000);
+            }
+
+            hideWelcomeMessage() {
+                setTimeout(() => {
+                    const welcome = document.getElementById('welcome');
+                    welcome.style.opacity = '0';
+                    setTimeout(() => welcome.remove(), 500);
+                }, 4000);
+            }
+
+            startBackgroundAnimation() {
+                // Animate background particles
+                setInterval(() => {
+                    const particles = document.querySelectorAll('.particle');
+                    particles.forEach(particle => {
+                        const newX = Math.random() * window.innerWidth;
+                        const newY = Math.random() * window.innerHeight;
+                        particle.style.left = newX + 'px';
+                        particle.style.top = newY + 'px';
+                    });
+                }, 8000);
+            }
+        }
+
+        // Add CSS for fade out animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeOut {
+                from { opacity: 1; transform: translateY(0); }
+                to { opacity: 0; transform: translateY(-20px); }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Initialize the experience
+        const digitalReality = new DigitalRealityExperience();
+    </script>
+</body>
+</html>

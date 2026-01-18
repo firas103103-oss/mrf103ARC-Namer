@@ -1,0 +1,6 @@
+# Railway configuration for MRF103 static site
+[phases.setup]
+nixPkgs = ["python3"]
+
+[start]
+cmd = "python3 -m http.server ${PORT:-3000}"

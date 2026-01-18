@@ -1,0 +1,5 @@
+/* Main Styles - Import all CSS modules */
+@import url('./variables.css');
+@import url('./cursor.css');
+@import url('./components.css');
+@import url('./responsive.css');

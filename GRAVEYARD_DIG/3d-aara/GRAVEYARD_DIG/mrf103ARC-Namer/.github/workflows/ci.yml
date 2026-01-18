@@ -1,0 +1,109 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+env:
+  NODE_VERSION: "20.x"
+
+jobs:
+  test-and-lint:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [20.x]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run TypeScript compilation
+        run: npx tsc --noEmit
+
+      - name: Run ESLint
+        run: npm run lint
+        continue-on-error: true
+
+      - name: Run Prettier check
+        run: npm run format:check
+        continue-on-error: true
+
+      - name: Run backend tests
+        run: npm test
+        env:
+          NODE_ENV: test
+          DATABASE_URL: ${{ secrets.TEST_DATABASE_URL || 'postgresql://test:test@localhost:5432/test' }}
+
+      - name: Check test coverage
+        run: npm run test:coverage
+        continue-on-error: true
+
+      - name: Build project
+        run: npm run build
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run npm audit
+        run: npm audit --audit-level=moderate
+        continue-on-error: true
+
+      - name: Check for outdated dependencies
+        run: npm outdated || true
+
+  deploy-staging:
+    runs-on: ubuntu-latest
+    needs: [test-and-lint]
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to staging
+        run: echo "Deploy to staging environment"
+        # Add actual deployment script here
+        # Example: ./deploy-staging.sh
+
+  deploy-production:
+    runs-on: ubuntu-latest
+    needs: [test-and-lint, security-scan]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install dependencies
+        run: npm ci --production
+
+      - name: Build for production
+        run: npm run build
+        env:
+          NODE_ENV: production
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Deploy to production
+        run: echo "Deploy to production environment"
+        # Add actual deployment script here
+        # Example: ./deploy-production.sh

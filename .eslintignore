@@ -1,0 +1,6 @@
+node_modules
+dist
+build
+archive_backup
+GRAVEYARD_DIG
+EXTRACTED_REPOS/*/dist
