@@ -1,4 +1,3 @@
-
 import { createServer, ServerResponse } from "http";
 import express, { type Request, Response, NextFunction, type Express } from "express";
 import cors from "cors";
@@ -92,6 +91,42 @@ app.set("trust proxy", 1);
 // Add request ID to all requests
 app.use(requestIdMiddleware);
 
+// CORS configuration (Railway + Squarespace ready)
+const defaultAllowedOrigins = [
+  "http://localhost:9002",
+  "http://localhost:5173",
+];
+
+const envAllowedOrigins = (process.env.CORS_ORIGIN || "")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+const allowedOrigins = Array.from(
+  new Set([
+    ...defaultAllowedOrigins,
+    ...envAllowedOrigins,
+    process.env.VITE_API_URL,
+  ].filter(Boolean))
+);
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    logger.warn(`⚠️ Blocked CORS request from: ${origin}`);
+    return callback(new Error("Not allowed by CORS"), false);
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+}));
+
 // Enterprise security headers
 app.use(securityHeaders);
 
@@ -104,32 +139,6 @@ app.use(sanitizeInput);
 // Apply rate limiting to different routes
 app.use('/api/auth', authRateLimit);
 app.use('/api/', apiRateLimit);
-
-// CORS Configuration
-const allowedOrigins = [
-  'http://localhost:9002',
-  'http://localhost:5173',
-  'https://app.mrf103.com',
-  'https://mrf103arc-namer-production-236c.up.railway.app',
-  process.env.VITE_API_URL,
-].filter(Boolean);
-
-app.use(cors({
-  origin: (origin, callback) => {
-    // Allow requests with no origin (mobile apps, Postman, etc)
-    if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      logger.warn(`⚠️ Blocked CORS request from: ${origin}`);
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-}));
 
 // Middleware to record HTTP metrics for Super AI System
 app.use((req, res, next) => {
@@ -289,6 +298,10 @@ app.use("/api/arc", arcRouter);
     },
   });
 
+  // Start the server
+  const PORT = process.env.PORT || 8080;
+  const HOST = '0.0.0.0'; // Bind to all network interfaces
+
   // Environment settings (Vite for preview)
   if (process.env.NODE_ENV === "development"){
     const { setupVite } = await import("./vite");
@@ -298,6 +311,13 @@ app.use("/api/arc", arcRouter);
     // So API routes are registered first
     serveStatic(app);
   }
+
+  httpServer.listen({ port: PORT, host: HOST }, () => {
+    logger.info(`✅ HTTP Server listening on http://${HOST}:${PORT}`);
+    logger.info(`✅ WebSocket server ready for upgrades`);
+    logger.info(`🔥 ARC Engine Initialized - Awaiting Operator Commands...`);
+    logger.info(`🔗 Environment: ${process.env.NODE_ENV || 'development'}`);
+  });
 
   // Sentry error handler (must be before any other error middleware)
   if (process.env.NODE_ENV === 'production' && process.env.SENTRY_DSN) {
@@ -310,14 +330,4 @@ app.use("/api/arc", arcRouter);
 
   // Enterprise error handler (should be last)
   app.use(globalErrorHandler);
-
-  // Use the PORT environment variable (Railway provides this automatically)
-  // Default to 8085 for Railway deployment
-  const port = process.env.PORT ? Number(process.env.PORT) : 8085;
-  const host = "0.0.0.0"; // Allow external access
-  
-  httpServer.listen(port, host, () => {
-    logger.info(`✅ Server is live and listening on ${host}:${port}`);
-    logger.info(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-  });
 })();

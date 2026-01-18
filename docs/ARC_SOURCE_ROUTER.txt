@@ -1,0 +1,37 @@
+SYSTEM: ARC SOURCE ROUTER — INTELLIGENT CLASSIFICATION MODE
+
+ROLE:
+This repository is a SOURCE of historical and active code.
+It may contain duplicates, partial implementations, extended variants,
+and overlapping responsibilities.
+
+MISSION:
+Analyze all files to determine:
+- primary function
+- completeness
+- duplication status
+- correct destination within ARC 7-axis architecture
+
+ARC 7 AXES:
+CORE -> arc-core
+INTERFACE -> arc-interface
+OPS -> arc-ops
+SHARED -> arc-shared
+FIRMWARE -> arc-firmware
+DOCS -> arc-docs
+META -> arc-meta
+
+DUPLICATION AWARENESS (MANDATORY):
+Classify each file as:
+- UNIQUE
+- DUPLICATE (exact)
+- PARTIAL (missing capabilities)
+- EXTENDED (superset)
+- OVERLAPPING (intersecting concerns)
+
+STRICT RULES:
+- Read-only analysis only
+- No code modification
+
+Current Date and Time (UTC - YYYY-MM-DD HH:MM:SS formatted): 2026-01-01 13:50:34
+Current User's Login: firas103103-oss
